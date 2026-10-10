@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+-<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1184,12 +1184,12 @@ select{background-image:none;}
     <div class="form-section">
       <div class="field">
         <label>Adresse email <span class="req">*</span></label>
-        <input type="email" placeholder="votre@email.fr" autocomplete="email"/>
+        <input type="email" id="fa-login-email" placeholder="votre@email.fr" autocomplete="email" onkeydown="if(event.key==='Enter')loginFA()"/>
       </div>
       <div class="field">
         <label>Mot de passe <span class="req">*</span></label>
         <div class="pwd-wrap">
-          <input type="password" placeholder="••••••••" autocomplete="current-password"/>
+          <input type="password" id="fa-login-pwd" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginFA()"/>
           <button type="button" class="pwd-toggle" onclick="togglePwd(this.previousElementSibling,this)">👁</button>
         </div>
       </div>
@@ -1197,7 +1197,7 @@ select{background-image:none;}
         <button style="background:none;border:none;font-size:12px;color:var(--corail);cursor:pointer;padding:0;" onclick="showToast('📧 Lien de réinitialisation envoyé')">Mot de passe oublié ?</button>
       </div>
       <div class="form-actions" style="margin-top:16px;">
-        <button class="btn btn-p co" style="width:100%;justify-content:center;background:var(--corail);" onclick="setButtonLoading(this,'Connexion...');setTimeout(()=>go('dashboard-fa'),1200)">Se connecter →</button>
+        <button class="btn btn-p co" style="width:100%;justify-content:center;background:var(--corail);" onclick="loginFA()">Se connecter →</button>
       </div>
     </div>
     <div style="text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
@@ -1727,7 +1727,92 @@ select{background-image:none;}
         </div>
         <div class="field" style="margin-top:13px"><label>Expérience FA requise <span class="req">*</span></label><div class="nvx"><button class="nvx-btn" onclick="N(this,'ns','exp')">🟢 Débutant ok</button><button class="nvx-btn" onclick="N(this,'nw','exp')">🟡 Expérience préférable</button><button class="nvx-btn" onclick="N(this,'nd','exp')">🔴 FA expérimentée obligatoire</button></div></div>
       </div>
+      
       <div class="form-section">
+        <div class="section-head"><div class="snum bl">7</div><div class="section-head-text"><h3>Besoins quotidiens</h3><p class="section-sub">Critères de matching avec la FA</p></div></div>
+        <div class="fg">
+          <label>Temps seul max toléré *<span class="hint">Au-delà, risque de détresse</span>
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="0_2">0 à 2h max</option>
+              <option value="2_4">2 à 4h max</option>
+              <option value="4_6">4 à 6h max</option>
+              <option value="6_8">6 à 8h max</option>
+              <option value="flexible">Flexible</option>
+            </select>
+          </label>
+          <label>Présence humaine constante requise ?
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="oui">Oui — ne doit pas être seul</option>
+              <option value="partiel">Partiellement</option>
+              <option value="non">Non</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Nombre de balades minimum / jour *
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="1">1 balade minimum</option>
+              <option value="2">2 balades minimum</option>
+              <option value="3_plus">3 balades ou plus</option>
+            </select>
+          </label>
+          <label>Niveau d'exercice requis *
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="faible">Faible — sorties courtes</option>
+              <option value="moyen">Moyen — 30-45 min/jour</option>
+              <option value="eleve">Élevé — 1h+ par jour</option>
+              <option value="tres_eleve">Très élevé — sport / forêt</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-head"><div class="snum bl">8</div><div class="section-head-text"><h3>Contraintes physiques & sécurité</h3></div></div>
+        <div class="fg">
+          <label>Escaliers impossibles ?
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="non">Non, pas de contrainte</option>
+              <option value="difficile">Difficile — à éviter</option>
+              <option value="impossible">Impossible</option>
+            </select>
+          </label>
+          <label>Hauteur de clôture minimale requise
+            <select>
+              <option value="">— Aucune exigence —</option>
+              <option value="1m">1m minimum</option>
+              <option value="1m50">1m50 minimum</option>
+              <option value="2m">2m minimum</option>
+              <option value="cloture_obligatoire">Clôture obligatoire (hauteur flexible)</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Peut sortir sans laisse ?
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="oui">Oui, rappel fiable</option>
+              <option value="enclos_seulement">En enclos clôturé uniquement</option>
+              <option value="non">Non — laisse obligatoire toujours</option>
+            </select>
+          </label>
+          <label>Véhicule FA requis ?<span class="hint">Transport vétérinaire, visites</span>
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="non">Non</option>
+              <option value="souhaitable">Souhaitable</option>
+              <option value="obligatoire">Obligatoire</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+<div class="form-section">
         <div class="section-head"><div class="snum vi">6</div><div class="section-head-text"><h3>Contexte & consignes</h3></div></div>
         <div class="field"><label>Histoire de l'animal</label><textarea placeholder="Ex : Trouvé errant, 3 mois en box, peu socialisé..."></textarea></div>
         <div class="field"><label>Consignes pour la FA <span class="req">*</span></label><textarea placeholder="Ex : Ne pas détacher hors clôture. Croquettes XXX 2x/jour..."></textarea></div>
@@ -3031,6 +3116,104 @@ Signature électronique validée par l'Association</div>
         <div class="field cond" id="fab"><label>Heures d'absence / jour</label><select><option>Moins de 4h</option><option>4–6h</option><option>6–8h</option><option>8–10h</option><option>Plus de 10h</option></select></div>
         <div class="field"><label>Disponible pour commencer</label><div class="tags"><span class="tag" onclick="E(this,'s','st')">Immédiatement</span><span class="tag" onclick="E(this,'s','st')">Dans 48h</span><span class="tag" onclick="E(this,'s','st')">Cette semaine</span><span class="tag" onclick="E(this,'s','st')">Ce mois-ci</span></div></div>
         <div class="field"><label>Durées d'accueil possibles</label><div class="tags"><span class="tag" onclick="T(this,'s')">Quelques jours</span><span class="tag" onclick="T(this,'s')">1–2 semaines</span><span class="tag" onclick="T(this,'s')">1–3 mois</span><span class="tag" onclick="T(this,'s')">Jusqu'à adoption</span></div></div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-head"><div class="snum co">4</div><div class="section-head-text"><h3>Logement — détails</h3></div></div>
+        <div class="fg">
+          <label>Hauteur de clôture<span class="hint">Si jardin ou extérieur</span>
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="aucune">Pas de clôture</option>
+              <option value="moins1m">Moins de 1m</option>
+              <option value="1m">1m environ</option>
+              <option value="1m50">1m50</option>
+              <option value="2m_plus">2m ou plus</option>
+            </select>
+          </label>
+          <label>Escaliers dans le logement ?
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="non">Non</option>
+              <option value="oui_peu">Oui — quelques marches</option>
+              <option value="oui_etage">Oui — accès à un étage</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Étage sans ascenseur ?
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="non">Non / RDC</option>
+              <option value="1_2">1er ou 2ème étage</option>
+              <option value="3_plus">3ème étage ou plus</option>
+            </select>
+          </label>
+          <label>Véhicule disponible ?<span class="hint">Pour urgences vétérinaires</span>
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="oui">Oui, toujours</option>
+              <option value="parfois">Parfois</option>
+              <option value="non">Non</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-head"><div class="snum co">5</div><div class="section-head-text"><h3>Quotidien avec l'animal</h3></div></div>
+        <div class="fg">
+          <label>Heures seul par jour (réel) *<span class="hint">Soyez honnête — c'est clé pour le matching</span>
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="0_2">0 à 2h</option>
+              <option value="2_4">2 à 4h</option>
+              <option value="4_6">4 à 6h</option>
+              <option value="6_8">6 à 8h</option>
+              <option value="8_10">8 à 10h</option>
+              <option value="10_plus">Plus de 10h</option>
+            </select>
+          </label>
+          <label>Quelqu'un à la maison en journée ?
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="oui_toujours">Oui, toujours</option>
+              <option value="oui_parfois">Oui, parfois</option>
+              <option value="non">Non</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Nombre de balades par jour *
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="1">1 balade</option>
+              <option value="2">2 balades</option>
+              <option value="3_plus">3 balades ou plus</option>
+            </select>
+          </label>
+          <label>Durée moyenne d'une balade *
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="moins15">Moins de 15 min</option>
+              <option value="15_30">15 à 30 min</option>
+              <option value="30_60">30 min à 1h</option>
+              <option value="1h_plus">Plus d'1h</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Lieux de promenade principaux *
+            <select>
+              <option value="">— Sélectionner —</option>
+              <option value="jardin_seul">Jardin uniquement</option>
+              <option value="quartier_laisse">Quartier en laisse</option>
+              <option value="parc_laisse">Parc en laisse</option>
+              <option value="foret_laisse">Forêt / nature en laisse</option>
+              <option value="foret_libre">Forêt / nature sans laisse</option>
+            </select>
+          </label>
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn btn-s" onclick="go('landing')">Annuler</button>
@@ -5648,6 +5831,83 @@ Signature électronique validée par l'Association</div>
 <div class="toast" id="toast"><span id="toast-msg">Action effectuée</span></div>
 
 <script>
+// ── API & SESSION ──────────────────────────────────────────────────────────
+const API_URL = 'https://petia-backend.onrender.com';
+let sessionFA = null;      // { token, famille: { prenom, nom, ville, ... } }
+let sessionRef = null;     // { token, refuge: { nom, ... } }
+
+// Connexion famille d'accueil
+async function loginFA() {
+  const btn = document.querySelector('#login-fa .btn.btn-p');
+  const emailInput = document.getElementById('fa-login-email');
+  const pwdInput   = document.getElementById('fa-login-pwd');
+  const email = emailInput?.value?.trim();
+  const pwd   = pwdInput?.value;
+
+  if (!email || !pwd) { showToast('⚠ Remplissez votre email et mot de passe'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('⚠ Format d\'email invalide'); return; }
+
+  setButtonLoading(btn, 'Connexion...');
+  try {
+    const res = await fetch(`${API_URL}/api/auth/login-fa`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      resetButton(btn);
+      showToast(data.message || '⚠ Email ou mot de passe incorrect');
+      return;
+    }
+    // Stockage session
+    sessionFA = { token: data.token, famille: data.famille };
+    sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA));
+    // Effacer le formulaire
+    if (emailInput) emailInput.value = '';
+    if (pwdInput)   pwdInput.value   = '';
+    resetButton(btn);
+    populateDashboardFA(data.famille);
+    go('dashboard-fa');
+  } catch(err) {
+    resetButton(btn);
+    showToast('⚠ Impossible de joindre le serveur — réessayez');
+    console.error('loginFA error:', err);
+  }
+}
+
+// Remplir le dashboard FA avec les vraies données
+function populateDashboardFA(fa) {
+  if (!fa) return;
+  const prenom = fa.prenom || 'Famille';
+  const ville  = fa.ville  || '—';
+  const logement = fa.type_logement === 'maison' ? 'Maison' : fa.type_logement === 'appartement' ? 'Appartement' : '—';
+  const jardin = fa.jardin ? ' avec jardin' : '';
+  const dispo  = fa.disponible_le === 'maintenant' ? 'Disponible' : fa.disponible_le === 'cette_semaine' ? 'Disponible cette semaine' : 'Indisponible';
+
+  // Ligne d'accueil
+  const greet = document.querySelector('#dashboard-fa .fa-dash-header div[style*="font-size:16px"]');
+  if (greet) greet.textContent = `Bonjour ${prenom} 👋`;
+
+  // Sous-ligne ville / logement / dispo
+  const sub = document.querySelector('#dashboard-fa .fa-dash-header div[style*="font-size:12px"]');
+  if (sub) sub.textContent = `${ville} · ${logement}${jardin} · ${dispo}`;
+
+  // Badge statut
+  const statutEl = document.querySelector('#dashboard-fa .fa-dash-header .pv-badge');
+  // (conserve le badge tel quel — il viendra de fa.statut_dossier plus tard)
+}
+
+// Restaurer session au rechargement
+function restoreSession() {
+  try {
+    const raw = sessionStorage.getItem('petia_fa');
+    if (raw) { sessionFA = JSON.parse(raw); }
+  } catch(e) { /* ignore */ }
+}
+restoreSession();
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
 const PAGES=['landing','login-fourriere','login-fa','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','success-page','proposition-accueil','lecture-contrat','confirmation-signature','admin-petia','previsite','notation','evincement','dashboard-fa','contact','modifier-donnees'];
 const IN_SHELL=['login-fourriere','login-fa','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','proposition-accueil','lecture-contrat','confirmation-signature','admin-petia','previsite','notation','evincement','dashboard-fa','contact','modifier-donnees'];
 const BADGES={'login-fourriere':'Connexion refuge','login-fa':'Connexion famille d\'accueil','fourriere-inscription':'Inscription refuge','dashboard-fourriere':'Espace refuge','ajouter-animal':'Saisie animal','annuaire-familles':'Annuaire FA','conditions-accueil':"Conditions d'accueil",'contrat-fa':'Contrat FA','famille-compte':"Inscription FA",'questionnaire-fa':'Questionnaire FA','proposition-accueil':"Proposition d'accueil",'lecture-contrat':'Lecture du contrat','confirmation-signature':'Signature validée','admin-petia':'Admin PetIA','previsite':'Prévisites','notation':'Évaluation','evincement':'Gestion des FA','dashboard-fa':'Mon espace FA','contact':'Contact & réclamations','modifier-donnees':'Modifier mes informations'};
