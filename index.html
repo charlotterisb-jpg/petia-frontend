@@ -7671,14 +7671,6 @@ function condTab(btn, tabId) {
 }
 
 
-  document.querySelectorAll('.cond-tab').forEach(t => t.classList.remove('on'));
-  btn.classList.add('on');
-  ['tab-financier','tab-regles','tab-preview','tab-otp'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-  const target = document.getElementById(tabId);
-  if (target) target.style.display = 'block';
 function setResp(groupId, btn, cls) {
   const group = document.getElementById(groupId);
   group.querySelectorAll('.resp-btn').forEach(b => b.classList.remove('on-asso','on-fa','on-partage'));
@@ -8233,8 +8225,16 @@ async function submitAnimal() {
   if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
 
   try {
-    const token = localStorage.getItem('petia_token');
-    if (!token) { go('login-fourriere'); return; }
+    let token = sessionRef?.token;
+    if (!token) {
+      try { token = JSON.parse(sessionStorage.getItem('petia_ref') || 'null')?.token; } catch (_) {}
+    }
+    if (!token) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer & lancer le matching →'; }
+      showToast('⚠ Session expirée, reconnectez-vous.');
+      go('login-fourriere');
+      return;
+    }
 
     const res = await fetch('https://petia-backend.onrender.com/api/animal', {
       method: 'POST',
