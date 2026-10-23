@@ -5012,6 +5012,7 @@ function go(id){
   closeMobileNav();
   window.scrollTo(0,0);
   if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
+  if(id==='dashboard-fourriere' && typeof majBandeauValidationRefuge==='function') majBandeauValidationRefuge();
   if(id==='dashboard-fourriere' && typeof majStatutMFA==='function') majStatutMFA('ref');
   if(id==='dashboard-fa' && typeof majStatutMFA==='function') majStatutMFA('fa');
   if(id==='dashboard-fa' && typeof chargerEspaceFA==='function') chargerEspaceFA();
@@ -6017,6 +6018,8 @@ async function validerFourriere() {
   if (cp && !validateRequired(cp, 'Le code postal')) { errors.push('Code postal manquant'); ok = false; }
   if (ville && !validateRequired(ville, 'La ville')) { errors.push('Ville manquante'); ok = false; }
   if (!validatePassword('fourriere')) { errors.push('Mot de passe invalide'); ok = false; }
+  const siretBrut = (document.querySelector('#fourriere-inscription input[placeholder="XXX XXX XXX XXXXX"]')?.value || '').replace(/\s/g, '');
+  if (siretBrut && !siretValideFront(siretBrut)) { errors.push('SIRET invalide (14 chiffres, vérifiez la saisie)'); ok = false; }
 
   showErrorBanner('err-fourriere', 'err-fourriere-list', errors);
 
@@ -6036,16 +6039,16 @@ async function validerFourriere() {
           adresse: adresse?.value?.trim(),
           code_postal: cp?.value?.trim(),
           ville: ville?.value?.trim(),
-          departement: cp?.value?.trim().substring(0,2)
+          departement: cp?.value?.trim().substring(0,2),
+          ...infosInscriptionRefuge(siretBrut)
         })
       });
       const data = await res.json();
       resetButton(btn);
       if (!res.ok) { showToast(data.message || '⚠ Erreur lors de l\'inscription'); return; }
-      sessionRef = { token: data.token, refuge: data.refuge };
-      sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef));
-      go('dashboard-fourriere');
-      setTimeout(() => dashView('v-config', document.getElementById('sb-config')), 50);
+      // Pas de session à l'inscription : la structure doit d'abord être validée, l'accès se fait par la connexion
+      go('login-fourriere');
+      showToast('✅ Compte créé ! Votre structure sera examinée par l\'équipe PetIA. Connectez-vous pour préparer votre espace.');
     } catch(e) {
       resetButton(btn);
       showToast('⚠ Impossible de joindre le serveur');
@@ -8041,6 +8044,46 @@ async function terminerAccueil(matchId, btn) {
   if (!issue) return showToast('⚠ Choisissez l\'issue de l\'accueil.');
   const d = await actionAccueil(matchId, 'fin', { issue, date_fin: document.getElementById('fin-date-' + matchId)?.value }, btn);
   if (d) showToast({ adopte: '🎉 Accueil terminé : adopté !', retour: '↩ Accueil terminé : retour au refuge, le matching est relancé.', transfere: '🔁 Accueil terminé : transféré.' }[issue]);
+}
+
+// ── Inscription refuge : champs complémentaires + contrôle SIRET (Luhn)
+function siretValideFront(s) {
+  if (!/^\d{14}$/.test(s)) return false;
+  if (s.startsWith('356000000')) return s.split('').reduce((t, c) => t + Number(c), 0) % 5 === 0;
+  let t = 0;
+  for (let i = 0; i < 14; i++) { let c = Number(s[13 - i]); if (i % 2) { c *= 2; if (c > 9) c -= 9; } t += c; }
+  return t % 10 === 0;
+}
+function infosInscriptionRefuge(siret) {
+  const P = 'fourriere-inscription';
+  const champ = (debut) => champParLibelle(P, debut)?.querySelector('input, select');
+  const ESP = { '🐕 Chiens': 'chien', '🐈 Chats': 'chat', '🐇 Lapins': 'lapin', '🐦 Oiseaux': 'oiseau', '🐹 Rongeurs': 'rongeur' };
+  const DELAI = { 'Moins de 24h': 'moins_24h', '24 à 48h': '24_48h', '2 à 5 jours': '2_5_jours', "Plus d'une semaine": 'plus_semaine' };
+  return {
+    siret: siret || undefined,
+    type_structure: champ('Type')?.value || undefined,
+    contact: champ('Prénom & Nom')?.value?.trim() || undefined,
+    contact_fonction: champ('Fonction')?.value?.trim() || undefined,
+    capacite_mois: champ('Animaux / mois')?.value || undefined,
+    rayon_km: champ('Rayon de recherche')?.value || undefined,
+    delai_urgence: DELAI[champ('Délai d')?.value] || undefined,
+    especes: tagsChoisis(P, 'Espèces accueillies').map(t => ESP[t]).filter(Boolean)
+  };
+}
+
+// ── Bandeau « structure en cours de validation »
+function majBandeauValidationRefuge() {
+  const ref = getRefSession();
+  let el = document.getElementById('ref-validation-bandeau');
+  const statut = ref?.refuge?.statut;
+  if (!el) {
+    const cible = document.getElementById('v-animaux'); if (!cible) return;
+    el = document.createElement('div'); el.id = 'ref-validation-bandeau';
+    el.style.cssText = 'background:var(--warning-bg);border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.6;';
+    cible.insertBefore(el, cible.firstChild);
+  }
+  el.style.display = statut === 'en_attente' ? '' : 'none';
+  el.innerHTML = '⏳ <b style="color:var(--text)">Votre structure est en cours de validation par l\'équipe PetIA.</b> En attendant, vous pouvez configurer votre espace. La publication d\'animaux sera possible dès la validation.';
 }
 </script>
 </body>
