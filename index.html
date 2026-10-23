@@ -1730,9 +1730,10 @@ select{background-image:none;}
       <div class="form-section">
         <div class="section-head"><div class="snum bl">1</div><div class="section-head-text"><h3>Identité</h3></div></div>
         <div class="fg"><div class="field"><label>Nom <span class="req">*</span></label><input id="an-nom" type="text" placeholder="Rox"/></div><div class="field"><label>Puce / tatouage</label><input id="an-puce" type="text" placeholder="250268700000000"/></div></div>
-        <div class="fg"><div class="field"><label>Race / Type <span class="req">*</span></label><input id="an-race" type="text" placeholder="Labrador, Malinois, Croisé..."/></div><div class="field"><label>Espèce <span class="req">*</span></label><select id="an-espece"><option>Chien</option><option>Chat</option><option>Lapin</option><option>Autre</option></select></div></div>
+        <div class="fg"><div class="field"><label>Race / Type <span class="req">*</span></label><input id="an-race" type="text" placeholder="Labrador, Malinois, Croisé..."/></div><div class="field"><label>Espèce <span class="req">*</span></label><select id="an-espece" onchange="appliquerEspeceAnimal()"><option value="">— Sélectionner —</option><option value="chien">Chien</option><option value="chat">Chat</option><option value="nac">NAC (lapin, rongeur, furet, oiseau, reptile…)</option></select>
+            <select id="an-sous-espece" style="display:none;margin-top:8px" aria-label="Précisez l'espèce"><option value="">— Précisez —</option><option value="lapin">Lapin</option><option value="cobaye">Cochon d'Inde</option><option value="rat">Rat</option><option value="souris">Souris</option><option value="hamster">Hamster</option><option value="chinchilla">Chinchilla</option><option value="furet">Furet</option><option value="oiseau">Oiseau</option><option value="tortue">Tortue</option><option value="reptile">Reptile (autre)</option><option value="autre_nac">Autre NAC</option></select></div></div>
         <div class="fg">
-          <div class="field"><label>Âge estimé <span class="req">*</span></label><select id="an-age"><option>Chiot (0–6 mois)</option><option>Jeune (6 mois–2 ans)</option><option>Adulte (2–7 ans)</option><option>Senior (7–10 ans)</option><option>Très âgé (10+)</option></select></div>
+          <div class="field"><label>Âge estimé <span class="req">*</span></label><div style="display:flex;gap:8px"><input id="an-age-annees" type="number" min="0" max="40" inputmode="numeric" placeholder="Années"/><input id="an-age-mois" type="number" min="0" max="11" inputmode="numeric" placeholder="Mois"/></div></div>
           <div class="field"><label>Sexe <span class="req">*</span></label><div class="tags" style="margin-top:6px"><span class="tag" onclick="E(this,'s','sexe')">Mâle</span><span class="tag" onclick="E(this,'s','sexe')">Femelle</span></div></div>
         </div>
         <div class="fg">
@@ -1792,6 +1793,94 @@ select{background-image:none;}
         <div class="field" style="margin-top:13px"><label>Expérience FA requise <span class="req">*</span></label><div class="nvx"><button class="nvx-btn" onclick="N(this,'ns','exp')">🟢 Débutant ok</button><button class="nvx-btn" onclick="N(this,'nw','exp')">🟡 Expérience préférable</button><button class="nvx-btn" onclick="N(this,'nd','exp')">🔴 FA expérimentée obligatoire</button></div></div>
       </div>
       
+      <div class="form-section" id="an-section-chat" style="display:none">
+        <div class="section-head"><div class="snum co">🐈</div><div class="section-head-text"><h3>Spécificités chat</h3><p>Croisé avec le logement et les refus des familles.</p></div></div>
+        <div class="fg">
+          <label>Accès extérieur
+            <select id="an-chat-exterieur">
+              <option value="">— Sélectionner —</option>
+              <option value="interieur_strict">Intérieur uniquement (ne doit pas sortir)</option>
+              <option value="balcon_securise">Intérieur + fenêtres / balcon sécurisés obligatoires</option>
+              <option value="exterieur_requis">A besoin d'un accès extérieur</option>
+              <option value="indifferent">Indifférent</option>
+            </select>
+          </label>
+          <label>Tests FIV / FeLV
+            <select id="an-chat-tests">
+              <option value="">— Sélectionner —</option>
+              <option value="negatif">Négatif</option>
+              <option value="fiv">FIV positif</option>
+              <option value="felv">FeLV positif</option>
+              <option value="non_teste">Non testé</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Vie avec d'autres chats
+            <select id="an-chat-congenere">
+              <option value="">— Sélectionner —</option>
+              <option value="oui">Doit vivre avec un autre chat</option>
+              <option value="prefere">Préférable</option>
+              <option value="seul">Doit être le seul chat</option>
+              <option value="indifferent">Indifférent</option>
+            </select>
+          </label>
+          <label>Chaton à nourrir au biberon ?
+            <select id="an-chat-biberon">
+              <option value="">— Sélectionner —</option>
+              <option value="non">Non</option>
+              <option value="oui">Oui — biberons de jour comme de nuit</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section" id="an-section-nac" style="display:none">
+        <div class="section-head"><div class="snum co">🐇</div><div class="section-head-text"><h3>Spécificités NAC</h3><p>Installations et besoins propres à l'espèce.</p></div></div>
+        <div class="fg">
+          <label>Vie en groupe
+            <select id="an-nac-groupe">
+              <option value="">— Sélectionner —</option>
+              <option value="obligatoire">Doit vivre avec un congénère (espèce sociale)</option>
+              <option value="prefere">Congénère préférable</option>
+              <option value="seul">Doit vivre seul</option>
+              <option value="indifferent">Indifférent</option>
+            </select>
+          </label>
+          <label>Installation nécessaire
+            <select id="an-nac-installation">
+              <option value="">— Sélectionner —</option>
+              <option value="cage">Cage / petit enclos intérieur</option>
+              <option value="grand_enclos">Grand enclos intérieur ou pièce dédiée</option>
+              <option value="enclos_exterieur">Enclos extérieur sécurisé</option>
+              <option value="terrarium">Terrarium</option>
+              <option value="voliere">Volière</option>
+              <option value="liberte">Liberté surveillée dans le logement</option>
+            </select>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Sorties hors de l'installation
+            <select id="an-nac-sortie">
+              <option value="">— Sélectionner —</option>
+              <option value="quotidienne">Sortie quotidienne nécessaire</option>
+              <option value="occasionnelle">Occasionnelle</option>
+              <option value="non">Non</option>
+            </select>
+          </label>
+          <label>Manipulation
+            <select id="an-nac-manipulation">
+              <option value="">— Sélectionner —</option>
+              <option value="facile">Se laisse manipuler</option>
+              <option value="precautions">Avec précautions</option>
+              <option value="difficile">Difficile / mord</option>
+            </select>
+          </label>
+        </div>
+        <div class="field"><label>Dimensions minimales de l'installation</label><input id="an-nac-dimensions" type="text" placeholder="Ex : 2 m² au sol minimum, 60 cm de haut"/></div>
+        <div class="field"><label>Alimentation et soins spécifiques</label><textarea id="an-nac-alimentation" placeholder="Ex : foin à volonté, légumes frais, vitamine C (cochon d'Inde), lampe UV (reptile)…"></textarea></div>
+      </div>
+
       <div class="form-section">
         <div class="section-head"><div class="snum bl">7</div><div class="section-head-text"><h3>Besoins quotidiens</h3><p class="section-sub">Critères de matching avec la FA</p></div></div>
         <div class="fg">
@@ -3255,7 +3344,7 @@ Signature électronique validée par l'Association</div>
           </label>
         </div>
         <div class="fg">
-          <label>Nombre de balades par jour *
+          <label>Nombre de balades par jour (si vous accueillez des chiens)
             <select id="fc-balades">
               <option value="">— Sélectionner —</option>
               <option value="1">1 balade</option>
@@ -3263,7 +3352,7 @@ Signature électronique validée par l'Association</div>
               <option value="3_plus">3 balades ou plus</option>
             </select>
           </label>
-          <label>Durée moyenne d'une balade *
+          <label>Durée moyenne d'une balade (chiens)
             <select id="fc-duree-balade">
               <option value="">— Sélectionner —</option>
               <option value="moins15">Moins de 15 min</option>
@@ -3274,7 +3363,7 @@ Signature électronique validée par l'Association</div>
           </label>
         </div>
         <div class="fg">
-          <label>Lieux de promenade principaux *
+          <label>Lieux de promenade principaux (chiens)
             <select id="fc-lieux">
               <option value="">— Sélectionner —</option>
               <option value="jardin_seul">Jardin uniquement</option>
@@ -3301,16 +3390,21 @@ Signature électronique validée par l'Association</div>
       <p class="page-sub">Répondez sincèrement et précisément. Pas de bonne ou mauvaise réponse — nous cherchons votre réaction réelle.</p>
       <div class="warn-hint"><span>⏱</span><span>Ce questionnaire est volontairement long et exigeant. Il filtre naturellement les candidatures impulsives.</span></div>
 
-      <div class="form-section">
+      <div class="form-section" id="q-section-especes">
+<div class="section-head"><div class="snum co">0</div><div class="section-head-text"><h3>Quels animaux pouvez-vous accueillir ?</h3><p>Le questionnaire s'adapte à vos choix. Vous ne recevrez que des propositions pour ces animaux.</p></div></div>
+<div class="field"><label>Je peux accueillir <span class="req">*</span></label><div class="tags" id="q-especes"><span class="tag" data-v="chien" onclick="T(this,'s');appliquerEspecesFA()">🐕 Chiens</span><span class="tag" data-v="chat" onclick="T(this,'s');appliquerEspecesFA()">🐈 Chats</span><span class="tag" data-v="nac" onclick="T(this,'s');appliquerEspecesFA()">🐇 NAC (lapins, rongeurs, furets, oiseaux, reptiles…)</span></div></div>
+<div class="field" style="color:var(--text3);font-size:12px">🐴 Chevaux, poneys, ânes et animaux de ferme : bientôt disponibles.</div>
+</div>
+<div class="form-section">
         <div class="section-head"><div class="snum bl">A</div><div class="section-head-text"><h3>Motivation & réalisme</h3><p>Filtre principal. L'IA analyse la précision et la cohérence de vos réponses.</p></div></div>
         <div class="ia-hint"><span>✦</span>Les formulations vagues réduisent automatiquement le score de compatibilité.</div>
         <div class="field"><label>Pourquoi souhaitez-vous devenir FA ? <span class="req">*</span></label><textarea id="q-motivation" placeholder="Soyez précis(e) sur ce qui vous a amené(e) à cette décision..."></textarea></div>
         <div class="field"><label>Êtes-vous prêt(e) à vous attacher puis à laisser partir ? <span class="req">*</span></label><textarea id="q-attachement" placeholder="Comment vivrez-vous ce moment ?"></textarea></div>
-        <div class="field"><label>Que ferez-vous si le chien reste plusieurs mois ? <span class="req">*</span></label><textarea id="q-duree-longue" placeholder="Organisation, limites, position sur une possible adoption..."></textarea></div>
+        <div class="field"><label>Que ferez-vous si l'animal reste plusieurs mois ? <span class="req">*</span></label><textarea id="q-duree-longue" placeholder="Organisation, limites, position sur une possible adoption..."></textarea></div>
       </div>
 
-      <div class="form-section">
-        <div class="section-head"><div class="snum bl">B</div><div class="section-head-text"><h3>Expérience & compétences</h3><p>Réalisme, pas perfection.</p></div></div>
+      <div class="form-section" id="q-section-chien-exp">
+        <div class="section-head"><div class="snum bl">B</div><div class="section-head-text"><h3>🐕 Chiens — expérience & compétences</h3><p>Réalisme, pas perfection.</p></div></div>
         <div class="field"><label>Avez-vous déjà eu un chien ? <span class="req">*</span></label><div class="tags"><span class="tag" onclick="E(this,'s','exp1')">Non</span><span class="tag" onclick="E(this,'s','exp1')">Oui, enfance</span><span class="tag" onclick="E(this,'s','exp1')">Oui, récemment</span><span class="tag" onclick="E(this,'s','exp1')">Oui, j'en ai</span></div></div>
         <div class="field"><label>Avez-vous géré…</label><div class="checks">
           <div class="chk" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chiot (0–6 mois)</span></div>
@@ -3323,9 +3417,9 @@ Signature électronique validée par l'Association</div>
         <div class="field"><label>Que feriez-vous si le chien grogne sur vous ? <span class="req">*</span></label><textarea id="q-b-grogne" placeholder="Étapes que vous suivriez..."></textarea></div>
       </div>
 
-      <div class="form-section">
-        <div class="section-head"><div class="snum co">C</div><div class="section-head-text"><h3>Vos limites & refus</h3><p>Filtres absolus — cochez sans hésiter.</p></div></div>
-        <div class="ia-hint"><span>✦</span>Aucun animal ne vous sera proposé s'il correspond à un critère coché ci-dessous.</div>
+      <div class="form-section" id="q-section-chien-refus">
+        <div class="section-head"><div class="snum co">C</div><div class="section-head-text"><h3>🐕 Chiens — vos limites & refus</h3><p>Filtres absolus — cochez sans hésiter.</p></div></div>
+        <div class="ia-hint"><span>✦</span>Aucun chien ne vous sera proposé s'il correspond à un critère coché ci-dessous.</div>
         <div class="field"><div class="checks">
           <div class="chk" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Grand chien (&gt;25 kg)</span></div>
           <div class="chk" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chien très énergique</span></div>
@@ -3339,8 +3433,8 @@ Signature électronique validée par l'Association</div>
         </div></div>
       </div>
 
-      <div class="form-section">
-        <div class="section-head"><div class="snum co">G</div><div class="section-head-text"><h3>Mises en situation</h3><p>Répondez spontanément. Pas de réponse parfaite.</p></div></div>
+      <div class="form-section" id="q-section-chien-sit">
+        <div class="section-head"><div class="snum co">G</div><div class="section-head-text"><h3>🐕 Chiens — mises en situation</h3><p>Répondez spontanément. Pas de réponse parfaite.</p></div></div>
         <div class="ia-hint"><span>✦</span>L'IA détecte les incohérences entre vos réponses et votre profil déclaré.</div>
 
         <div class="sit-card"><div class="sit-num">📍 Situation 1 · Premières nuits</div><div class="sit-title">Le chien pleure toute la nuit</div><div class="sit-scene">Il pleure, gratte à votre porte, vous empêche de dormir depuis 2h. Vous travaillez demain.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous ? Étape par étape. <span class="req">*</span></label><textarea id="q-sit-nuits" placeholder="Décrivez vos actions précises..."></textarea></div></div>
@@ -3360,10 +3454,27 @@ Signature électronique validée par l'Association</div>
         <div class="sit-card"><div class="sit-num">📍 Situation 8 · Découragement</div><div class="sit-title">Au bout de 2 semaines, vous êtes épuisé(e)</div><div class="sit-scene">Aboiements, mauvais sommeil depuis 12 jours, pas de famille adoptante en vue.</div><div class="field" style="margin-bottom:0"><label>Continuez-vous ? Comment ? <span class="req">*</span></label><textarea id="q-sit-decouragement" placeholder="Soyez honnête sur votre seuil..."></textarea></div></div>
       </div>
 
-      <div class="form-section">
+      <div class="form-section" id="q-section-chat" style="display:none">
+<div class="section-head"><div class="snum co">🐈</div><div class="section-head-text"><h3>Chats</h3><p>Expérience, logement et limites pour accueillir un chat.</p></div></div>
+<div class="field"><label>Avez-vous déjà eu un chat ? <span class="req">*</span></label><div class="tags"><span class="tag" data-v="jamais" onclick="E(this,'s','expchat')">Non</span><span class="tag" data-v="enfance" onclick="E(this,'s','expchat')">Oui, enfance</span><span class="tag" data-v="1_2_ans" onclick="E(this,'s','expchat')">Oui, récemment</span><span class="tag" data-v="3_5_ans" onclick="E(this,'s','expchat')">Oui, j'en ai</span></div></div>
+<div class="field"><label>Fenêtres et balcon sécurisés (filets, grilles) ?</label><div class="tags"><span class="tag" data-v="oui" onclick="E(this,'s','chatsecu')">Oui</span><span class="tag" data-v="installable" onclick="E(this,'s','chatsecu')">Je peux les installer</span><span class="tag" data-v="non" onclick="E(this,'s','chatsecu')">Non</span></div></div>
+<div class="field"><label>Un chat pourra-t-il sortir dehors en sécurité ?</label><div class="tags"><span class="tag" data-v="oui" onclick="E(this,'s','chatext')">Oui, environnement sûr</span><span class="tag" data-v="non" onclick="E(this,'s','chatext')">Non</span></div></div>
+<div class="field"><label>Avez-vous géré…</label><div class="checks" id="q-chat-gerees"><div class="chk" data-v="biberon" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chaton au biberon</span></div><div class="chk" data-v="craintif" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chat craintif ou sauvage</span></div><div class="chk" data-v="fiv" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chat FIV+ ou FeLV+</span></div><div class="chk" data-v="age_malade" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chat âgé ou malade</span></div><div class="chk" data-v="malpropre" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chat malpropre</span></div></div></div>
+<div class="field"><label>Vos limites — aucun chat ne vous sera proposé s'il correspond à un critère coché</label><div class="checks" id="q-chat-refus"><div class="chk" data-v="biberon" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chaton à nourrir au biberon</span></div><div class="chk" data-v="age" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chat âgé (&gt;12 ans)</span></div><div class="chk" data-v="fiv" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chat FIV+ ou FeLV+</span></div><div class="chk" data-v="craintif" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chat craintif ou sauvage</span></div><div class="chk" data-v="malpropre" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chat malpropre</span></div><div class="chk" data-v="exterieur" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Chat ayant besoin de sortir dehors</span></div></div></div>
+<div class="sit-card"><div class="sit-num">📍 Chat · Litière</div><div class="sit-title">Il n'utilise plus sa litière depuis 3 jours</div><div class="sit-scene">Il fait ses besoins sur le tapis du salon.</div><div class="field"><label>Que faites-vous ?</label><textarea id="q-chat-sit-litiere" placeholder="Causes possibles, actions, qui contactez-vous…"></textarea></div></div><div class="sit-card"><div class="sit-num">📍 Chat · Adaptation</div><div class="sit-title">Il se cache sous le lit depuis 4 jours</div><div class="sit-scene">Il mange très peu et ne sort que la nuit.</div><div class="field"><label>Que faites-vous ?</label><textarea id="q-chat-sit-cache" placeholder="Ce que vous faites, ce que vous évitez…"></textarea></div></div>
+</div>
+<div class="form-section" id="q-section-nac" style="display:none">
+<div class="section-head"><div class="snum co">🐇</div><div class="section-head-text"><h3>NAC</h3><p>Chaque espèce a des besoins très particuliers.</p></div></div>
+<div class="field"><label>Quels NAC pouvez-vous accueillir ? <span class="req">*</span></label><div class="tags" id="q-nac-especes"><span class="tag" data-v="lapin" onclick="T(this,'s')">Lapin</span><span class="tag" data-v="cobaye" onclick="T(this,'s')">Cochon d'Inde</span><span class="tag" data-v="rat" onclick="T(this,'s')">Rat</span><span class="tag" data-v="souris" onclick="T(this,'s')">Souris</span><span class="tag" data-v="hamster" onclick="T(this,'s')">Hamster</span><span class="tag" data-v="chinchilla" onclick="T(this,'s')">Chinchilla</span><span class="tag" data-v="furet" onclick="T(this,'s')">Furet</span><span class="tag" data-v="oiseau" onclick="T(this,'s')">Oiseau</span><span class="tag" data-v="tortue" onclick="T(this,'s')">Tortue</span><span class="tag" data-v="reptile" onclick="T(this,'s')">Reptile (autre)</span><span class="tag" data-v="autre_nac" onclick="T(this,'s')">Autre NAC</span></div></div>
+<div class="field"><label>Votre expérience avec les NAC <span class="req">*</span></label><div class="tags"><span class="tag" data-v="aucune" onclick="E(this,'s','expnac')">Aucune</span><span class="tag" data-v="debutant" onclick="E(this,'s','expnac')">Quelques-unes</span><span class="tag" data-v="confirme" onclick="E(this,'s','expnac')">Confirmée (j'en ai ou en ai eu plusieurs)</span></div></div>
+<div class="field"><label>Installations dont vous disposez</label><div class="checks" id="q-nac-install"><div class="chk" data-v="cage" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Cage / petit enclos intérieur</span></div><div class="chk" data-v="grand_enclos" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Grand enclos intérieur ou pièce dédiée</span></div><div class="chk" data-v="enclos_exterieur" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Enclos extérieur sécurisé</span></div><div class="chk" data-v="terrarium" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Terrarium</span></div><div class="chk" data-v="voliere" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Volière</span></div><div class="chk" data-v="liberte" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Espace de liberté surveillée</span></div></div></div>
+<div class="field"><label>Pouvez-vous accueillir plusieurs individus ensemble ?</label><div class="ia-hint" style="margin:6px 0"><span>✦</span>Lapins, cochons d'Inde, rats et chinchillas sont des espèces sociales : ils vivent mal seuls.</div><div class="tags"><span class="tag" data-v="oui" onclick="E(this,'s','nacgroupe')">Oui</span><span class="tag" data-v="non" onclick="E(this,'s','nacgroupe')">Non</span></div></div>
+<div class="sit-card"><div class="sit-num">📍 NAC · Urgence</div><div class="sit-title">Votre lapin ne mange plus depuis 12 h</div><div class="sit-scene">Il reste prostré et n'a pas fait de crottes depuis le matin.</div><div class="field"><label>Que faites-vous ?</label><textarea id="q-nac-sit-urgence" placeholder="Gravité selon vous, actions, délai…"></textarea></div></div><div class="sit-card"><div class="sit-num">📍 NAC · Cohabitation</div><div class="sit-title">Votre chat passe ses journées devant la cage</div><div class="sit-scene">Il fixe le cochon d'Inde et tape sur les barreaux.</div><div class="field"><label>Que faites-vous ?</label><textarea id="q-nac-sit-predateur" placeholder="Risques, aménagements…"></textarea></div></div>
+</div>
+<div class="form-section">
         <div class="section-head"><div class="snum vi">H</div><div class="section-head-text"><h3>La question de sincérité</h3><p>Conçue pour décourager les candidatures impulsives.</p></div></div>
         <div class="warn-hint"><span>⚠️</span><span>Si vous hésitez, c'est peut-être le signe que vous n'êtes pas encore prêt(e). Et c'est tout à fait normal.</span></div>
-        <div class="field"><label>Pleurs la nuit, 3 objets détruits, 3 semaines d'adaptation. Continuez-vous ? Quelle est votre limite réelle ? <span class="req">*</span></label><textarea id="q-limite" style="min-height:120px" placeholder="Répondez vraiment, pas idéalement..."></textarea></div>
+        <div class="field"><label>Nuits difficiles, dégâts, plusieurs semaines d'adaptation. Continuez-vous ? Quelle est votre limite réelle ? <span class="req">*</span></label><textarea id="q-limite" style="min-height:120px" placeholder="Répondez vraiment, pas idéalement..."></textarea></div>
         <div class="field"><label>Y a-t-il quelque chose d'important à nous dire ?</label><textarea id="q-autres" placeholder="Toute information utile pour mieux vous matcher..."></textarea></div>
       </div>
 
@@ -5259,6 +5370,8 @@ function go(id){
   if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
   if(id==='dashboard-fourriere' && typeof majStatutMFA==='function') majStatutMFA('ref');
   if(id==='dashboard-fa' && typeof majStatutMFA==='function') majStatutMFA('fa');
+  if(id==='questionnaire-fa' && typeof appliquerEspecesFA==='function') appliquerEspecesFA();
+  if(id==='ajouter-animal' && typeof appliquerEspeceAnimal==='function') appliquerEspeceAnimal();
 }
 
 function dashView(vid,btn){
@@ -7237,7 +7350,9 @@ async function submitAnimal() {
   const puce        = document.getElementById('an-puce')?.value?.trim();
   const race        = document.getElementById('an-race')?.value?.trim();
   const espece      = document.getElementById('an-espece')?.value;
-  const age_cat     = document.getElementById('an-age')?.value;
+  const sous_espece = espece === 'nac' ? (document.getElementById('an-sous-espece')?.value || '') : null;
+  const ageA        = document.getElementById('an-age-annees')?.value;
+  const ageM        = document.getElementById('an-age-mois')?.value;
   const poids       = document.getElementById('an-poids')?.value;
   const historique  = document.getElementById('an-historique')?.value?.trim();
   const consignes   = document.getElementById('an-consignes')?.value?.trim();
@@ -7282,6 +7397,8 @@ async function submitAnimal() {
 
   if (!nom)     return showToast('⚠ Le nom de l\'animal est obligatoire.');
   if (!espece)  return showToast('⚠ L\'espèce est obligatoire.');
+  if (espece === 'nac' && !sous_espece) return showToast('⚠ Précisez de quel NAC il s\'agit.');
+  if (ageA === '' && ageM === '') return showToast('⚠ Indiquez l\'âge estimé (années et/ou mois).');
   if (!urgence) return showToast('⚠ Sélectionnez un niveau d\'urgence.');
 
   if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
@@ -7302,7 +7419,9 @@ async function submitAnimal() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({
-        nom, race, espece, age_categorie: age_cat,
+        nom, race, espece, sous_espece,
+        age_annees: ageA === '' ? null : Number(ageA), age_mois: ageM === '' ? null : Number(ageM),
+        details: detailsAnimal(espece),
         sexe, poids_kg: poids ? parseFloat(poids) : null,
         sterilise, vaccins,
         urgence, date_limite, duree_accueil: duree,
@@ -7353,7 +7472,9 @@ function escHtml(v) {
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-const ESPECE_ICON = { chien: '🐕', chat: '🐈', nac: '🐇', autre: '🐾' };
+const ESPECE_ICON = { chien: '🐕', chat: '🐈', nac: '🐇', equide: '🐴', ferme: '🐐', autre: '🐾' };
+const SOUS_ESPECE_TXT = { lapin: 'Lapin', cobaye: "Cochon d'Inde", rat: 'Rat', souris: 'Souris', hamster: 'Hamster', chinchilla: 'Chinchilla',
+  furet: 'Furet', oiseau: 'Oiseau', tortue: 'Tortue', reptile: 'Reptile', autre_nac: 'NAC' };
 const URG_BADGE = {
   critique: { cls: 'cr', txt: '🔴 Critique', bg: 'rgba(239,68,68,.1)' },
   haute:    { cls: 'el', txt: '🟡 Élevé',    bg: 'rgba(245,158,11,.1)' },
@@ -7438,7 +7559,7 @@ function afficherAnimaux() {
 
   list.innerHTML = rows.map(a => {
     const u = URG_BADGE[a.urgence] || URG_BADGE.normale;
-    const meta = [a.race, ageTxt(a), a.poids_kg ? a.poids_kg + ' kg' : ''].filter(Boolean).join(' · ');
+    const meta = [SOUS_ESPECE_TXT[a.sous_espece], a.race, ageTxt(a), a.poids_kg ? a.poids_kg + ' kg' : ''].filter(Boolean).join(' · ');
     const place = a.statut === 'en_accueil';
     const statut = place ? '<span class="ubadge pl">✓ Placé</span>' : '<span style="font-size:11px;color:var(--text3)">' + escHtml(STATUT_TXT[a.statut] || a.statut) + '</span>';
     const delaiCol = a.urgence === 'critique' ? 'var(--danger)' : a.urgence === 'haute' ? 'var(--warning)' : 'var(--text3)';
@@ -7847,11 +7968,23 @@ function collecterProfilFA() {
   return profil;
 }
 
-// Questionnaire
+// Questionnaire — sections selon les espèces accueillies
+const tagV = (groupe) => document.querySelector('[onclick*="\'' + groupe + '\'"].s')?.dataset.v || null;
+const choisis = (id) => [...document.querySelectorAll('#' + id + ' .tag.s')].map(t => t.dataset.v).filter(Boolean);
+const cochesV = (id) => [...document.querySelectorAll('#' + id + ' .chk.on')].map(c => c.dataset.v).filter(Boolean);
+const cochesTxt = (sel) => [...document.querySelectorAll(sel + ' .chk.on span')].map(e => decodeTxt(e.textContent));
+
+function appliquerEspecesFA() {
+  const esp = choisis('q-especes');
+  const voir = (id, ok) => { const el = document.getElementById(id); if (el) el.style.display = ok ? '' : 'none'; };
+  ['q-section-chien-exp', 'q-section-chien-refus', 'q-section-chien-sit'].forEach(id => voir(id, esp.includes('chien')));
+  voir('q-section-chat', esp.includes('chat'));
+  voir('q-section-nac', esp.includes('nac'));
+}
+
 async function soumettreQuestionnaire() {
-  const Q = '#questionnaire-fa';
-  const sections = document.querySelectorAll(Q + ' .form-section');
-  const coches = (i) => [...(sections[i]?.querySelectorAll('.chk.on span') || [])].map(e => decodeTxt(e.textContent));
+  const esp = choisis('q-especes');
+  const chien = esp.includes('chien'), chat = esp.includes('chat'), nac = esp.includes('nac');
 
   const EXP = { 'Non': 'jamais', 'Oui, enfance': 'enfance', 'Oui, récemment': '1_2_ans', "Oui, j'en ai": '3_5_ans' };
   const VECU = { 'Un chiot (0–6 mois)': 'chiot', 'Un chien traumatisé / maltraitance': 'traumatise', 'Un chien réactif envers congénères': 'reactif_congeneres',
@@ -7859,40 +7992,64 @@ async function soumettreQuestionnaire() {
   const REFUS = { 'Grand chien (>25 kg)': 'grand_chien', 'Chien très énergique': 'tres_energique', 'Chiot (<6 mois)': 'chiot', 'Chien âgé (>10 ans)': 'age',
                   'Chien malade / soins réguliers': 'soins', 'Chien non propre': 'non_propre', 'Malinois / Berger belge': 'malinois',
                   'American Staffordshire / type staff': 'staff', 'Chien catégorie 1 ou 2': 'categorie' };
-
-  const exp = getTagVal('exp1');
+  const vecuChien = chien ? cochesTxt('#q-section-chien-exp') : [];
+  const refusChien = chien ? cochesTxt('#q-section-chien-refus') : [];
+  const expChien = chien ? getTagVal('exp1') : null;
   const engagement = document.querySelector('#sc-eng .sc-btn.on')?.textContent?.trim();
+
   const r = {
+    peut_accueillir: esp,
+    nac_acceptes: nac ? choisis('q-nac-especes') : [],
     motivation: valTexte('q-motivation'), attachement: valTexte('q-attachement'), duree_longue: valTexte('q-duree-longue'),
-    situation_grogne: valTexte('q-b-grogne'), situation_nuits: valTexte('q-sit-nuits'), situation_destruction: valTexte('q-sit-destruction'),
-    situation_absence: valTexte('q-sit-absence'), situation_reactivite: valTexte('q-sit-reactivite'), situation_morsure: valTexte('q-sit-morsure'),
-    situation_consignes: valTexte('q-sit-consignes'), situation_decouragement: valTexte('q-sit-decouragement'),
     situation_limite: valTexte('q-limite'), autres_infos: valTexte('q-autres'),
-    experience_chien: EXP[exp], experiences_gerees: coches(1).map(c => VECU[c]).filter(Boolean),
-    refus: coches(2).map(c => REFUS[c]).filter(Boolean), engagement: engagement ? Number(engagement) : undefined
+    engagement: engagement ? Number(engagement) : undefined,
+    // Chiens (colonnes historiques)
+    experience_chien: chien ? EXP[expChien] : null,
+    experiences_gerees: vecuChien.map(c => VECU[c]).filter(Boolean),
+    refus: refusChien.map(c => REFUS[c]).filter(Boolean),
+    situation_grogne: chien ? valTexte('q-b-grogne') : '', situation_nuits: chien ? valTexte('q-sit-nuits') : '',
+    situation_destruction: chien ? valTexte('q-sit-destruction') : '', situation_absence: chien ? valTexte('q-sit-absence') : '',
+    situation_reactivite: chien ? valTexte('q-sit-reactivite') : '', situation_morsure: chien ? valTexte('q-sit-morsure') : '',
+    situation_consignes: chien ? valTexte('q-sit-consignes') : '', situation_decouragement: chien ? valTexte('q-sit-decouragement') : '',
+    // Chats et NAC
+    criteres_especes: {
+      ...(chat ? { chat: { experience: tagV('expchat'), securise: tagV('chatsecu'), exterieur: tagV('chatext'),
+                           gerees: cochesV('q-chat-gerees'), refus: cochesV('q-chat-refus'),
+                           situation_litiere: valTexte('q-chat-sit-litiere'), situation_cache: valTexte('q-chat-sit-cache') } } : {}),
+      ...(nac ? { nac: { experience: tagV('expnac'), installations: cochesV('q-nac-install'), groupe: tagV('nacgroupe'),
+                         situation_urgence: valTexte('q-nac-sit-urgence'), situation_predateur: valTexte('q-nac-sit-predateur') } } : {})
+    }
   };
 
-  // Questions obligatoires (*)
+  // Questions obligatoires (*), selon les espèces choisies
   const manquants = [];
+  if (!esp.length) manquants.push('Quels animaux pouvez-vous accueillir ?');
   if (!r.motivation) manquants.push('Pourquoi souhaitez-vous devenir FA ?');
   if (!r.attachement) manquants.push('Êtes-vous prêt(e) à vous attacher…');
-  if (!r.duree_longue) manquants.push('Si le chien reste plusieurs mois');
-  if (!exp) manquants.push('Avez-vous déjà eu un chien ?');
-  if (!valTexte('q-b-destruction')) manquants.push('Si le chien détruit vos affaires');
-  if (!r.situation_grogne) manquants.push('Si le chien grogne sur vous');
+  if (!r.duree_longue) manquants.push('Si l\'animal reste plusieurs mois');
+  if (chien) {
+    if (!expChien) manquants.push('Avez-vous déjà eu un chien ?');
+    if (!valTexte('q-b-destruction')) manquants.push('Si le chien détruit vos affaires');
+    if (!r.situation_grogne) manquants.push('Si le chien grogne sur vous');
+  }
+  if (chat && !tagV('expchat')) manquants.push('Avez-vous déjà eu un chat ?');
+  if (nac && !r.nac_acceptes.length) manquants.push('Quels NAC pouvez-vous accueillir ?');
+  if (nac && !tagV('expnac')) manquants.push('Votre expérience avec les NAC');
   if (!r.situation_limite) manquants.push('La question de sincérité');
   if (!engagement) manquants.push('Engagement (1–10)');
   if (manquants.length) return showToast('⚠ À compléter : ' + manquants.slice(0, 3).join(' · ') + (manquants.length > 3 ? ' …' : ''));
 
   // Réponses sans colonne dédiée : conservées telles quelles
   r.questionnaire = {
-    version: 1,
-    destruction_affaires: valTexte('q-b-destruction'),
-    situation_attachement: valTexte('q-sit-attachement'),
+    version: 2,
+    destruction_affaires: chien ? valTexte('q-b-destruction') : null,
+    situation_attachement: chien ? valTexte('q-sit-attachement') : null,
     situation_professionnelle: valSelect('travail') || null,
     heures_absence_jour: valSelect('fc-absence') || null,
-    experiences_gerees_libelles: coches(1),
-    refus_libelles: coches(2)
+    experiences_gerees_libelles: vecuChien,
+    refus_libelles: refusChien,
+    chat_refus_libelles: chat ? cochesTxt('#q-chat-refus') : [],
+    nac_installations_libelles: nac ? cochesTxt('#q-nac-install') : []
   };
 
   let jeton = null; try { jeton = sessionStorage.getItem('petia_fa_inscription'); } catch (_) {}
@@ -7919,6 +8076,73 @@ async function soumettreQuestionnaire() {
     resetButton(btn);
     showToast('⚠ Impossible de joindre le serveur — réessayez');
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FORMULAIRE ANIMAL — questions adaptées à l'espèce
+// ═══════════════════════════════════════════════════════════════════
+// Pour chaque question : les espèces concernées. Les autres la voient masquée.
+const ANIMAL_QUESTIONS_ESPECES = [
+  [() => document.getElementById('an-balades')?.closest('label'), ['chien']],
+  [() => document.getElementById('an-exercice')?.closest('label'), ['chien']],
+  [() => document.getElementById('an-escaliers')?.closest('label'), ['chien']],
+  [() => document.getElementById('an-cloture')?.closest('label'), ['chien']],
+  [() => document.getElementById('an-laisse')?.closest('label'), ['chien']],
+  [() => document.getElementById('an-tps-seul')?.closest('label'), ['chien', 'chat']],
+  [() => document.getElementById('an-presence')?.closest('label'), ['chien', 'chat']],
+  [() => champParLibelle('ajouter-animal', 'Catégorie légale'), ['chien']],
+  [() => champParLibelle('ajouter-animal', 'Anxiété séparation'), ['chien', 'chat']],
+  [() => [...document.querySelectorAll('#ajouter-animal .compat-row')].find(r => r.textContent.includes('Appartement ok')), ['chien']],
+  [() => [...document.querySelectorAll('#ajouter-animal .compat-row')].find(r => r.textContent.includes('Jardin obligatoire')), ['chien']],
+  [() => [...document.querySelectorAll('#ajouter-animal .compat-row')].find(r => r.textContent.includes('Tolère solitude')), ['chien', 'chat']],
+  [() => [...document.querySelectorAll('#ajouter-animal .nvx-btn')].find(b => b.textContent.includes('Chien de travail')), ['chien']],
+  [() => document.getElementById('an-section-chat'), ['chat']],
+  [() => document.getElementById('an-section-nac'), ['nac']],
+];
+const RACE_EXEMPLES = { chien: 'Labrador, Malinois, Croisé...', chat: 'Européen, Maine coon, Croisé...', nac: 'Bélier nain, Rex, Abyssin...' };
+
+function appliquerEspeceAnimal() {
+  const espece = document.getElementById('an-espece')?.value || '';
+  const sous = document.getElementById('an-sous-espece');
+  if (sous) sous.style.display = espece === 'nac' ? '' : 'none';
+  for (const [trouver, especes] of ANIMAL_QUESTIONS_ESPECES) {
+    const el = trouver();
+    if (el) el.style.display = !espece || especes.includes(espece) ? '' : 'none';
+  }
+  // Une section dont toutes les questions sont masquées disparaît aussi
+  document.querySelectorAll('#ajouter-animal .form-section').forEach(sec => {
+    if (sec.id === 'an-section-chat' || sec.id === 'an-section-nac') return;
+    const blocs = [...sec.querySelectorAll('.fg > label, .field, .compat-row')];
+    if (!blocs.length) return;
+    sec.style.display = blocs.every(b => b.style.display === 'none') ? 'none' : '';
+  });
+  const race = document.getElementById('an-race');
+  if (race) race.placeholder = RACE_EXEMPLES[espece] || RACE_EXEMPLES.chien;
+}
+
+// Réponses propres à l'espèce + réponses jusqu'ici non enregistrées
+function detailsAnimal(espece) {
+  const v = (id) => document.getElementById(id)?.value?.trim() || null;
+  const sansVide = (o) => Object.fromEntries(Object.entries(o).filter(([, x]) => x !== null && x !== '' && !(Array.isArray(x) && !x.length)));
+  const sante = champParLibelle('ajouter-animal', 'Problèmes connus');
+  const commun = sansVide({
+    puce: v('an-puce'),
+    categorie_legale: espece === 'chien' ? getTagVal('cat') : null,
+    duree_accueil: getTagVal('dur'),
+    etat_sante: getNvxVal('sante'),
+    problemes_sante: sante ? [...sante.querySelectorAll('.tag.s')].map(t => t.textContent.trim()).filter(t => t !== 'Aucun') : [],
+    morsure: getTagVal('mor'),
+    appartement_ok: espece === 'chien' ? getCompatVal(4) : null,
+    jardin_obligatoire: espece === 'chien' ? getCompatVal(5) : null,
+    tolere_solitude_6h: ['chien', 'chat'].includes(espece) ? getCompatVal(6) : null,
+    fa_debutante_ok: getCompatVal(7),
+    date_limite: v('dlimite')
+  });
+  const d = { commun };
+  if (espece === 'chat') d.chat = sansVide({ exterieur: v('an-chat-exterieur'), tests: v('an-chat-tests'), congenere: v('an-chat-congenere'), biberon: v('an-chat-biberon') });
+  if (espece === 'nac') d.nac = sansVide({ groupe: v('an-nac-groupe'), installation: v('an-nac-installation'), sortie: v('an-nac-sortie'),
+                                           manipulation: v('an-nac-manipulation'), dimensions: v('an-nac-dimensions'), alimentation: v('an-nac-alimentation') });
+  return d;
 }
 </script>
 </body>

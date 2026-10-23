@@ -1205,6 +1205,7 @@ const ADMIN_LIBELLES = {
   presence_journee: { oui_toujours: 'Présent toute la journée', oui_parfois: 'Présent parfois', non: 'Absent en journée' },
   disponible_le: { maintenant: 'Dispo maintenant', cette_semaine: 'Dispo cette semaine', ce_mois: 'Dispo ce mois-ci', non_dispo: 'Indisponible' }
 };
+const NAC_TXT = { lapin: 'lapin', cobaye: "cochon d'Inde", rat: 'rat', souris: 'souris', hamster: 'hamster', chinchilla: 'chinchilla', furet: 'furet', oiseau: 'oiseau', tortue: 'tortue', reptile: 'reptile', autre_nac: 'autre' };
 const ADMIN_SITUATIONS = [
   ['motivation', 'Motivation'], ['situation_nuits', 'Premières nuits'], ['situation_absence', 'Absence imprévue'], ['situation_destruction', 'Destructions'],
   ['situation_grogne', 'L\'animal grogne'], ['situation_urgence', 'Urgence vétérinaire'], ['situation_morsure', 'Morsure'],
@@ -1259,7 +1260,9 @@ function adminResume(f) {
     L.heures_seul[f.heures_seul], L.presence_journee[f.presence_journee],
     f.nb_accueils ? f.nb_accueils + ' accueil(s)' : null,
     L.disponible_le[f.disponible_le],
-    Array.isArray(f.peut_accueillir) && f.peut_accueillir.length ? 'Accueille : ' + f.peut_accueillir.join(', ') : null
+    Array.isArray(f.peut_accueillir) && f.peut_accueillir.length
+      ? 'Accueille : ' + f.peut_accueillir.map(e => ({ chien: 'chiens', chat: 'chats', nac: 'NAC' + (f.nac_acceptes?.length ? ' (' + f.nac_acceptes.map(n => NAC_TXT[n] || n).join(', ') + ')' : '') }[e] || e)).join(', ')
+      : null
   ].filter(Boolean);
 }
 
@@ -1325,14 +1328,22 @@ async function adminVoirDossier(id, btn) {
       + ligne('Refus', (q.refus_libelles || f.refus || []).join(', '))
       + ligne('Déjà géré', (q.experiences_gerees_libelles || f.experiences_gerees || []).join(', '))
       + ligne('Questionnaire envoyé', f.questionnaire_soumis_le ? new Date(f.questionnaire_soumis_le).toLocaleString('fr-FR') : 'pas encore');
+    const ce = f.criteres_especes || {};
     const extras = [['destruction_affaires', 'Si le chien détruit ses affaires'], ['situation_attachement', 'Attachement après 2 mois']]
-      .filter(([k]) => q[k]).map(([k, label]) => [k, label, q[k]]);
+      .filter(([k]) => q[k]).map(([k, label]) => [k, label, q[k]])
+      .concat([['chat', 'situation_litiere', '🐈 Chat · n\'utilise plus sa litière'], ['chat', 'situation_cache', '🐈 Chat · se cache depuis 4 jours'],
+               ['nac', 'situation_urgence', '🐇 NAC · lapin qui ne mange plus'], ['nac', 'situation_predateur', '🐇 NAC · chat devant la cage']]
+        .filter(([e, k]) => ce[e]?.[k]).map(([e, k, label]) => [k, label, ce[e][k]]));
+    const blocEspeces = (ce.chat ? ligne('🐈 Chats', [ce.chat.experience && 'expérience : ' + ce.chat.experience, ce.chat.securise && 'fenêtres sécurisées : ' + ce.chat.securise,
+                                                     ce.chat.exterieur && 'sortie possible : ' + ce.chat.exterieur, ce.chat.refus?.length && 'refus : ' + ce.chat.refus.join(', ')].filter(Boolean).join(' · ')) : '')
+                      + (ce.nac ? ligne('🐇 NAC', [ce.nac.experience && 'expérience : ' + ce.nac.experience, ce.nac.installations?.length && 'installations : ' + ce.nac.installations.join(', '),
+                                                   ce.nac.groupe && 'plusieurs individus : ' + ce.nac.groupe].filter(Boolean).join(' · ')) : '');
     const extrasHtml = extras.map(([, label, val]) =>
       '<div style="background:var(--bg3);border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);">'
       + '<div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;margin-bottom:5px;">' + escHtml(label) + '</div>'
       + '<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + escHtml(val) + '</div></div>').join('');
     zone.innerHTML = (coord ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">' + coord + '</div>' : '')
-      + profilQ + extrasHtml
+      + profilQ + blocEspeces + extrasHtml
       + (reponses || '<div style="font-size:12px;color:var(--text3);margin-bottom:10px;">Aucune réponse au questionnaire pour l\'instant.</div>')
       + '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;">Note interne (non visible par la famille)</div>'
       + '<textarea id="note-' + id + '" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:\'Sora\',sans-serif;font-size:12px;color:var(--text);resize:vertical;height:70px;outline:none;" placeholder="Tes observations sur ce profil…">' + escHtml(f.notes_internes || '') + '</textarea>'
