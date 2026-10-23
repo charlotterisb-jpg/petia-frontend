@@ -7216,7 +7216,7 @@ function afficherAnimaux() {
       + matchsCellule(a)
       + '<div>' + statut + '</div>'
       + '<div>' + (place
-          ? '<button class="btn btn-s" style="padding:5px 12px;font-size:11px">Détails</button>'
+          ? '<button class="btn btn-s" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();ouvrirMatchs(\'' + a.id + '\')">Suivi</button>'
           : '<button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();ouvrirMatchs(\'' + a.id + '\')">Matchs</button>')
       + '</div></div>';
   }).join('');
@@ -7259,7 +7259,7 @@ async function ouvrirMatchs(animalId) {
   dashView('v-matchs', document.getElementById('sb-matchs'));
   if (!animauxRefuge.length) await chargerAnimaux();
   const sel = document.getElementById('matchs-animal');
-  const dispo = animauxRefuge.filter(a => a.statut === 'disponible');
+  const dispo = animauxRefuge.filter(a => ['disponible', 'en_accueil'].includes(a.statut));
   const ordre = { critique: 0, haute: 1, normale: 2 };
   dispo.sort((x, y) => (ordre[x.urgence] ?? 3) - (ordre[y.urgence] ?? 3));
   if (!dispo.length) {
@@ -7269,7 +7269,7 @@ async function ouvrirMatchs(animalId) {
     return;
   }
   document.getElementById('btn-relancer-matching').disabled = false;
-  sel.innerHTML = dispo.map(a => '<option value="' + a.id + '">' + (ESPECE_ICON[a.espece] || '🐾') + ' ' + escHtml(a.nom) + ' — ' + (URG_BADGE[a.urgence] || URG_BADGE.normale).txt + '</option>').join('');
+  sel.innerHTML = dispo.map(a => '<option value="' + a.id + '">' + (ESPECE_ICON[a.espece] || '🐾') + ' ' + escHtml(a.nom) + ' — ' + (a.statut === 'en_accueil' ? '🏠 En accueil' : (URG_BADGE[a.urgence] || URG_BADGE.normale).txt) + '</option>').join('');
   const cible = animalId && dispo.some(a => a.id === animalId) ? animalId : dispo[0].id;
   sel.value = cible;
   chargerMatchs(cible);
@@ -7277,6 +7277,10 @@ async function ouvrirMatchs(animalId) {
 
 async function chargerMatchs(animalId, stats) {
   animalMatchsId = animalId;
+  // Relancer le matching n'a de sens que pour un animal encore disponible
+  const btnRel = document.getElementById('btn-relancer-matching');
+  const an = animauxRefuge.find(a => a.id === animalId);
+  if (btnRel) btnRel.disabled = !!an && an.statut !== 'disponible';
   const list = document.getElementById('matchs-list');
   const ref = getRefSession();
   if (!animalId || !ref?.token) return;
@@ -7317,7 +7321,10 @@ function afficherMatchs(matchs, stats) {
   const resume = document.getElementById('matchs-resume');
   const proposes = matchs.filter(m => m.statut === 'propose').length;
   if (resume) {
-    let t = matchs.length ? proposes + (proposes > 1 ? ' familles proposées' : ' famille proposée') : 'Aucune famille proposée pour l\'instant';
+    const nb = (st) => matchs.filter(m => m.statut === st).length;
+    const parts = [[nb('propose'), 'à examiner'], [nb('accepte'), 'validée(s)'], [nb('en_cours'), 'en accueil'], [nb('termine'), 'accueil(s) terminé(s)']]
+      .filter(([n]) => n).map(([n, l]) => n + ' ' + l);
+    let t = parts.length ? parts.join(' · ') : 'Aucune famille proposée pour l\'instant';
     if (stats && stats.familles_validees != null)
       t += ' · ' + stats.familles_validees + ' famille(s) au dossier validé, ' + stats.exclues_par_regles + ' écartée(s) par les règles' + (stats.ia_utilisee ? '' : ' · IA indisponible, score par règles');
     resume.textContent = t;
@@ -7339,15 +7346,27 @@ function afficherMatchs(matchs, stats) {
     ].filter(Boolean).join(' · ');
     const attention = (m.incompatibilites || []).map(x => '<li>' + escHtml(x) + '</li>').join('');
     const resumeIA = m.details_score?.resume_ia;
-    const actions = m.statut === 'propose'
-      ? '<div style="display:flex;gap:9px;flex-wrap:wrap">'
+    const dateFr = (d) => d ? new Date(d + (d.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('fr-FR') : '';
+    const auj = new Date().toISOString().slice(0, 10);
+    let actions;
+    if (m.statut === 'propose') actions = '<div style="display:flex;gap:9px;flex-wrap:wrap">'
         + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'accepte\',this)">✓ Valider</button>'
-        + '<button class="btn btn-s" style="font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'refuse\',this)">Refuser</button></div>'
-      : '<span class="ubadge ' + (m.statut === 'accepte' ? 'pl' : 'cr') + '">' + (m.statut === 'accepte' ? '✓ Validé' : m.statut === 'refuse' ? 'Refusé' : escHtml(m.statut)) + '</span>'
-        + (m.statut === 'accepte'
-            ? ' <span style="font-size:12px;margin-left:6px;color:' + (m.reponse_fa === 'oui' ? 'var(--success)' : m.reponse_fa === 'non' ? 'var(--danger)' : 'var(--text3)') + '">'
-              + (m.reponse_fa === 'oui' ? '✅ La famille a accepté' : m.reponse_fa === 'non' ? 'La famille a décliné' : '⏳ En attente de la réponse de la famille') + '</span>'
-            : '');
+        + '<button class="btn btn-s" style="font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'refuse\',this)">Refuser</button></div>';
+    else if (m.statut === 'accepte' && m.reponse_fa === 'oui') actions =
+        '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:10px">✅ La famille a accepté. Une fois l\'animal arrivé chez elle, confirmez l\'arrivée.</div>'
+        + '<div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">'
+        + '<label style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px">Arrivée le <input type="date" id="arrivee-date-' + m.id + '" value="' + auj + '" style="width:auto"></label>'
+        + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="confirmerArrivee(\'' + m.id + '\',this)">🏠 Confirmer l\'arrivée chez la famille</button></div>';
+    else if (m.statut === 'accepte') actions = '<span class="ubadge pl">✓ Validé</span> <span style="font-size:12px;margin-left:6px;color:' + (m.reponse_fa === 'non' ? 'var(--danger)' : 'var(--text3)') + '">'
+        + (m.reponse_fa === 'non' ? 'La famille a décliné' : '⏳ En attente de la réponse de la famille') + '</span>';
+    else if (m.statut === 'en_cours') actions =
+        '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:10px">🏠 En accueil depuis le ' + dateFr(m.date_debut_accueil) + '</div>'
+        + '<div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">'
+        + '<select id="fin-issue-' + m.id + '" style="flex:1;min-width:170px"><option value="">Fin de l\'accueil : issue…</option><option value="adopte">🎉 Adopté</option><option value="retour">↩ Retour au refuge</option><option value="transfere">🔁 Transféré</option></select>'
+        + '<input type="date" id="fin-date-' + m.id + '" value="' + auj + '" style="width:auto">'
+        + '<button class="btn btn-s" style="font-size:13px" onclick="terminerAccueil(\'' + m.id + '\',this)">Terminer l\'accueil</button></div>';
+    else if (m.statut === 'termine') actions = '<span class="ubadge pl">✓ Accueil terminé</span> <span style="font-size:12px;color:var(--text3);margin-left:6px">du ' + dateFr(m.date_debut_accueil) + ' au ' + dateFr(m.date_fin_accueil) + '</span>';
+    else actions = '<span class="ubadge cr">' + ({ refuse: 'Refusé', annule: 'Annulé — animal placé ailleurs' }[m.statut] || escHtml(m.statut)) + '</span>';
     return '<div class="form-section">'
       + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px"><span class="ubadge ' + r.cls + '">' + r.txt + '</span>'
       + '<span style="font-size:14px;font-weight:600">' + escHtml(f.prenom || 'Famille') + (f.ville ? ' · ' + escHtml(f.ville) : '') + '</span></div>'
@@ -7919,7 +7938,12 @@ function afficherAccueilsFA() {
   const acc = faPropositions.filter(p => ['en_cours', 'termine'].includes(p.statut));
   const btn = document.getElementById('fa-tab-accueils-btn'); if (btn) btn.textContent = '📋 Mes accueils' + (acc.length ? ' (' + acc.length + ')' : '');
   zone.innerHTML = acc.length
-    ? acc.map(p => carteAnimalFA(p, '<span class="ubadge ' + (p.statut === 'en_cours' ? 'no' : 'pl') + '">' + (p.statut === 'en_cours' ? '🏠 Accueil en cours' : '✓ Accueil terminé') + '</span>')).join('')
+    ? acc.map(p => {
+        const df = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR') : '';
+        const r = p.animal?.refuge || {};
+        return carteAnimalFA(p, '<span class="ubadge ' + (p.statut === 'en_cours' ? 'no' : 'pl') + '">' + (p.statut === 'en_cours' ? '🏠 Accueil en cours depuis le ' + df(p.date_debut_accueil) : '✓ Accueil terminé (' + df(p.date_debut_accueil) + ' → ' + df(p.date_fin_accueil) + ')') + '</span>'
+          + ((r.telephone || r.email) ? '<div style="font-size:12px;color:var(--text2);margin-top:8px;">Contact du refuge : ' + escHtml([r.telephone, r.email].filter(Boolean).join(' · ')) + '</div>' : ''));
+      }).join('')
     : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;color:var(--text3);font-size:13px">Aucun accueil pour l\'instant.</div>';
 }
 
@@ -7992,6 +8016,31 @@ function ouvrirQuestionnaireFA() {
   const cocherLib = (section, libelles) => (libelles || []).forEach(l => { const c = [...document.querySelectorAll('#' + section + ' .chk')].find(x => decodeTxt(x.querySelector('span')?.textContent || '') === l); if (c && !c.classList.contains('on')) c.classList.add('on'); });
   cocherLib('q-section-chien-exp', q.experiences_gerees_libelles); cocherLib('q-section-chien-refus', q.refus_libelles);
   if (f.engagement) { const b = [...document.querySelectorAll('#sc-eng .sc-btn')].find(x => x.textContent.trim() === String(f.engagement)); if (b) SC(b, 'sc-eng'); }
+}
+
+// ── Accueil : arrivée puis fin (refuge)
+async function actionAccueil(matchId, etape, corps, btn) {
+  const ref = getRefSession(); if (!ref?.token) return;
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(API_URL + '/api/matching/match/' + matchId + '/' + etape, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ref.token }, body: JSON.stringify(corps) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Erreur');
+    await chargerAnimaux();
+    ouvrirMatchs(animalMatchsId);
+    return data;
+  } catch (e) { showToast('⚠ ' + e.message); if (btn) btn.disabled = false; }
+}
+async function confirmerArrivee(matchId, btn) {
+  const d = await actionAccueil(matchId, 'arrivee', { date_debut: document.getElementById('arrivee-date-' + matchId)?.value }, btn);
+  if (d) showToast('🏠 Arrivée confirmée : l\'animal est en accueil.');
+}
+async function terminerAccueil(matchId, btn) {
+  const issue = document.getElementById('fin-issue-' + matchId)?.value;
+  if (!issue) return showToast('⚠ Choisissez l\'issue de l\'accueil.');
+  const d = await actionAccueil(matchId, 'fin', { issue, date_fin: document.getElementById('fin-date-' + matchId)?.value }, btn);
+  if (d) showToast({ adopte: '🎉 Accueil terminé : adopté !', retour: '↩ Accueil terminé : retour au refuge, le matching est relancé.', transfere: '🔁 Accueil terminé : transféré.' }[issue]);
 }
 </script>
 </body>
