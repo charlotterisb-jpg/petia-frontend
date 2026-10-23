@@ -3786,223 +3786,42 @@ Signature électronique validée par l'Association</div>
           <h1 style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);">Espace Admin PetIA</h1>
           <p style="font-size:13px;color:var(--text2);margin-top:4px;">Validation des familles d'accueil · Supervision du réseau</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--danger-bg);color:#FCA5A5;">⚠ 4 FA en attente</span>
-          <span style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--warning-bg);color:#FCD34D;">⏸ 2 à surveiller</span>
-        </div>
+        <div id="admin-entete-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"></div>
       </div>
 
+      <!-- Connexion admin -->
+      <div id="admin-login" style="display:none;max-width:400px;margin:20px auto;background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:26px 24px;">
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">🔐 Connexion administrateur</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.6;">Réservé aux comptes administrateurs PetIA.</div>
+        <div class="field"><label>Email</label><input id="admin-email" type="email" autocomplete="username"/></div>
+        <div class="field"><label>Mot de passe</label><input id="admin-pwd" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminConnexion()"/></div>
+        <button class="btn btn-p co" id="admin-login-btn" style="width:100%;justify-content:center;margin-top:6px;" onclick="adminConnexion()">Se connecter</button>
+      </div>
+
+      <div id="admin-contenu" style="display:none;">
+
       <!-- KPIs -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">
-        <div class="kpi"><div class="kpi-l">FA validées</div><div class="kpi-v" style="color:var(--success)">118</div><div class="kpi-s up">+3 cette semaine</div></div>
-        <div class="kpi"><div class="kpi-l">En attente</div><div class="kpi-v" style="color:var(--warning)">4</div><div class="kpi-s warn">Score 60-85%</div></div>
-        <div class="kpi"><div class="kpi-l">Refusées</div><div class="kpi-v" style="color:var(--danger)">6</div><div class="kpi-s">Depuis le lancement</div></div>
-        <div class="kpi"><div class="kpi-l">Score moyen IA</div><div class="kpi-v">78%</div><div class="kpi-s up">Réseau fiable</div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;">
+        <div class="kpi"><div class="kpi-l">FA validées</div><div class="kpi-v" id="admin-kpi-valide" style="color:var(--success)">–</div><div class="kpi-s up" id="admin-kpi-semaine">&nbsp;</div></div>
+        <div class="kpi"><div class="kpi-l">En attente</div><div class="kpi-v" id="admin-kpi-en_attente" style="color:var(--warning)">–</div><div class="kpi-s warn">À examiner</div></div>
+        <div class="kpi"><div class="kpi-l">Refusées</div><div class="kpi-v" id="admin-kpi-refuse" style="color:var(--danger)">–</div><div class="kpi-s">Depuis le lancement</div></div>
+        <div class="kpi"><div class="kpi-l">Précisions demandées</div><div class="kpi-v" id="admin-kpi-incomplet">–</div><div class="kpi-s">En attente de la famille</div></div>
       </div>
 
       <!-- Tabs -->
       <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:20px;overflow-x:auto;">
-        <button class="cond-tab on" onclick="adminTab(this,'admin-attente')">⏳ En attente (4)</button>
-        <button class="cond-tab" onclick="adminTab(this,'admin-surveiller')">⚠️ À surveiller (2)</button>
-        <button class="cond-tab" onclick="adminTab(this,'admin-validees')">✅ Validées (118)</button>
-        <button class="cond-tab" onclick="adminTab(this,'admin-refusees')">❌ Refusées (6)</button>
+        <button class="cond-tab on" data-statut="en_attente" onclick="adminOngletStatut(this,'en_attente')">⏳ En attente</button>
+        <button class="cond-tab" data-statut="incomplet" onclick="adminOngletStatut(this,'incomplet')">📝 Précisions</button>
+        <button class="cond-tab" data-statut="valide" onclick="adminOngletStatut(this,'valide')">✅ Validées</button>
+        <button class="cond-tab" data-statut="refuse" onclick="adminOngletStatut(this,'refuse')">❌ Refusées</button>
+        <button class="cond-tab" data-statut="suspendu" onclick="adminOngletStatut(this,'suspendu')">🚫 Suspendues</button>
         <button class="cond-tab" onclick="adminTab(this,'admin-commentaires')">💬 Commentaires (3)</button>
         <button class="cond-tab" onclick="adminTab(this,'admin-documents')">📄 Documents légaux</button>
         <button class="cond-tab" onclick="adminTab(this,'admin-personnalisation')">🎨 Personnalisation</button>
         <button class="cond-tab" onclick="adminTab(this,'admin-stats')">📊 Statistiques</button>
       </div>
 
-      <!-- ── EN ATTENTE ── -->
-      <div id="admin-attente">
-        <div class="ia-hint" style="margin-bottom:18px;">
-          <span>✦</span>Ces FA ont un score IA entre 60% et 85%. L'IA a détecté des réponses à vérifier. Ta validation manuelle est requise avant qu'elles soient visibles par les fourrières.
-        </div>
-
-        <!-- FA 1 — Score 78% -->
-        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;margin-bottom:16px;overflow:hidden;">
-          <div style="padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--bleu-bright),var(--violet));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👤</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:700;color:var(--text);">Sophie Marchand</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:2px;">Toulouse · Appartement · Télétravail · Inscrite il y a 2h</div>
-            </div>
-            <div style="text-align:right;flex-shrink:0;">
-              <div style="font-size:22px;font-weight:700;color:var(--warning);">78%</div>
-              <div style="font-size:10px;color:var(--text3);">Score IA</div>
-            </div>
-          </div>
-
-          <!-- Analyse IA -->
-          <div style="margin:0 20px 16px;background:var(--warning-bg);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;">
-            <div style="font-size:11px;font-weight:700;color:var(--warning);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">✦ Signaux IA détectés</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;"><span style="color:var(--warning);flex-shrink:0;">⚠</span><span style="color:var(--text2);">Accepte les chiens énergiques mais déclare 7h d'absence/jour — <strong style="color:var(--text)">incohérence potentielle</strong></span></div>
-              <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;"><span style="color:var(--warning);flex-shrink:0;">⚠</span><span style="color:var(--text2);">Réponse situation 3 (absence longue) : <strong style="color:var(--text)">"Je demanderai à ma voisine"</strong> — solution non planifiée</span></div>
-              <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;"><span style="color:var(--success);flex-shrink:0;">✓</span><span style="color:var(--text2);">Situation attachement bien gérée · Score motivation : 8/10</span></div>
-            </div>
-          </div>
-
-          <!-- Réponses clés -->
-          <div id="reponses-sophie" style="display:none;">
-            <div style="margin:0 20px 16px;">
-              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Réponses aux mises en situation</div>
-
-              <div style="background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;margin-bottom:6px;">📍 Situation 1 — Premières nuits</div>
-                <div style="font-size:13px;color:var(--text2);line-height:1.7;">"Je me lève pour le voir, je lui parle doucement, je lui donne une peluche avec mon odeur. Si ça continue après 3 nuits je contacte l'asso."</div>
-                <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--success);">✓ Bonne réponse — patience + réflexe de contact</div>
-              </div>
-
-              <div style="background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid rgba(245,158,11,.2);">
-                <div style="font-size:11px;font-weight:700;color:var(--warning);text-transform:uppercase;margin-bottom:6px;">📍 Situation 3 — Absence longue ⚠</div>
-                <div style="font-size:13px;color:var(--text2);line-height:1.7;">"Je demanderai à ma voisine de passer le voir dans la journée, elle aime les chiens."</div>
-                <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--warning);">⚠ Solution informelle — pas de plan B si voisine indisponible</div>
-              </div>
-
-              <div style="background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;margin-bottom:6px;">📍 Situation 6 — Attachement</div>
-                <div style="font-size:13px;color:var(--text2);line-height:1.7;">"Ce serait difficile mais je sais pourquoi je fais ça. Je me souviens que c'est pour lui donner une vraie famille. Je pleurerais le soir mais je serais fière."</div>
-                <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--success);">✓ Excellente réponse — maturité émotionnelle</div>
-              </div>
-
-              <div style="background:var(--bg3);border-radius:12px;padding:14px;border:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;margin-bottom:6px;">📍 Question sincérité (H)</div>
-                <div style="font-size:13px;color:var(--text2);line-height:1.7;">"Je continuerais si j'avais le soutien de l'asso. Mais si vraiment les aboiements causent des problèmes avec mes voisins, je devrais être honnête."</div>
-                <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--warning);">⚠ Limite liée aux voisins à creuser — appartement sans isolation ?</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Note interne -->
-          <div style="margin:0 20px 16px;">
-            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Note interne (non visible par la FA)</div>
-            <textarea style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'Sora',sans-serif;font-size:12px;color:var(--text);resize:none;height:70px;outline:none;" placeholder="Tes observations personnelles sur ce profil..."></textarea>
-          </div>
-
-          <!-- Actions -->
-          <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button class="btn btn-s" style="font-size:12px;padding:8px 14px;" onclick="toggleReponses('reponses-sophie',this)">📖 Lire toutes les réponses</button>
-            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-s" style="font-size:12px;padding:8px 14px;border-color:rgba(245,158,11,.3);color:#FCD34D;" onclick="adminAction('attente','Sophie Marchand')">⏸ Demander des précisions</button>
-              <button class="btn btn-s" style="font-size:12px;padding:8px 14px;border-color:rgba(239,68,68,.3);color:#FCA5A5;" onclick="adminRefus('Sophie Marchand')">❌ Refuser</button>
-              <button class="btn btn-p" style="font-size:12px;padding:8px 16px;" onclick="adminAction('valider','Sophie Marchand')">✅ Valider le profil</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- FA 2 — Score 65% -->
-        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;margin-bottom:16px;overflow:hidden;">
-          <div style="padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--success),#059669);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👤</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:700;color:var(--text);">Pierre & Nadia Fontaine</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:2px;">Lyon · Maison jardin · Retraités · Inscrits il y a 5h</div>
-            </div>
-            <div style="text-align:right;flex-shrink:0;">
-              <div style="font-size:22px;font-weight:700;color:var(--danger);">65%</div>
-              <div style="font-size:10px;color:var(--text3);">Score IA</div>
-            </div>
-          </div>
-
-          <div style="margin:0 20px 16px;background:var(--danger-bg);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px 16px;">
-            <div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">✦ Signaux IA détectés</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;"><span style="color:var(--danger);flex-shrink:0;">🚩</span><span style="color:var(--text2);">Situation 9 (consignes) : <strong style="color:var(--text)">"Si le chien semble calme je le lâcherais"</strong> — non-respect potentiel du cadre</span></div>
-              <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;"><span style="color:var(--danger);flex-shrink:0;">🚩</span><span style="color:var(--text2);">Question sincérité : réponse très courte, peu développée — <strong style="color:var(--text)">manque de profondeur</strong></span></div>
-              <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;"><span style="color:var(--success);flex-shrink:0;">✓</span><span style="color:var(--text2);">Maison avec grand jardin clôturé · Expérience chiens · Disponibles full-time</span></div>
-            </div>
-          </div>
-
-          <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            <button class="btn btn-s" style="font-size:12px;padding:8px 14px;" onclick="toggleReponses('reponses-pierre',this)">📖 Lire toutes les réponses</button>
-            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-s" style="font-size:12px;padding:8px 14px;border-color:rgba(245,158,11,.3);color:#FCD34D;" onclick="adminAction('attente','Pierre & Nadia Fontaine')">⏸ Demander des précisions</button>
-              <button class="btn btn-s" style="font-size:12px;padding:8px 14px;border-color:rgba(239,68,68,.3);color:#FCA5A5;" onclick="adminRefus('Pierre & Nadia Fontaine')">❌ Refuser</button>
-              <button class="btn btn-p" style="font-size:12px;padding:8px 16px;" onclick="adminAction('valider','Pierre & Nadia Fontaine')">✅ Valider malgré tout</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Autres FA en attente (condensées) -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:var(--text);">Camille Roux</div><div style="font-size:12px;color:var(--text2);">Bordeaux · 72% · Inscrite il y a 1j</div></div>
-          <div style="display:flex;gap:7px;">
-            <button class="btn btn-s" style="font-size:11px;padding:6px 12px;" onclick="adminAction('attente','Camille Roux')">⏸</button>
-            <button class="btn btn-s" style="font-size:11px;padding:6px 12px;color:#FCA5A5;" onclick="adminRefus('Camille Roux')">❌</button>
-            <button class="btn btn-p" style="font-size:11px;padding:6px 12px;" onclick="adminAction('valider','Camille Roux')">✅ Valider</button>
-          </div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:var(--text);">Marc Delacroix</div><div style="font-size:12px;color:var(--text2);">Nantes · 69% · Inscrit il y a 2j</div></div>
-          <div style="display:flex;gap:7px;">
-            <button class="btn btn-s" style="font-size:11px;padding:6px 12px;" onclick="adminAction('attente','Marc Delacroix')">⏸</button>
-            <button class="btn btn-s" style="font-size:11px;padding:6px 12px;color:#FCA5A5;" onclick="adminRefus('Marc Delacroix')">❌</button>
-            <button class="btn btn-p" style="font-size:11px;padding:6px 12px;" onclick="adminAction('valider','Marc Delacroix')">✅ Valider</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── À SURVEILLER ── -->
-      <div id="admin-surveiller" style="display:none;">
-        <div class="warn-hint" style="margin-bottom:18px;"><span>⚠️</span><span>Ces FA ont été validées mais présentent des signaux à surveiller — note négative récente ou incohérence signalée par une fourrière.</span></div>
-        <div style="background:var(--bg2);border:1px solid rgba(245,158,11,.25);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
-            <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);">Jean-Louis Bernard</div><div style="font-size:12px;color:var(--text2);">Paris 11e · Validé en mars · 2 accueils</div></div>
-            <span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--warning-bg);color:#FCD34D;">⚠ Signalement</span>
-          </div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.7;padding:10px 14px;background:var(--bg3);border-radius:9px;border-left:3px solid var(--warning);">
-            <strong style="color:var(--text);">SPA de Paris Nord</strong> signale : "La FA a détaché le chien dans un parc non clôturé malgré la consigne. Incident mineur, animal retrouvé rapidement."
-          </div>
-          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="btn btn-s" style="font-size:12px;padding:8px 14px;" onclick="showToast('📧 Email envoyé à Jean-Louis Bernard')">📧 Contacter la FA</button>
-            <button class="btn btn-s" style="font-size:12px;padding:8px 14px;border-color:rgba(245,158,11,.3);color:#FCD34D;" onclick="adminAction('avertissement','Jean-Louis Bernard')">⚠️ Avertissement formel</button>
-            <button class="btn btn-s" style="font-size:12px;padding:8px 14px;border-color:rgba(239,68,68,.3);color:#FCA5A5;" onclick="adminRefus('Jean-Louis Bernard')">🚫 Suspendre</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── VALIDÉES ── -->
-      <div id="admin-validees" style="display:none;">
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-            <div style="font-size:14px;font-weight:600;color:var(--text);">118 familles validées</div>
-            <input type="text" placeholder="🔍 Rechercher..." style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:7px 12px;font-size:13px;color:var(--text);width:220px;outline:none;"/>
-          </div>
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;">
-            <div style="flex:1;font-size:13px;font-weight:600;color:var(--text);">Marie Martin</div>
-            <span style="font-size:11px;color:var(--text3);">Paris 15e</span>
-            <span style="font-size:12px;font-weight:700;color:var(--success);">94% · 3 accueils</span>
-            <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✓ Active</span>
-          </div>
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;">
-            <div style="flex:1;font-size:13px;font-weight:600;color:var(--text);">Thomas & Julie Renard</div>
-            <span style="font-size:11px;color:var(--text3);">Vincennes</span>
-            <span style="font-size:12px;font-weight:700;color:var(--success);">84% · 2 accueils</span>
-            <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✓ Active</span>
-          </div>
-          <div style="padding:14px 20px;display:flex;align-items:center;justify-content:center;">
-            <span style="font-size:12px;color:var(--text3);">+ 116 autres FA validées</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── REFUSÉES ── -->
-      <div id="admin-refusees" style="display:none;">
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
-            <div style="font-size:14px;font-weight:600;color:var(--text);">6 profils refusés</div>
-            <div style="font-size:12px;color:var(--text2);margin-top:2px;">Ces données sont conservées pour éviter les réinscriptions. Non visibles par les intéressés.</div>
-          </div>
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
-            <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text2);">Kevin D.</div><div style="font-size:11px;color:var(--text3);">Score 42% · Réponses incohérentes · Refusé le 12/03</div></div>
-            <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--danger-bg);color:#FCA5A5;">❌ Refusé</span>
-          </div>
-          <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;">
-            <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text2);">Anonyme (supprimé)</div><div style="font-size:11px;color:var(--text3);">Données effacées sur demande RGPD · 28/02</div></div>
-            <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--bg3);color:var(--text3);">🗑 Effacé</span>
-          </div>
-        </div>
-      </div>
+      <div id="admin-dossiers"></div>
 
       <!-- ── COMMENTAIRES À MODÉRER ── -->
       <div id="admin-commentaires" style="display:none;">
@@ -4358,6 +4177,7 @@ Signature électronique validée par l'Association</div>
         </div>
       </div>
 
+      </div><!-- /admin-contenu -->
     </div>
   </div>
 
@@ -6111,6 +5931,7 @@ function go(id){
   closeMobileNav();
   window.scrollTo(0,0);
   if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
+  if(id==='admin-petia' && typeof adminInit==='function') adminInit();
 }
 
 function dashView(vid,btn){
@@ -7000,7 +6821,7 @@ function soumettreCompteRendu() {
 function adminTab(btn, tabId) {
   document.querySelectorAll('#admin-petia .cond-tab').forEach(t => t.classList.remove('on'));
   btn.classList.add('on');
-  ['admin-attente','admin-surveiller','admin-validees','admin-refusees','admin-commentaires','admin-documents','admin-personnalisation','admin-stats'].forEach(id => {
+  ['admin-dossiers','admin-commentaires','admin-documents','admin-personnalisation','admin-stats'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -8506,6 +8327,225 @@ async function deciderMatch(matchId, statut, btn) {
   } catch (e) {
     showToast('⚠ ' + (e.message || 'Erreur'));
     if (btn) btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ESPACE ADMIN — validation des dossiers FA (/api/admin)
+// ═══════════════════════════════════════════════════════════════════
+let adminStatut = 'en_attente';
+const ADMIN_STATUT_TXT = { en_attente: 'En attente', incomplet: 'Précisions demandées', valide: 'Validée', refuse: 'Refusée', suspendu: 'Suspendue' };
+const ADMIN_LIBELLES = {
+  type_logement: { maison: 'Maison', appartement: 'Appartement', autre: 'Autre' },
+  heures_seul: { '0_2': '0–2 h seul', '2_4': '2–4 h seul', '4_6': '4–6 h seul', '6_8': '6–8 h seul', '8_10': '8–10 h seul', '10_plus': '10 h+ seul' },
+  presence_journee: { oui_toujours: 'Présent toute la journée', oui_parfois: 'Présent parfois', non: 'Absent en journée' },
+  disponible_le: { maintenant: 'Dispo maintenant', cette_semaine: 'Dispo cette semaine', ce_mois: 'Dispo ce mois-ci', non_dispo: 'Indisponible' }
+};
+const ADMIN_SITUATIONS = [
+  ['motivation', 'Motivation'], ['situation_absence', 'Absence imprévue'], ['situation_destruction', 'Destructions'],
+  ['situation_grogne', 'L\'animal grogne'], ['situation_urgence', 'Urgence vétérinaire'], ['situation_morsure', 'Morsure'],
+  ['situation_reactivite', 'Réactivité'], ['situation_consignes', 'Respect des consignes'], ['situation_decouragement', 'Découragement'],
+  ['situation_limite', 'Limites'], ['attachement', 'Attachement'], ['duree_longue', 'Accueil long'], ['autres_infos', 'Autres informations']
+];
+
+function getAdminSession() { try { return JSON.parse(sessionStorage.getItem('petia_admin') || 'null'); } catch (_) { return null; } }
+
+function adminAfficherConnexion(connecte) {
+  document.getElementById('admin-login').style.display = connecte ? 'none' : 'block';
+  document.getElementById('admin-contenu').style.display = connecte ? 'block' : 'none';
+  const zone = document.getElementById('admin-entete-actions');
+  const s = getAdminSession();
+  zone.innerHTML = connecte
+    ? '<span style="font-size:11px;color:var(--text3)">' + escHtml(s?.admin?.email || '') + '</span><button class="btn btn-s" style="font-size:11px;padding:6px 12px" onclick="adminDeconnexion()">Se déconnecter</button>'
+    : '';
+}
+
+function adminInit() {
+  const s = getAdminSession();
+  adminAfficherConnexion(!!s?.token);
+  if (s?.token) {
+    const btn = document.querySelector('#admin-petia .cond-tab[data-statut="' + adminStatut + '"]');
+    adminOngletStatut(btn, adminStatut);
+  }
+}
+
+async function adminConnexion() {
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-pwd').value;
+  if (!email || !password) return showToast('⚠ Email et mot de passe requis.');
+  const btn = document.getElementById('admin-login-btn');
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const res = await fetch(API_URL + '/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Connexion impossible.');
+    sessionStorage.setItem('petia_admin', JSON.stringify(data));
+    document.getElementById('admin-pwd').value = '';
+    adminInit();
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+}
+
+function adminDeconnexion() { sessionStorage.removeItem('petia_admin'); adminAfficherConnexion(false); }
+
+async function adminFetch(path, opts = {}) {
+  const s = getAdminSession();
+  const res = await fetch(API_URL + '/api/admin' + path, {
+    ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (s?.token || ''), ...(opts.headers || {}) }
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 || res.status === 403) { adminDeconnexion(); throw new Error(data.message || 'Session expirée, reconnectez-vous.'); }
+  if (!res.ok) throw new Error(data.message || 'Erreur serveur.');
+  return data;
+}
+
+function adminOngletStatut(btn, statut) {
+  adminTab(btn || document.querySelector('#admin-petia .cond-tab'), 'admin-dossiers');
+  adminStatut = statut;
+  adminChargerDossiers();
+}
+
+async function adminChargerDossiers() {
+  const zone = document.getElementById('admin-dossiers');
+  zone.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Chargement des dossiers…</div>';
+  try {
+    const data = await adminFetch('/familles?statut=' + adminStatut);
+    const c = data.compteurs || {};
+    const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    ['valide', 'en_attente', 'refuse', 'incomplet'].forEach(k => set('admin-kpi-' + k, c[k] ?? 0));
+    set('admin-kpi-semaine', data.valides_semaine ? '+' + data.valides_semaine + ' cette semaine' : '');
+    document.querySelectorAll('#admin-petia .cond-tab[data-statut]').forEach(b => {
+      const base = b.textContent.replace(/\s*\(\d+\)$/, '');
+      b.textContent = base + ' (' + (c[b.dataset.statut] ?? 0) + ')';
+    });
+    adminAfficherDossiers(data.familles || []);
+  } catch (e) {
+    zone.innerHTML = '<div style="padding:28px;text-align:center;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>';
+  }
+}
+
+function adminIlYa(d) {
+  if (!d) return '';
+  const h = Math.floor((Date.now() - new Date(d).getTime()) / 3600000);
+  if (h < 1) return 'à l\'instant';
+  if (h < 24) return 'il y a ' + h + ' h';
+  const j = Math.floor(h / 24);
+  return 'il y a ' + j + ' jour' + (j > 1 ? 's' : '');
+}
+
+function adminResume(f) {
+  const L = ADMIN_LIBELLES;
+  const enfants = Array.isArray(f.enfants) && f.enfants.filter(Boolean).length;
+  const animaux = Array.isArray(f.animaux_actuels) ? f.animaux_actuels.filter(Boolean) : [];
+  return [
+    L.type_logement[f.type_logement] && (L.type_logement[f.type_logement] + (f.jardin ? ' avec jardin' : '')),
+    f.nb_adultes ? f.nb_adultes + ' adulte' + (f.nb_adultes > 1 ? 's' : '') : null,
+    enfants ? enfants + ' enfant' + (enfants > 1 ? 's' : '') : null,
+    animaux.length ? 'Animaux : ' + animaux.join(', ') : null,
+    L.heures_seul[f.heures_seul], L.presence_journee[f.presence_journee],
+    f.nb_accueils ? f.nb_accueils + ' accueil(s)' : null,
+    L.disponible_le[f.disponible_le],
+    Array.isArray(f.peut_accueillir) && f.peut_accueillir.length ? 'Accueille : ' + f.peut_accueillir.join(', ') : null
+  ].filter(Boolean);
+}
+
+function adminAfficherDossiers(familles) {
+  const zone = document.getElementById('admin-dossiers');
+  if (!familles.length) {
+    zone.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;color:var(--text3);font-size:13px">Aucun dossier « ' + ADMIN_STATUT_TXT[adminStatut].toLowerCase() + ' ».</div>';
+    return;
+  }
+  zone.innerHTML = familles.map(f => {
+    const resume = adminResume(f);
+    const incomplet = resume.length < 3;
+    const btn = (label, statut, style) => '<button class="btn ' + (statut === 'valide' ? 'btn-p' : 'btn-s') + '" style="font-size:12px;padding:8px 14px;' + (style || '') + '" onclick="adminDecider(\'' + f.id + '\',\'' + statut + '\',this)">' + label + '</button>';
+    const actions = {
+      en_attente: btn('⏸ Demander des précisions', 'incomplet', 'border-color:rgba(245,158,11,.3);color:#FCD34D;') + btn('❌ Refuser', 'refuse', 'border-color:rgba(239,68,68,.3);color:#FCA5A5;') + btn('✅ Valider le profil', 'valide'),
+      incomplet: btn('❌ Refuser', 'refuse', 'border-color:rgba(239,68,68,.3);color:#FCA5A5;') + btn('✅ Valider le profil', 'valide'),
+      valide: btn('🚫 Suspendre', 'suspendu', 'border-color:rgba(239,68,68,.3);color:#FCA5A5;'),
+      refuse: btn('↩ Remettre en attente', 'en_attente') + btn('✅ Valider', 'valide'),
+      suspendu: btn('↩ Remettre en attente', 'en_attente') + btn('✅ Réactiver', 'valide')
+    }[f.statut_dossier] || '';
+    const decision = f.decision_date
+      ? '<div style="margin:0 20px 14px;font-size:12px;color:var(--text2);padding:10px 14px;background:var(--bg3);border-radius:9px;border-left:3px solid var(--border2);">'
+        + escHtml(ADMIN_STATUT_TXT[f.statut_dossier]) + ' ' + adminIlYa(f.decision_date) + (f.decision_motif ? ' — « ' + escHtml(f.decision_motif) + ' »' : '') + '</div>'
+      : '';
+    return '<div id="dossier-' + f.id + '" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;margin-bottom:16px;overflow:hidden;">'
+      + '<div style="padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">'
+      + '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--bleu-bright),var(--violet));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👤</div>'
+      + '<div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml([f.prenom, f.nom].filter(Boolean).join(' ') || 'Sans nom') + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + escHtml([f.ville, f.code_postal].filter(Boolean).join(' ') || 'Ville non renseignée') + ' · inscrit(e) ' + adminIlYa(f.created_at) + '</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px;">' + escHtml(f.email || '') + (f.email_verifie ? ' · ✓ email vérifié' : ' · ⚠ email non vérifié') + (f.previsitee ? ' · 🏠 prévisitée' : '') + '</div></div>'
+      + '</div>'
+      + (incomplet ? '<div style="margin:0 20px 14px;font-size:12px;color:var(--warning);">⚠ Profil très incomplet : la famille n\'a pas encore rempli son questionnaire.</div>' : '')
+      + (resume.length ? '<div style="margin:0 20px 14px;display:flex;flex-wrap:wrap;gap:6px;">' + resume.map(r => '<span style="font-size:11px;padding:4px 10px;border-radius:20px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);">' + escHtml(r) + '</span>').join('') + '</div>' : '')
+      + decision
+      + '<div id="dossier-detail-' + f.id + '" style="display:none;margin:0 20px 16px;"></div>'
+      + '<div style="margin:0 20px 16px;">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Message à la famille (motif)</div>'
+      + '<textarea id="motif-' + f.id + '" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:\'Sora\',sans-serif;font-size:12px;color:var(--text);resize:vertical;height:60px;min-height:0;outline:none;" placeholder="Obligatoire pour un refus. Envoyé à la famille pour une demande de précisions ou un refus."></textarea>'
+      + '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-top:8px;cursor:pointer;"><input type="checkbox" id="notif-' + f.id + '" checked style="width:16px;height:16px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);flex-shrink:0;"> Prévenir la famille par e-mail</label>'
+      + '</div>'
+      + '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+      + '<button class="btn btn-s" style="font-size:12px;padding:8px 14px;" onclick="adminVoirDossier(\'' + f.id + '\',this)">📖 Dossier complet</button>'
+      + '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">' + actions + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+async function adminVoirDossier(id, btn) {
+  const zone = document.getElementById('dossier-detail-' + id);
+  if (zone.style.display !== 'none') { zone.style.display = 'none'; btn.textContent = '📖 Dossier complet'; return; }
+  zone.style.display = 'block'; btn.textContent = '📖 Masquer le dossier';
+  zone.innerHTML = '<div style="font-size:12px;color:var(--text3)">Chargement…</div>';
+  try {
+    const { famille: f } = await adminFetch('/familles/' + id);
+    const reponses = ADMIN_SITUATIONS.filter(([k]) => f[k]).map(([k, label]) =>
+      '<div style="background:var(--bg3);border-radius:12px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;margin-bottom:5px;">' + escHtml(label) + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + escHtml(f[k]) + '</div></div>').join('');
+    const coord = [f.telephone && '📞 ' + f.telephone, f.adresse && '📍 ' + f.adresse].filter(Boolean).map(escHtml).join(' · ');
+    zone.innerHTML = (coord ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;">' + coord + '</div>' : '')
+      + (reponses || '<div style="font-size:12px;color:var(--text3);margin-bottom:10px;">Aucune réponse au questionnaire pour l\'instant.</div>')
+      + '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;">Note interne (non visible par la famille)</div>'
+      + '<textarea id="note-' + id + '" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:\'Sora\',sans-serif;font-size:12px;color:var(--text);resize:vertical;height:70px;outline:none;" placeholder="Tes observations sur ce profil…">' + escHtml(f.notes_internes || '') + '</textarea>'
+      + '<button class="btn btn-s" style="font-size:12px;padding:7px 12px;margin-top:8px;" onclick="adminEnregistrerNote(\'' + id + '\',this)">💾 Enregistrer la note</button>';
+  } catch (e) {
+    zone.innerHTML = '<div style="font-size:12px;color:var(--danger)">' + escHtml(e.message) + '</div>';
+  }
+}
+
+async function adminEnregistrerNote(id, btn) {
+  btn.disabled = true;
+  try {
+    await adminFetch('/familles/' + id, { method: 'PATCH', body: JSON.stringify({ notes_internes: document.getElementById('note-' + id).value }) });
+    showToast('💾 Note enregistrée');
+  } catch (e) { showToast('⚠ ' + e.message); }
+  btn.disabled = false;
+}
+
+async function adminDecider(id, statut, btn) {
+  const motif = (document.getElementById('motif-' + id)?.value || '').trim();
+  const notifier = document.getElementById('notif-' + id)?.checked ?? true;
+  if (statut === 'refuse' && !motif) {
+    document.getElementById('motif-' + id)?.focus();
+    return showToast('⚠ Indiquez le motif du refus dans « Message à la famille ».');
+  }
+  btn.disabled = true;
+  try {
+    const data = await adminFetch('/familles/' + id, { method: 'PATCH', body: JSON.stringify({ statut, motif: ['refuse','incomplet','suspendu'].includes(statut) && motif ? motif : undefined, notifier }) });
+    const nom = data.famille?.prenom || 'La famille';
+    const msg = { valide: '✅ ' + nom + ' validée — elle peut maintenant recevoir des propositions', incomplet: '📝 Précisions demandées à ' + nom,
+                  refuse: '❌ Dossier de ' + nom + ' refusé', suspendu: '🚫 ' + nom + ' suspendue', en_attente: '↩ ' + nom + ' remise en attente' }[statut];
+    const mail = data.email === 'envoye' ? ' · e-mail envoyé' : data.email === 'echec' ? ' · ⚠ e-mail non envoyé' : '';
+    showToast(msg + mail);
+    adminChargerDossiers();
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    btn.disabled = false;
   }
 }
 </script>
