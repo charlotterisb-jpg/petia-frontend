@@ -1141,7 +1141,6 @@ select{background-image:none;}
     <button class="nav-btn" onclick="go('contrat-fa')" style="font-size:11px;">✍️ Contrat</button>
     <button class="nav-btn" onclick="go('conditions-accueil')" style="font-size:11px;">📋 Conditions</button>
     <button class="nav-btn" onclick="go('proposition-accueil')" style="font-size:11px;">🐕 Proposition FA</button>
-    <button class="nav-btn" onclick="go('admin-petia')" style="font-size:11px;">⚙️ Admin</button>
     <button class="nav-btn" onclick="go('questionnaire-fa')" style="font-size:11px;">📝 Questionnaire</button>
     <button class="nav-btn" onclick="go('ajouter-animal')" style="font-size:11px;">➕ Animal</button>
     <button class="nav-btn" onclick="go('notation')" style="font-size:11px;">⭐ Évaluations</button>
@@ -6059,17 +6058,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// Combinaison secrète : tapez "petia" sur le clavier depuis la landing
-let secretBuffer = '';
-document.addEventListener('keydown', (e) => {
-  secretBuffer += e.key.toLowerCase();
-  if (secretBuffer.length > 5) secretBuffer = secretBuffer.slice(-5);
-  if (secretBuffer === 'petia') {
-    secretBuffer = '';
-    go('admin-petia');
-    showToast('🔐 Accès admin');
-  }
-});
+// Accès admin : uniquement via l'adresse …/#admin (aucun lien public)
+function ouvrirAdminSiDemande() {
+  if (location.hash === '#admin') go('admin-petia');
+}
+window.addEventListener('hashchange', ouvrirAdminSiDemande);
+document.addEventListener('DOMContentLoaded', ouvrirAdminSiDemande);
 
 
 let docModifie = false;
