@@ -3175,7 +3175,7 @@ Signature électronique validée par l'Association</div>
       </div>
       <div class="form-section">
         <div class="section-head"><div class="snum bl">2</div><div class="section-head-text"><h3>Logement & environnement</h3></div></div>
-        <div class="field"><label>Type de logement <span class="req">*</span></label><select><option value="">Sélectionner...</option><option>Appartement</option><option>Appartement avec balcon</option><option>Maison avec jardin clôturé</option><option>Maison avec grand terrain</option></select></div>
+        <div class="field"><label>Type de logement <span class="req">*</span></label><select id="fc-logement"><option value="">Sélectionner...</option><option>Appartement</option><option>Appartement avec balcon</option><option>Maison avec jardin clôturé</option><option>Maison avec grand terrain</option></select></div>
         <div class="field"><label>Extérieur sécurisé ?</label><div class="tags"><span class="tag" onclick="E(this,'s','ext')">Oui, clôturé</span><span class="tag" onclick="E(this,'s','ext')">Partiellement</span><span class="tag" onclick="E(this,'s','ext')">Non</span></div></div>
         <div class="field"><label>Enfants à la maison ?</label><div class="tags"><span class="tag" onclick="E(this,'s','enf')">Non</span><span class="tag" onclick="E(this,'s','enf')">Enfants &lt;3 ans</span><span class="tag" onclick="E(this,'s','enf')">3–6 ans</span><span class="tag" onclick="E(this,'s','enf')">6–12 ans</span><span class="tag" onclick="E(this,'s','enf')">Ados</span></div></div>
         <div class="field"><label>Autres animaux ?</label><div class="tags"><span class="tag" onclick="T(this,'s')">Aucun</span><span class="tag" onclick="T(this,'s')">Chien(s)</span><span class="tag" onclick="T(this,'s')">Chat(s)</span><span class="tag" onclick="T(this,'s')">Autres</span></div></div>
@@ -3184,7 +3184,7 @@ Signature électronique validée par l'Association</div>
         <div class="section-head"><div class="snum co">3</div><div class="section-head-text"><h3>Disponibilités</h3><p>Déterminant pour le matching d'urgence.</p></div></div>
         <div class="ia-hint"><span>✦</span>Disponible sous 48h dans un rayon de 15 km → alertée en priorité absolue.</div>
         <div class="field"><label>Situation professionnelle <span class="req">*</span></label><select id="travail" onchange="document.getElementById('fab').classList.toggle('on',this.value==='p'||this.value==='f')"><option value="">Sélectionner...</option><option value="n">Non / Télétravail full-time</option><option value="p">Oui, partiellement</option><option value="f">Oui, à plein temps</option></select></div>
-        <div class="field cond" id="fab"><label>Heures d'absence / jour</label><select><option>Moins de 4h</option><option>4–6h</option><option>6–8h</option><option>8–10h</option><option>Plus de 10h</option></select></div>
+        <div class="field cond" id="fab"><label>Heures d'absence / jour</label><select id="fc-absence"><option>Moins de 4h</option><option>4–6h</option><option>6–8h</option><option>8–10h</option><option>Plus de 10h</option></select></div>
         <div class="field"><label>Disponible pour commencer</label><div class="tags"><span class="tag" onclick="E(this,'s','st')">Immédiatement</span><span class="tag" onclick="E(this,'s','st')">Dans 48h</span><span class="tag" onclick="E(this,'s','st')">Cette semaine</span><span class="tag" onclick="E(this,'s','st')">Ce mois-ci</span></div></div>
         <div class="field"><label>Durées d'accueil possibles</label><div class="tags"><span class="tag" onclick="T(this,'s')">Quelques jours</span><span class="tag" onclick="T(this,'s')">1–2 semaines</span><span class="tag" onclick="T(this,'s')">1–3 mois</span><span class="tag" onclick="T(this,'s')">Jusqu'à adoption</span></div></div>
       </div>
@@ -3193,7 +3193,7 @@ Signature électronique validée par l'Association</div>
         <div class="section-head"><div class="snum co">4</div><div class="section-head-text"><h3>Logement — détails</h3></div></div>
         <div class="fg">
           <label>Hauteur de clôture<span class="hint">Si jardin ou extérieur</span>
-            <select>
+            <select id="fc-cloture">
               <option value="">— Sélectionner —</option>
               <option value="aucune">Pas de clôture</option>
               <option value="moins1m">Moins de 1m</option>
@@ -3203,7 +3203,7 @@ Signature électronique validée par l'Association</div>
             </select>
           </label>
           <label>Escaliers dans le logement ?
-            <select>
+            <select id="fc-escaliers">
               <option value="">— Sélectionner —</option>
               <option value="non">Non</option>
               <option value="oui_peu">Oui — quelques marches</option>
@@ -3213,7 +3213,7 @@ Signature électronique validée par l'Association</div>
         </div>
         <div class="fg">
           <label>Étage sans ascenseur ?
-            <select>
+            <select id="fc-etage">
               <option value="">— Sélectionner —</option>
               <option value="non">Non / RDC</option>
               <option value="1_2">1er ou 2ème étage</option>
@@ -3221,7 +3221,7 @@ Signature électronique validée par l'Association</div>
             </select>
           </label>
           <label>Véhicule disponible ?<span class="hint">Pour urgences vétérinaires</span>
-            <select>
+            <select id="fc-vehicule">
               <option value="">— Sélectionner —</option>
               <option value="oui">Oui, toujours</option>
               <option value="parfois">Parfois</option>
@@ -3235,7 +3235,7 @@ Signature électronique validée par l'Association</div>
         <div class="section-head"><div class="snum co">5</div><div class="section-head-text"><h3>Quotidien avec l'animal</h3></div></div>
         <div class="fg">
           <label>Heures seul par jour (réel) *<span class="hint">Soyez honnête — c'est clé pour le matching</span>
-            <select>
+            <select id="fc-heures-seul">
               <option value="">— Sélectionner —</option>
               <option value="0_2">0 à 2h</option>
               <option value="2_4">2 à 4h</option>
@@ -3246,7 +3246,7 @@ Signature électronique validée par l'Association</div>
             </select>
           </label>
           <label>Quelqu'un à la maison en journée ?
-            <select>
+            <select id="fc-presence">
               <option value="">— Sélectionner —</option>
               <option value="oui_toujours">Oui, toujours</option>
               <option value="oui_parfois">Oui, parfois</option>
@@ -3256,7 +3256,7 @@ Signature électronique validée par l'Association</div>
         </div>
         <div class="fg">
           <label>Nombre de balades par jour *
-            <select>
+            <select id="fc-balades">
               <option value="">— Sélectionner —</option>
               <option value="1">1 balade</option>
               <option value="2">2 balades</option>
@@ -3264,7 +3264,7 @@ Signature électronique validée par l'Association</div>
             </select>
           </label>
           <label>Durée moyenne d'une balade *
-            <select>
+            <select id="fc-duree-balade">
               <option value="">— Sélectionner —</option>
               <option value="moins15">Moins de 15 min</option>
               <option value="15_30">15 à 30 min</option>
@@ -3275,7 +3275,7 @@ Signature électronique validée par l'Association</div>
         </div>
         <div class="fg">
           <label>Lieux de promenade principaux *
-            <select>
+            <select id="fc-lieux">
               <option value="">— Sélectionner —</option>
               <option value="jardin_seul">Jardin uniquement</option>
               <option value="quartier_laisse">Quartier en laisse</option>
@@ -3304,9 +3304,9 @@ Signature électronique validée par l'Association</div>
       <div class="form-section">
         <div class="section-head"><div class="snum bl">A</div><div class="section-head-text"><h3>Motivation & réalisme</h3><p>Filtre principal. L'IA analyse la précision et la cohérence de vos réponses.</p></div></div>
         <div class="ia-hint"><span>✦</span>Les formulations vagues réduisent automatiquement le score de compatibilité.</div>
-        <div class="field"><label>Pourquoi souhaitez-vous devenir FA ? <span class="req">*</span></label><textarea placeholder="Soyez précis(e) sur ce qui vous a amené(e) à cette décision..."></textarea></div>
-        <div class="field"><label>Êtes-vous prêt(e) à vous attacher puis à laisser partir ? <span class="req">*</span></label><textarea placeholder="Comment vivrez-vous ce moment ?"></textarea></div>
-        <div class="field"><label>Que ferez-vous si le chien reste plusieurs mois ? <span class="req">*</span></label><textarea placeholder="Organisation, limites, position sur une possible adoption..."></textarea></div>
+        <div class="field"><label>Pourquoi souhaitez-vous devenir FA ? <span class="req">*</span></label><textarea id="q-motivation" placeholder="Soyez précis(e) sur ce qui vous a amené(e) à cette décision..."></textarea></div>
+        <div class="field"><label>Êtes-vous prêt(e) à vous attacher puis à laisser partir ? <span class="req">*</span></label><textarea id="q-attachement" placeholder="Comment vivrez-vous ce moment ?"></textarea></div>
+        <div class="field"><label>Que ferez-vous si le chien reste plusieurs mois ? <span class="req">*</span></label><textarea id="q-duree-longue" placeholder="Organisation, limites, position sur une possible adoption..."></textarea></div>
       </div>
 
       <div class="form-section">
@@ -3319,8 +3319,8 @@ Signature électronique validée par l'Association</div>
           <div class="chk" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chien réactif envers humains</span></div>
           <div class="chk" onclick="CH(this)"><div class="chkbox"><svg width="10" height="8" viewBox="0 0 10 8"><path d="M1 4l3 3 5-6" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><span>Un chien avec anxiété de séparation sévère</span></div>
         </div></div>
-        <div class="field"><label>Que feriez-vous si le chien détruit vos affaires ? <span class="req">*</span></label><textarea placeholder="Réaction immédiate et plan d'action..."></textarea></div>
-        <div class="field"><label>Que feriez-vous si le chien grogne sur vous ? <span class="req">*</span></label><textarea placeholder="Étapes que vous suivriez..."></textarea></div>
+        <div class="field"><label>Que feriez-vous si le chien détruit vos affaires ? <span class="req">*</span></label><textarea id="q-b-destruction" placeholder="Réaction immédiate et plan d'action..."></textarea></div>
+        <div class="field"><label>Que feriez-vous si le chien grogne sur vous ? <span class="req">*</span></label><textarea id="q-b-grogne" placeholder="Étapes que vous suivriez..."></textarea></div>
       </div>
 
       <div class="form-section">
@@ -3343,28 +3343,28 @@ Signature électronique validée par l'Association</div>
         <div class="section-head"><div class="snum co">G</div><div class="section-head-text"><h3>Mises en situation</h3><p>Répondez spontanément. Pas de réponse parfaite.</p></div></div>
         <div class="ia-hint"><span>✦</span>L'IA détecte les incohérences entre vos réponses et votre profil déclaré.</div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 1 · Premières nuits</div><div class="sit-title">Le chien pleure toute la nuit</div><div class="sit-scene">Il pleure, gratte à votre porte, vous empêche de dormir depuis 2h. Vous travaillez demain.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous ? Étape par étape. <span class="req">*</span></label><textarea placeholder="Décrivez vos actions précises..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 1 · Premières nuits</div><div class="sit-title">Le chien pleure toute la nuit</div><div class="sit-scene">Il pleure, gratte à votre porte, vous empêche de dormir depuis 2h. Vous travaillez demain.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous ? Étape par étape. <span class="req">*</span></label><textarea id="q-sit-nuits" placeholder="Décrivez vos actions précises..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 2 · Destruction</div><div class="sit-title">Il a détruit un coussin et des chaussures</div><div class="sit-scene">En rentrant, vous découvrez les dégâts. Le chien vous accueille en remuant la queue.</div><div class="field" style="margin-bottom:0"><label>Réaction immédiate et actions ? <span class="req">*</span></label><textarea placeholder="Réaction immédiate, puis plan d'action..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 2 · Destruction</div><div class="sit-title">Il a détruit un coussin et des chaussures</div><div class="sit-scene">En rentrant, vous découvrez les dégâts. Le chien vous accueille en remuant la queue.</div><div class="field" style="margin-bottom:0"><label>Réaction immédiate et actions ? <span class="req">*</span></label><textarea id="q-sit-destruction" placeholder="Réaction immédiate, puis plan d'action..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 3 · Absence longue</div><div class="sit-title">Imprévu : vous devez vous absenter 10h</div><div class="sit-scene">Un imprévu professionnel. Vous ne pouvez pas laisser le chien seul aussi longtemps.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous pour le chien ? <span class="req">*</span></label><textarea placeholder="Organisation, solutions alternatives..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 3 · Absence longue</div><div class="sit-title">Imprévu : vous devez vous absenter 10h</div><div class="sit-scene">Un imprévu professionnel. Vous ne pouvez pas laisser le chien seul aussi longtemps.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous pour le chien ? <span class="req">*</span></label><textarea id="q-sit-absence" placeholder="Organisation, solutions alternatives..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 4 · Réactivité en balade</div><div class="sit-title">Tire, aboie, tente de sauter sur un autre chien</div><div class="sit-scene">En pleine rue, il perd le contrôle. Vous n'étiez pas prévenu(e) de cette réactivité.</div><div class="field" style="margin-bottom:0"><label>Réaction sur le moment ? Et après ? <span class="req">*</span></label><textarea placeholder="Gestion immédiate puis suivi..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 4 · Réactivité en balade</div><div class="sit-title">Tire, aboie, tente de sauter sur un autre chien</div><div class="sit-scene">En pleine rue, il perd le contrôle. Vous n'étiez pas prévenu(e) de cette réactivité.</div><div class="field" style="margin-bottom:0"><label>Réaction sur le moment ? Et après ? <span class="req">*</span></label><textarea id="q-sit-reactivite" placeholder="Gestion immédiate puis suivi..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 5 · Morsure</div><div class="sit-title">Le chien mord légèrement un ami (sans gravité)</div><div class="sit-scene">Votre ami voulait le caresser. Morsure superficielle.</div><div class="field" style="margin-bottom:0"><label>Dans l'heure ? Puis dans les 24h ? <span class="req">*</span></label><textarea placeholder="Actions immédiates, contact association..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 5 · Morsure</div><div class="sit-title">Le chien mord légèrement un ami (sans gravité)</div><div class="sit-scene">Votre ami voulait le caresser. Morsure superficielle.</div><div class="field" style="margin-bottom:0"><label>Dans l'heure ? Puis dans les 24h ? <span class="req">*</span></label><textarea id="q-sit-morsure" placeholder="Actions immédiates, contact association..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 6 · Attachement</div><div class="sit-title">Après 2 mois, vous êtes très attaché(e)</div><div class="sit-scene">Une famille vient de valider son adoption et vient le chercher dans 3 jours.</div><div class="field" style="margin-bottom:0"><label>Comment réagissez-vous ? <span class="req">*</span></label><textarea placeholder="Soyez honnête..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 6 · Attachement</div><div class="sit-title">Après 2 mois, vous êtes très attaché(e)</div><div class="sit-scene">Une famille vient de valider son adoption et vient le chercher dans 3 jours.</div><div class="field" style="margin-bottom:0"><label>Comment réagissez-vous ? <span class="req">*</span></label><textarea id="q-sit-attachement" placeholder="Soyez honnête..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 7 · Consignes</div><div class="sit-title">L'asso vous demande de ne jamais détacher le chien</div><div class="sit-scene">Après 10 jours, il semble calme et parfaitement rappelable dans un parc vide.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous ? Pourquoi ? <span class="req">*</span></label><textarea placeholder="Votre raisonnement..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 7 · Consignes</div><div class="sit-title">L'asso vous demande de ne jamais détacher le chien</div><div class="sit-scene">Après 10 jours, il semble calme et parfaitement rappelable dans un parc vide.</div><div class="field" style="margin-bottom:0"><label>Que faites-vous ? Pourquoi ? <span class="req">*</span></label><textarea id="q-sit-consignes" placeholder="Votre raisonnement..."></textarea></div></div>
 
-        <div class="sit-card"><div class="sit-num">📍 Situation 8 · Découragement</div><div class="sit-title">Au bout de 2 semaines, vous êtes épuisé(e)</div><div class="sit-scene">Aboiements, mauvais sommeil depuis 12 jours, pas de famille adoptante en vue.</div><div class="field" style="margin-bottom:0"><label>Continuez-vous ? Comment ? <span class="req">*</span></label><textarea placeholder="Soyez honnête sur votre seuil..."></textarea></div></div>
+        <div class="sit-card"><div class="sit-num">📍 Situation 8 · Découragement</div><div class="sit-title">Au bout de 2 semaines, vous êtes épuisé(e)</div><div class="sit-scene">Aboiements, mauvais sommeil depuis 12 jours, pas de famille adoptante en vue.</div><div class="field" style="margin-bottom:0"><label>Continuez-vous ? Comment ? <span class="req">*</span></label><textarea id="q-sit-decouragement" placeholder="Soyez honnête sur votre seuil..."></textarea></div></div>
       </div>
 
       <div class="form-section">
         <div class="section-head"><div class="snum vi">H</div><div class="section-head-text"><h3>La question de sincérité</h3><p>Conçue pour décourager les candidatures impulsives.</p></div></div>
         <div class="warn-hint"><span>⚠️</span><span>Si vous hésitez, c'est peut-être le signe que vous n'êtes pas encore prêt(e). Et c'est tout à fait normal.</span></div>
-        <div class="field"><label>Pleurs la nuit, 3 objets détruits, 3 semaines d'adaptation. Continuez-vous ? Quelle est votre limite réelle ? <span class="req">*</span></label><textarea style="min-height:120px" placeholder="Répondez vraiment, pas idéalement..."></textarea></div>
-        <div class="field"><label>Y a-t-il quelque chose d'important à nous dire ?</label><textarea placeholder="Toute information utile pour mieux vous matcher..."></textarea></div>
+        <div class="field"><label>Pleurs la nuit, 3 objets détruits, 3 semaines d'adaptation. Continuez-vous ? Quelle est votre limite réelle ? <span class="req">*</span></label><textarea id="q-limite" style="min-height:120px" placeholder="Répondez vraiment, pas idéalement..."></textarea></div>
+        <div class="field"><label>Y a-t-il quelque chose d'important à nous dire ?</label><textarea id="q-autres" placeholder="Toute information utile pour mieux vous matcher..."></textarea></div>
       </div>
 
       <div class="field"><label>Engagement (1–10) <span class="req">*</span></label>
@@ -3378,7 +3378,7 @@ Signature électronique validée par l'Association</div>
 
       <div class="form-actions" style="margin-top:12px">
         <button class="btn btn-s" onclick="go('famille-compte')">← Précédent</button>
-        <button class="btn btn-p co" onclick="go('success-page')">Soumettre ma candidature →</button>
+        <button class="btn btn-p co" id="btn-questionnaire" onclick="soumettreQuestionnaire()">Soumettre ma candidature →</button>
       </div>
     </div>
   </div>
@@ -6333,14 +6333,15 @@ async function validerFamille() {
           telephone: tel?.value?.trim(),
           code_postal: cp?.value?.trim(),
           ville: ville?.value?.trim(),
-          departement: cp?.value?.trim().substring(0,2)
+          departement: cp?.value?.trim().substring(0,2),
+          profil: collecterProfilFA()
         })
       });
       const data = await res.json();
       resetButton(btn);
       if (!res.ok) { showToast(data.message || '⚠ Erreur lors de l\'inscription'); return; }
-      sessionFA = { token: data.token, famille: data.famille };
-      sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA));
+      // Jeton signé par le serveur : permet d'envoyer le questionnaire sans être connecté (24 h)
+      try { sessionStorage.setItem('petia_fa_inscription', data.jeton_inscription || ''); } catch (_) {}
       go('questionnaire-fa');
     } catch(e) {
       resetButton(btn);
@@ -7793,6 +7794,130 @@ async function desactiverMFA(profil, btn) {
   } catch (e) {
     showToast('⚠ ' + e.message);
     if (btn) btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INSCRIPTION FA + QUESTIONNAIRE — enregistrement réel
+// ═══════════════════════════════════════════════════════════════════
+const decodeTxt = (t) => { const d = document.createElement('textarea'); d.innerHTML = t; return d.value.trim(); };
+
+function champParLibelle(pageId, debut) {
+  return [...document.querySelectorAll('#' + pageId + ' .field')]
+    .find(f => (f.querySelector('label')?.textContent || '').trim().startsWith(debut));
+}
+function tagsChoisis(pageId, debut) {
+  const f = champParLibelle(pageId, debut);
+  return f ? [...f.querySelectorAll('.tag.s, .tag.sc, .tag.sr')].map(t => decodeTxt(t.textContent)) : [];
+}
+const valSelect = (id) => document.getElementById(id)?.value || undefined;
+const valTexte = (id) => (document.getElementById(id)?.value || '').trim();
+
+// Page d'inscription : logement & quotidien
+function collecterProfilFA() {
+  const P = 'famille-compte';
+  const profil = {};
+  const logement = valSelect('fc-logement') || '';
+  if (logement.startsWith('Appartement')) { profil.type_logement = 'appartement'; profil.jardin = false; }
+  else if (logement.startsWith('Maison')) { profil.type_logement = 'maison'; profil.jardin = true; }
+
+  for (const [id, col] of [['fc-cloture', 'hauteur_cloture'], ['fc-escaliers', 'escaliers'], ['fc-etage', 'etage'], ['fc-vehicule', 'vehicule'],
+                           ['fc-heures-seul', 'heures_seul'], ['fc-presence', 'presence_journee'], ['fc-balades', 'balades_par_jour'], ['fc-duree-balade', 'duree_balade']]) {
+    const v = valSelect(id); if (v) profil[col] = v;
+  }
+  const lieu = valSelect('fc-lieux'); if (lieu) profil.lieux_promenade = [lieu];
+
+  const ext = getTagVal('ext');
+  if (ext === 'Non' && !profil.hauteur_cloture) profil.hauteur_cloture = 'aucune';
+
+  const enf = getTagVal('enf');
+  if (enf) profil.enfants = enf === 'Non' ? [] : [decodeTxt(enf)];
+
+  const animaux = tagsChoisis(P, 'Autres animaux');
+  if (animaux.length) profil.animaux_actuels = animaux.includes('Aucun') ? [] :
+    animaux.map(a => a.startsWith('Chien') ? 'chien' : a.startsWith('Chat') ? 'chat' : 'autre');
+
+  const st = getTagVal('st');
+  const dispo = { 'Immédiatement': 'maintenant', 'Dans 48h': 'maintenant', 'Cette semaine': 'cette_semaine', 'Ce mois-ci': 'ce_mois' }[st];
+  if (dispo) profil.disponible_le = dispo;
+
+  const DUREES = { 'Quelques jours': 'quelques_jours', '1–2 semaines': '1_2_semaines', '1–3 mois': '1_3_mois', "Jusqu'à adoption": 'jusqu_adoption' };
+  const durees = tagsChoisis(P, "Durées d'accueil").map(d => DUREES[d]).filter(Boolean);
+  if (durees.length) profil.duree_accueil = durees;
+  return profil;
+}
+
+// Questionnaire
+async function soumettreQuestionnaire() {
+  const Q = '#questionnaire-fa';
+  const sections = document.querySelectorAll(Q + ' .form-section');
+  const coches = (i) => [...(sections[i]?.querySelectorAll('.chk.on span') || [])].map(e => decodeTxt(e.textContent));
+
+  const EXP = { 'Non': 'jamais', 'Oui, enfance': 'enfance', 'Oui, récemment': '1_2_ans', "Oui, j'en ai": '3_5_ans' };
+  const VECU = { 'Un chiot (0–6 mois)': 'chiot', 'Un chien traumatisé / maltraitance': 'traumatise', 'Un chien réactif envers congénères': 'reactif_congeneres',
+                 'Un chien réactif envers humains': 'reactif_humains', 'Un chien avec anxiété de séparation sévère': 'anxiete_separation' };
+  const REFUS = { 'Grand chien (>25 kg)': 'grand_chien', 'Chien très énergique': 'tres_energique', 'Chiot (<6 mois)': 'chiot', 'Chien âgé (>10 ans)': 'age',
+                  'Chien malade / soins réguliers': 'soins', 'Chien non propre': 'non_propre', 'Malinois / Berger belge': 'malinois',
+                  'American Staffordshire / type staff': 'staff', 'Chien catégorie 1 ou 2': 'categorie' };
+
+  const exp = getTagVal('exp1');
+  const engagement = document.querySelector('#sc-eng .sc-btn.on')?.textContent?.trim();
+  const r = {
+    motivation: valTexte('q-motivation'), attachement: valTexte('q-attachement'), duree_longue: valTexte('q-duree-longue'),
+    situation_grogne: valTexte('q-b-grogne'), situation_nuits: valTexte('q-sit-nuits'), situation_destruction: valTexte('q-sit-destruction'),
+    situation_absence: valTexte('q-sit-absence'), situation_reactivite: valTexte('q-sit-reactivite'), situation_morsure: valTexte('q-sit-morsure'),
+    situation_consignes: valTexte('q-sit-consignes'), situation_decouragement: valTexte('q-sit-decouragement'),
+    situation_limite: valTexte('q-limite'), autres_infos: valTexte('q-autres'),
+    experience_chien: EXP[exp], experiences_gerees: coches(1).map(c => VECU[c]).filter(Boolean),
+    refus: coches(2).map(c => REFUS[c]).filter(Boolean), engagement: engagement ? Number(engagement) : undefined
+  };
+
+  // Questions obligatoires (*)
+  const manquants = [];
+  if (!r.motivation) manquants.push('Pourquoi souhaitez-vous devenir FA ?');
+  if (!r.attachement) manquants.push('Êtes-vous prêt(e) à vous attacher…');
+  if (!r.duree_longue) manquants.push('Si le chien reste plusieurs mois');
+  if (!exp) manquants.push('Avez-vous déjà eu un chien ?');
+  if (!valTexte('q-b-destruction')) manquants.push('Si le chien détruit vos affaires');
+  if (!r.situation_grogne) manquants.push('Si le chien grogne sur vous');
+  if (!r.situation_limite) manquants.push('La question de sincérité');
+  if (!engagement) manquants.push('Engagement (1–10)');
+  if (manquants.length) return showToast('⚠ À compléter : ' + manquants.slice(0, 3).join(' · ') + (manquants.length > 3 ? ' …' : ''));
+
+  // Réponses sans colonne dédiée : conservées telles quelles
+  r.questionnaire = {
+    version: 1,
+    destruction_affaires: valTexte('q-b-destruction'),
+    situation_attachement: valTexte('q-sit-attachement'),
+    situation_professionnelle: valSelect('travail') || null,
+    heures_absence_jour: valSelect('fc-absence') || null,
+    experiences_gerees_libelles: coches(1),
+    refus_libelles: coches(2)
+  };
+
+  let jeton = null; try { jeton = sessionStorage.getItem('petia_fa_inscription'); } catch (_) {}
+  const session = sessionFA || (() => { try { return JSON.parse(sessionStorage.getItem('petia_fa') || 'null'); } catch (_) { return null; } })();
+  if (!jeton && !session?.token) { showToast('⚠ Connectez-vous pour envoyer votre questionnaire.'); return go('login-fa'); }
+
+  const btn = document.getElementById('btn-questionnaire');
+  setButtonLoading(btn, 'Envoi…');
+  try {
+    const res = await fetch(API_URL + '/api/fa/questionnaire', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...(jeton ? {} : { 'Authorization': 'Bearer ' + session.token }) },
+      body: JSON.stringify(jeton ? { ...r, jeton_inscription: jeton } : r)
+    });
+    const data = await res.json().catch(() => ({}));
+    resetButton(btn);
+    if (!res.ok) {
+      if (res.status === 401) { try { sessionStorage.removeItem('petia_fa_inscription'); } catch (_) {} showToast('⚠ Session expirée : connectez-vous puis renvoyez le questionnaire.'); return go('login-fa'); }
+      return showToast('⚠ ' + (data.message || 'Erreur lors de l\'envoi.'));
+    }
+    try { sessionStorage.removeItem('petia_fa_inscription'); } catch (_) {}
+    go('success-page');
+  } catch (e) {
+    resetButton(btn);
+    showToast('⚠ Impossible de joindre le serveur — réessayez');
   }
 }
 </script>
