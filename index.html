@@ -4406,271 +4406,39 @@ Signature électronique validée par l'Association</div>
   <div id="dashboard-fa" class="page">
     <div class="fa-dash-wrap">
 
-      <!-- Header perso -->
+      <!-- En-tête -->
       <div class="fa-dash-header">
         <div class="fa-dash-avatar">🐾</div>
         <div style="flex:1;">
-          <div style="font-size:16px;font-weight:700;color:var(--text);">Bonjour Marie 👋</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px;">Paris 15e · Maison avec jardin · Disponible</div>
-          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-            <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✅ Profil validé</span>
-            <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--bleu-light);color:#A5B4FC;">⭐ 4.8/5 · 3 accueils</span>
-            <span class="pv-badge" style="font-size:10px;">✅ Prévisitée</span>
-          </div>
+          <div id="fa-hello" style="font-size:16px;font-weight:700;color:var(--text);">Bonjour 👋</div>
+          <div id="fa-sub" style="font-size:12px;color:var(--text2);margin-top:2px;"></div>
+          <div id="fa-badges" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;"></div>
         </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:22px;font-weight:700;color:var(--corail);">94%</div>
-          <div style="font-size:10px;color:var(--text3);">Score moyen</div>
-        </div>
+        <div id="fa-stats" style="text-align:right;flex-shrink:0;"></div>
       </div>
 
       <div class="mfa-incitation mfa-rappel" data-profil="fa" style="display:none;"></div>
 
       <!-- Notifications -->
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-        <div class="fa-dash-notif new" style="width:fit-content;" onclick="go('proposition-accueil')">
-          🔴 Nouvelle proposition urgente — Rox · Labrador · SPA Paris Nord · <strong>Répondre →</strong>
-        </div>
-        <div class="fa-dash-notif info" style="width:fit-content;" onclick="showToast('📧 Email de rappel envoyé')">
-          📅 Bilan hebdomadaire de Milo à envoyer — J+7 aujourd'hui
-        </div>
-      </div>
+      <div id="fa-notifs" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
 
-      <!-- Tabs -->
+      <!-- Onglets -->
       <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:20px;overflow-x:auto;">
-        <button class="cond-tab on" onclick="faDashTab(this,'fa-tab-animaux')">🐕 Animaux compatibles (5)</button>
-        <button class="cond-tab" onclick="faDashTab(this,'fa-tab-accueils')">📋 Mes accueils (1)</button>
-        <button class="cond-tab" onclick="faDashTab(this,'fa-tab-evaluations')">⭐ Mes évaluations</button>
-        <button class="cond-tab" onclick="faDashTab(this,'fa-tab-profil')">👤 Mon profil</button>
+        <button class="cond-tab on" id="fa-tab-animaux-btn" onclick="faDashTab(this,'fa-tab-animaux')">🐾 Propositions</button>
+        <button class="cond-tab" id="fa-tab-accueils-btn" onclick="faDashTab(this,'fa-tab-accueils')">📋 Mes accueils</button>
+        <button class="cond-tab" id="fa-tab-profil-btn" onclick="faDashTab(this,'fa-tab-profil')">👤 Mon profil</button>
         <button class="cond-tab" id="fa-tab-securite-btn" onclick="faDashTab(this,'fa-tab-securite');afficherBlocMFA('fa')">🔐 Sécurité</button>
       </div>
 
-      <!-- ── ANIMAUX COMPATIBLES ── -->
       <div id="fa-tab-animaux">
-        <div class="ia-hint" style="margin-bottom:16px;">
-          <span>✦</span>Ces animaux correspondent à votre profil. L'IA les met à jour en temps réel selon vos disponibilités et les nouvelles admissions.
-        </div>
-
-        <!-- Filtre dispo -->
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-          <button class="fbtn on" onclick="filt(this)">Tous (5)</button>
-          <button class="fbtn" onclick="filt(this)">🔴 Urgences (2)</button>
-          <button class="fbtn" onclick="filt(this)">🐕 Chiens (3)</button>
-          <button class="fbtn" onclick="filt(this)">🐈 Chats (2)</button>
-        </div>
-
-        <!-- Card animal 1 — Urgent -->
-        <div class="animal-compat-card" onclick="go('proposition-accueil')">
-          <div class="acc-header">
-            <div class="acc-emoji" style="background:rgba(239,68,68,.1);">🐕</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:700;color:var(--text);">Rox</div>
-              <div style="font-size:12px;color:var(--text2);">Labrador · 3 ans · SPA Paris Nord · 2.1 km</div>
-              <div style="margin-top:6px;"><span class="ubadge cr">🔴 Urgent — J+1</span></div>
-            </div>
-            <div class="acc-score-ring">
-              <svg width="52" height="52" viewBox="0 0 52 52">
-                <circle cx="26" cy="26" r="21" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="5"/>
-                <circle cx="26" cy="26" r="21" fill="none" stroke="#FF7A59" stroke-width="5"
-                  stroke-dasharray="131.9" stroke-dashoffset="7.9"
-                  stroke-linecap="round" transform="rotate(-90 26 26)"/>
-              </svg>
-              <div class="ring-val">94%</div>
-            </div>
-          </div>
-          <div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-            <div style="display:flex;flex-wrap:wrap;gap:5px;">
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">🌿 Jardin requis ✓</span>
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">⚡ Énergie élevée</span>
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">✅ Ok enfants</span>
-            </div>
-            <button class="btn btn-p" style="font-size:12px;padding:8px 16px;" onclick="event.stopPropagation();go('proposition-accueil')">Voir la proposition →</button>
-          </div>
-        </div>
-
-        <!-- Card animal 2 -->
-        <div class="animal-compat-card">
-          <div class="acc-header">
-            <div class="acc-emoji" style="background:rgba(245,158,11,.1);">🐕</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:700;color:var(--text);">Bella</div>
-              <div style="font-size:12px;color:var(--text2);">Beagle · 5 ans · Croix Rouge Animale · 3.4 km</div>
-              <div style="margin-top:6px;"><span class="ubadge el">🟡 Élevé — J+5</span></div>
-            </div>
-            <div class="acc-score-ring">
-              <svg width="52" height="52" viewBox="0 0 52 52">
-                <circle cx="26" cy="26" r="21" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="5"/>
-                <circle cx="26" cy="26" r="21" fill="none" stroke="#F59E0B" stroke-width="5"
-                  stroke-dasharray="131.9" stroke-dashoffset="19.8"
-                  stroke-linecap="round" transform="rotate(-90 26 26)"/>
-              </svg>
-              <div class="ring-val">85%</div>
-            </div>
-          </div>
-          <div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-            <div style="display:flex;flex-wrap:wrap;gap:5px;">
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">🏠 Appartement ok</span>
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">😌 Calme</span>
-            </div>
-            <button class="btn btn-s" style="font-size:12px;padding:8px 16px;">Voir la proposition →</button>
-          </div>
-        </div>
-
-        <!-- Card animal 3 — Chat -->
-        <div class="animal-compat-card">
-          <div class="acc-header">
-            <div class="acc-emoji" style="background:rgba(79,114,245,.1);">🐈</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:700;color:var(--text);">Luna</div>
-              <div style="font-size:12px;color:var(--text2);">Chatte tigrée · 2 ans · SPA Paris 15e · 0.8 km</div>
-              <div style="margin-top:6px;"><span class="ubadge no">🟢 Normal — J+14</span></div>
-            </div>
-            <div class="acc-score-ring">
-              <svg width="52" height="52" viewBox="0 0 52 52">
-                <circle cx="26" cy="26" r="21" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="5"/>
-                <circle cx="26" cy="26" r="21" fill="none" stroke="#10B981" stroke-width="5"
-                  stroke-dasharray="131.9" stroke-dashoffset="13.2"
-                  stroke-linecap="round" transform="rotate(-90 26 26)"/>
-              </svg>
-              <div class="ring-val">90%</div>
-            </div>
-          </div>
-          <div style="padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-            <div style="display:flex;flex-wrap:wrap;gap:5px;">
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">🏠 Appartement ok</span>
-              <span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text2);">🐱 Câline</span>
-            </div>
-            <button class="btn btn-s" style="font-size:12px;padding:8px 16px;">Voir la proposition →</button>
-          </div>
-        </div>
-
-        <!-- Alerte nouveaux animaux -->
-        <div style="background:var(--bg2);border:1px dashed var(--border2);border-radius:16px;padding:18px;text-align:center;margin-top:6px;">
-          <div style="font-size:20px;margin-bottom:8px;">🔔</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">Être notifié en priorité</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Recevez un SMS dès qu'un nouvel animal compatible est disponible.</div>
-          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn btn-p" style="font-size:12px;" onclick="showToast('✅ Notifications SMS activées')">📱 Activer les SMS</button>
-            <button class="btn btn-s" style="font-size:12px;" onclick="showToast('✅ Notifications email activées')">📧 Activer les emails</button>
-          </div>
-        </div>
+        <div class="ia-hint" style="margin-bottom:16px;"><span>✦</span>Ces animaux ont été choisis par un refuge pour votre profil. Acceptez ou déclinez : le refuge est prévenu de votre réponse.</div>
+        <div id="fa-propositions"></div>
       </div>
 
-      <!-- ── MES ACCUEILS ── -->
       <div id="fa-tab-accueils" style="display:none;">
-
-        <!-- Accueil en cours -->
-        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">En cours</div>
-        <div class="accueil-en-cours">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
-            <div style="font-size:28px;">🐕</div>
-            <div style="flex:1;">
-              <div style="font-size:15px;font-weight:700;color:var(--text);">Milo</div>
-              <div style="font-size:12px;color:var(--text2);">Berger australien · 2 ans · SPA Paris Nord</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px;">Accueil depuis le 01/05 · J+11</div>
-            </div>
-            <span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✓ En cours</span>
-          </div>
-
-          <!-- Bilans -->
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📸 Bilans hebdomadaires</div>
-          <div class="bilan-row">
-            <span style="font-size:18px;">✅</span>
-            <div style="flex:1;font-size:12px;color:var(--text2);">Bilan J+7 — envoyé le 08/05</div>
-            <span style="font-size:11px;color:var(--success);">Validé</span>
-          </div>
-          <div class="bilan-row">
-            <span style="font-size:18px;">⏳</span>
-            <div style="flex:1;font-size:12px;color:var(--text2);">Bilan J+14 — à envoyer avant le 15/05</div>
-            <button class="btn btn-p" style="font-size:11px;padding:5px 12px;" onclick="showToast('📸 Bilan J+14 envoyé avec succès !')">Envoyer →</button>
-          </div>
-
-          <!-- Contact référente -->
-          <div style="margin-top:14px;padding:12px 14px;background:var(--bg3);border-radius:10px;display:flex;align-items:center;gap:10px;">
-            <span style="font-size:20px;">👩</span>
-            <div style="flex:1;">
-              <div style="font-size:12px;font-weight:600;color:var(--text);">Sophie Lemaire — SPA Paris Nord</div>
-              <div style="font-size:11px;color:var(--text3);">Référente · 06 12 34 56 78</div>
-            </div>
-            <button class="btn btn-s" style="font-size:11px;padding:6px 12px;" onclick="showToast('📞 Appel en cours...')">📞</button>
-          </div>
-        </div>
-
-        <!-- Accueils terminés -->
-        <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 12px;">Terminés</div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-          <div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
-            <div style="font-size:20px;">🐕</div>
-            <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text2);">Rox · SPA Paris Nord</div><div style="font-size:11px;color:var(--text3);">12/03 → 28/04 · 47 jours · ✓ Adopté</div></div>
-            <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✓ Adopté</span>
-          </div>
-          <div style="padding:14px 18px;display:flex;align-items:center;gap:12px;">
-            <div style="font-size:20px;">🐈</div>
-            <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text2);">Nala · Croix Rouge Animale</div><div style="font-size:11px;color:var(--text3);">05/01 → 20/02 · 46 jours · ✓ Adoptée</div></div>
-            <span style="font-size:10px;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✓ Adoptée</span>
-          </div>
-        </div>
+        <div id="fa-accueils"></div>
       </div>
 
-      <!-- ── MES ÉVALUATIONS ── -->
-      <div id="fa-tab-evaluations" style="display:none;">
-
-        <!-- Score global -->
-        <div style="background:linear-gradient(135deg,rgba(255,122,89,.08),rgba(124,58,237,.06));border:1px solid rgba(255,122,89,.15);border-radius:18px;padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-          <div style="text-align:center;flex-shrink:0;">
-            <div style="font-size:36px;font-weight:700;color:var(--text);">4.8</div>
-            <div style="display:flex;gap:2px;font-size:16px;justify-content:center;">⭐⭐⭐⭐⭐</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:4px;">3 évaluations</div>
-          </div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
-              <span style="color:var(--text2);width:130px;">Communication</span>
-              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:96%;height:100%;background:var(--corail);border-radius:3px;"></div></div>
-              <span style="color:var(--text2);">4.8</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
-              <span style="color:var(--text2);width:130px;">Respect consignes</span>
-              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:100%;height:100%;background:var(--corail);border-radius:3px;"></div></div>
-              <span style="color:var(--text2);">5.0</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
-              <span style="color:var(--text2);width:130px;">Bien-être animal</span>
-              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:94%;height:100%;background:var(--corail);border-radius:3px;"></div></div>
-              <span style="color:var(--text2);">4.7</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;">
-              <span style="color:var(--text2);width:130px;">Bilans envoyés</span>
-              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="width:96%;height:100%;background:var(--corail);border-radius:3px;"></div></div>
-              <span style="color:var(--text2);">4.8</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Évaluations reçues -->
-        <div class="eval-card">
-          <div class="eval-header">
-            <span style="font-size:13px;font-weight:700;color:var(--text);">SPA de Paris Nord</span>
-            <div class="eval-stars">⭐⭐⭐⭐⭐</div>
-            <span class="eval-note">5/5</span>
-            <span style="margin-left:auto;font-size:11px;color:var(--text3);">28/04</span>
-          </div>
-          <div class="eval-comment">"Famille exceptionnelle. Marie a fait un travail remarquable avec Rox. Communication parfaite, bilans très détaillés. Recommandée sans réserve."</div>
-          <div style="margin-top:8px;font-size:11px;color:var(--success);">👍 Recommandée</div>
-        </div>
-
-        <div class="eval-card">
-          <div class="eval-header">
-            <span style="font-size:13px;font-weight:700;color:var(--text);">Croix Rouge Animale</span>
-            <div class="eval-stars">⭐⭐⭐⭐⭐</div>
-            <span class="eval-note">5/5</span>
-            <span style="margin-left:auto;font-size:11px;color:var(--text3);">20/02</span>
-          </div>
-          <div class="eval-comment">"Parfait. Nala s'est épanouie chez Marie. Très à l'écoute, réactive, impliquée. On refera appel à elle sans hésiter."</div>
-          <div style="margin-top:8px;font-size:11px;color:var(--success);">👍 Recommandée</div>
-        </div>
-      </div>
-
-      <!-- ── MON PROFIL ── -->
       <div id="fa-tab-securite" style="display:none;">
         <div class="mfa-incitation" data-profil="fa" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(43,78,212,.12));border:1px solid rgba(124,58,237,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;display:flex;gap:12px;">
           <div style="font-size:26px;flex-shrink:0;">🔓</div>
@@ -4680,114 +4448,7 @@ Signature électronique validée par l'Association</div>
       </div>
 
       <div id="fa-tab-profil" style="display:none;">
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:13px;font-weight:700;color:var(--text);">Informations personnelles</div>
-            <button class="btn btn-s" style="font-size:11px;padding:5px 12px;">Modifier</button>
-          </div>
-          <div style="padding:14px 20px;display:flex;flex-direction:column;gap:10px;">
-            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2);">Nom</span><span style="color:var(--text);font-weight:600;">Marie Martin</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2);">Email</span><span style="color:var(--text);">m●●●●@email.com</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2);">Téléphone</span><span style="color:var(--text);">06 ●● ●● ●● ●●</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2);">Ville</span><span style="color:var(--text);">Paris 15e</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text2);">Logement</span><span style="color:var(--text);">Maison · Jardin clôturé</span></div>
-          </div>
-        </div>
-
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;">
-          <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-            <div style="font-size:13px;font-weight:700;color:var(--text);">Disponibilités & capacité d'accueil</div>
-            <button class="btn btn-s" style="font-size:11px;padding:5px 12px;" onclick="toggleDispoEdit()">Modifier</button>
-          </div>
-          <div style="padding:16px 20px;">
-
-            <!-- Statut actuel -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text);">Statut actuel</div>
-                <div style="font-size:11px;color:var(--text3);margin-top:2px;">Visible par toutes les fourrières</div>
-              </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                <span id="fa-statut-badge" style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--warning-bg);color:#FCD34D;">⚠ Partiellement disponible</span>
-                <span style="font-size:11px;color:var(--text3);">1 accueil en cours · 1 place libre</span>
-              </div>
-            </div>
-
-            <!-- Capacité max -->
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
-              <div>
-                <div style="font-size:13px;color:var(--text2);">Nombre max d'animaux simultanés</div>
-                <div style="font-size:11px;color:var(--text3);margin-top:2px;">L'IA ne proposera plus d'accueils au-delà de cette limite</div>
-              </div>
-              <div id="fa-max-display" style="font-size:20px;font-weight:700;color:var(--text);">2</div>
-            </div>
-
-            <!-- Formulaire édition (masqué par défaut) -->
-            <div id="dispo-edit-form" style="display:none;">
-              <div class="field" style="margin-bottom:12px;">
-                <label>Nombre maximum d'animaux en même temps</label>
-                <select id="fa-max-animaux" onchange="updateMaxAnimaux(this.value)">
-                  <option value="1">1 animal à la fois</option>
-                  <option value="2" selected>2 animaux maximum</option>
-                  <option value="3">3 animaux maximum</option>
-                  <option value="4">4 animaux et plus</option>
-                </select>
-              </div>
-              <div class="field" style="margin-bottom:12px;">
-                <label>Statut actuel</label>
-                <select id="fa-statut-select" onchange="updateStatut(this.value)">
-                  <option value="dispo">✅ Disponible</option>
-                  <option value="partiel" selected>⚠ Partiellement disponible</option>
-                  <option value="complet">🔴 Complet — plus de place</option>
-                  <option value="indispo">⏸ Indisponible temporairement</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Calendrier indisponibilités -->
-            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📅 Périodes d'indisponibilité</div>
-            <div id="indispo-list" style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px;">
-              <div style="display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:10px;padding:10px 12px;">
-                <span style="font-size:13px;">🏖</span>
-                <div style="flex:1;">
-                  <div style="font-size:12px;font-weight:600;color:var(--text);">Vacances d'été</div>
-                  <div style="font-size:11px;color:var(--text3);">01 juillet → 20 juillet 2026</div>
-                </div>
-                <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px;" onclick="supprimerIndispo(this)">✕</button>
-              </div>
-            </div>
-
-            <!-- Ajouter une indisponibilité -->
-            <div id="add-indispo-form" style="display:none;background:var(--bg3);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid var(--border);">
-              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">Nouvelle période d'indisponibilité</div>
-              <div class="fg" style="margin-bottom:10px;">
-                <div class="field" style="margin-bottom:0;">
-                  <label style="font-size:11px;">Du</label>
-                  <input type="date" id="indispo-debut"/>
-                </div>
-                <div class="field" style="margin-bottom:0;">
-                  <label style="font-size:11px;">Au</label>
-                  <input type="date" id="indispo-fin"/>
-                </div>
-              </div>
-              <div class="field" style="margin-bottom:10px;">
-                <label style="font-size:11px;">Motif (optionnel)</label>
-                <input type="text" id="indispo-motif" placeholder="Vacances, déplacement professionnel..."/>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <button class="btn btn-p" style="font-size:12px;flex:1;justify-content:center;" onclick="ajouterIndispo()">Ajouter</button>
-                <button class="btn btn-s" style="font-size:12px;" onclick="document.getElementById('add-indispo-form').style.display='none'">Annuler</button>
-              </div>
-            </div>
-
-            <button class="btn btn-s" style="font-size:12px;width:100%;justify-content:center;" onclick="document.getElementById('add-indispo-form').style.display='block'">
-              + Ajouter une période d'indisponibilité
-            </button>
-
-          </div>
-        </div>
-
-        <!-- RGPD actions -->
+        <div id="fa-profil-contenu"></div>
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
             <div style="font-size:13px;font-weight:700;color:var(--text);">Droits RGPD & réclamations</div>
@@ -5323,24 +4984,7 @@ function finaliserConnexionRefuge(data) {
 }
 
 function populateDashboardFA(fa) {
-  if (!fa) return;
-  const prenom = fa.prenom || 'Famille';
-  const ville  = fa.ville  || '—';
-  const logement = fa.type_logement === 'maison' ? 'Maison' : fa.type_logement === 'appartement' ? 'Appartement' : '—';
-  const jardin = fa.jardin ? ' avec jardin' : '';
-  const dispo  = fa.disponible_le === 'maintenant' ? 'Disponible' : fa.disponible_le === 'cette_semaine' ? 'Disponible cette semaine' : 'Indisponible';
-
-  // Ligne d'accueil
-  const greet = document.querySelector('#dashboard-fa .fa-dash-header div[style*="font-size:16px"]');
-  if (greet) greet.textContent = `Bonjour ${prenom} 👋`;
-
-  // Sous-ligne ville / logement / dispo
-  const sub = document.querySelector('#dashboard-fa .fa-dash-header div[style*="font-size:12px"]');
-  if (sub) sub.textContent = `${ville} · ${logement}${jardin} · ${dispo}`;
-
-  // Badge statut
-  const statutEl = document.querySelector('#dashboard-fa .fa-dash-header .pv-badge');
-  // (conserve le badge tel quel — il viendra de fa.statut_dossier plus tard)
+  if (typeof chargerEspaceFA === 'function') chargerEspaceFA();
 }
 
 // Restaurer session au rechargement
@@ -5370,6 +5014,7 @@ function go(id){
   if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
   if(id==='dashboard-fourriere' && typeof majStatutMFA==='function') majStatutMFA('ref');
   if(id==='dashboard-fa' && typeof majStatutMFA==='function') majStatutMFA('fa');
+  if(id==='dashboard-fa' && typeof chargerEspaceFA==='function') chargerEspaceFA();
   if(id==='questionnaire-fa' && typeof appliquerEspecesFA==='function') appliquerEspecesFA();
   if(id==='ajouter-animal' && typeof appliquerEspeceAnimal==='function') appliquerEspeceAnimal();
 }
@@ -7698,7 +7343,11 @@ function afficherMatchs(matchs, stats) {
       ? '<div style="display:flex;gap:9px;flex-wrap:wrap">'
         + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'accepte\',this)">✓ Valider</button>'
         + '<button class="btn btn-s" style="font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'refuse\',this)">Refuser</button></div>'
-      : '<span class="ubadge ' + (m.statut === 'accepte' ? 'pl' : 'cr') + '">' + (m.statut === 'accepte' ? '✓ Validé' : m.statut === 'refuse' ? 'Refusé' : escHtml(m.statut)) + '</span>';
+      : '<span class="ubadge ' + (m.statut === 'accepte' ? 'pl' : 'cr') + '">' + (m.statut === 'accepte' ? '✓ Validé' : m.statut === 'refuse' ? 'Refusé' : escHtml(m.statut)) + '</span>'
+        + (m.statut === 'accepte'
+            ? ' <span style="font-size:12px;margin-left:6px;color:' + (m.reponse_fa === 'oui' ? 'var(--success)' : m.reponse_fa === 'non' ? 'var(--danger)' : 'var(--text3)') + '">'
+              + (m.reponse_fa === 'oui' ? '✅ La famille a accepté' : m.reponse_fa === 'non' ? 'La famille a décliné' : '⏳ En attente de la réponse de la famille') + '</span>'
+            : '');
     return '<div class="form-section">'
       + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px"><span class="ubadge ' + r.cls + '">' + r.txt + '</span>'
       + '<span style="font-size:14px;font-weight:600">' + escHtml(f.prenom || 'Famille') + (f.ville ? ' · ' + escHtml(f.ville) : '') + '</span></div>'
@@ -8071,7 +7720,9 @@ async function soumettreQuestionnaire() {
       return showToast('⚠ ' + (data.message || 'Erreur lors de l\'envoi.'));
     }
     try { sessionStorage.removeItem('petia_fa_inscription'); } catch (_) {}
-    go('success-page');
+    if (jeton) return go('success-page');
+    showToast('✅ Questionnaire enregistré');
+    go('dashboard-fa');
   } catch (e) {
     resetButton(btn);
     showToast('⚠ Impossible de joindre le serveur — réessayez');
@@ -8143,6 +7794,204 @@ function detailsAnimal(espece) {
   if (espece === 'nac') d.nac = sansVide({ groupe: v('an-nac-groupe'), installation: v('an-nac-installation'), sortie: v('an-nac-sortie'),
                                            manipulation: v('an-nac-manipulation'), dimensions: v('an-nac-dimensions'), alimentation: v('an-nac-alimentation') });
   return d;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ESPACE FAMILLE D'ACCUEIL — données réelles (/api/fa)
+// ═══════════════════════════════════════════════════════════════════
+let faMoi = null, faPropositions = [];
+const FA_LIB = {
+  logement: { maison: 'Maison', appartement: 'Appartement', autre: 'Autre logement' },
+  dispo: { maintenant: 'Disponible maintenant', cette_semaine: 'Disponible cette semaine', ce_mois: 'Disponible ce mois-ci', non_dispo: 'Indisponible' },
+  seul: { '0_2': '0–2 h', '2_4': '2–4 h', '4_6': '4–6 h', '6_8': '6–8 h', '8_10': '8–10 h', '10_plus': '10 h et plus' },
+  presence: { oui_toujours: 'toujours', oui_parfois: 'parfois', non: 'non' },
+  especes: { chien: 'Chiens', chat: 'Chats', nac: 'NAC' },
+  sexe: { male: 'Mâle', femelle: 'Femelle' }
+};
+
+async function faFetch(path, opts = {}) {
+  const s = MFA_PROFILS.fa.session();
+  if (!s?.token) { go('login-fa'); throw new Error('Connectez-vous.'); }
+  const res = await fetch(API_URL + '/api/fa' + path, { ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.token } });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) { showToast('⚠ Session expirée, reconnectez-vous.'); go('login-fa'); throw new Error('Session expirée'); }
+  if (!res.ok) throw new Error(data.message || 'Erreur serveur.');
+  return data;
+}
+
+async function chargerEspaceFA() {
+  if (!MFA_PROFILS.fa.session()?.token) return;
+  const zone = document.getElementById('fa-propositions');
+  if (zone && !faMoi) zone.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">Chargement…</div>';
+  try {
+    const [moi, prop] = await Promise.all([faFetch('/moi'), faFetch('/propositions')]);
+    faMoi = moi.famille; faPropositions = prop.propositions || [];
+    afficherEspaceFA();
+  } catch (e) {
+    if (zone) zone.innerHTML = '<div style="padding:24px;text-align:center;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>';
+  }
+}
+
+const badge = (txt, fond, couleur) => '<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:' + fond + ';color:' + couleur + ';">' + txt + '</span>';
+const notif = (txt, type, action) => '<div class="fa-dash-notif ' + type + '" style="width:fit-content;max-width:100%;' + (action ? 'cursor:pointer;' : '') + '"' + (action ? ' onclick="' + action + '"' : '') + '>' + txt + '</div>';
+
+function afficherEspaceFA() {
+  const f = faMoi; if (!f) return;
+  const set = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
+  set('fa-hello', 'Bonjour ' + escHtml(f.prenom || '') + ' 👋');
+  set('fa-sub', escHtml([f.ville, FA_LIB.logement[f.type_logement] && (FA_LIB.logement[f.type_logement] + (f.jardin ? ' avec jardin' : '')), FA_LIB.dispo[f.disponible_le]].filter(Boolean).join(' · ')));
+
+  const qOk = !!f.questionnaire_soumis_le;
+  const statut = {
+    valide: badge('✅ Dossier validé', 'var(--success-bg)', '#6EE7B7'),
+    en_attente: badge('⏳ Dossier en cours d\'examen', 'var(--warning-bg)', '#FCD34D'),
+    incomplet: qOk ? badge('📝 Précisions demandées', 'var(--warning-bg)', '#FCD34D') : badge('📝 Questionnaire à compléter', 'var(--warning-bg)', '#FCD34D'),
+    refuse: badge('❌ Dossier non retenu', 'var(--danger-bg)', '#FCA5A5'),
+    suspendu: badge('🚫 Compte suspendu', 'var(--danger-bg)', '#FCA5A5')
+  }[f.statut_dossier] || '';
+  const especes = (f.peut_accueillir || []).map(e => badge((FA_LIB.especes[e] || e), 'var(--bleu-light)', '#A5B4FC')).join('');
+  set('fa-badges', statut + especes + (f.previsitee ? badge('🏠 Prévisitée', 'var(--bleu-light)', '#A5B4FC') : ''));
+  set('fa-stats', (f.nb_accueils ? '<div style="font-size:22px;font-weight:700;color:var(--corail);">' + f.nb_accueils + '</div><div style="font-size:10px;color:var(--text3);">accueil' + (f.nb_accueils > 1 ? 's' : '') + '</div>' : '')
+    + (f.note_moyenne ? '<div style="font-size:12px;color:var(--text2);margin-top:4px;">⭐ ' + Number(f.note_moyenne).toFixed(1) + '/5</div>' : ''));
+
+  // Notifications utiles
+  const ouvertes = faPropositions.filter(p => p.statut === 'accepte' && !p.reponse_fa);
+  const n = [];
+  if (f.statut_dossier === 'incomplet' && !qOk) n.push(notif('📝 Complétez votre questionnaire pour que votre dossier soit examiné. <strong>Compléter →</strong>', 'new', 'ouvrirQuestionnaireFA()'));
+  if (f.statut_dossier === 'incomplet' && qOk) n.push(notif('📝 L\'équipe PetIA demande des précisions' + (f.decision_motif ? ' : « ' + escHtml(f.decision_motif) + ' »' : '') + '. <strong>Modifier mon questionnaire →</strong>', 'new', 'ouvrirQuestionnaireFA()'));
+  if (f.statut_dossier === 'en_attente') n.push(notif('⏳ Votre dossier est en cours d\'examen. Vous recevrez des propositions dès sa validation.', 'info'));
+  if (f.statut_dossier === 'refuse') n.push(notif('Votre dossier n\'a pas été retenu' + (f.decision_motif ? ' : « ' + escHtml(f.decision_motif) + ' »' : '') + '. <strong>Nous contacter →</strong>', 'info', "go('contact')"));
+  if (f.statut_dossier === 'valide' && f.disponible_le === 'non_dispo') n.push(notif('⏸ Vous êtes indiqué(e) indisponible : aucune proposition ne vous sera faite. <strong>Changer →</strong>', 'info', "faDashTab(document.getElementById('fa-tab-profil-btn'),'fa-tab-profil')"));
+  if (ouvertes.length) n.push(notif('🔴 ' + ouvertes.length + ' proposition' + (ouvertes.length > 1 ? 's attendent' : ' attend') + ' votre réponse. <strong>Voir →</strong>', 'new', "faDashTab(document.getElementById('fa-tab-animaux-btn'),'fa-tab-animaux')"));
+  set('fa-notifs', n.join(''));
+
+  const btnP = document.getElementById('fa-tab-animaux-btn'); if (btnP) btnP.textContent = '🐾 Propositions' + (ouvertes.length ? ' (' + ouvertes.length + ')' : '');
+  afficherPropositionsFA(); afficherAccueilsFA(); afficherProfilFA();
+}
+
+function carteAnimalFA(p, actions) {
+  const a = p.animal || {};
+  const u = URG_BADGE[a.urgence] || URG_BADGE.normale;
+  const age = ageTxt(a);
+  const meta = [SOUS_ESPECE_TXT[a.sous_espece], a.race, age, FA_LIB.sexe[a.sexe], a.poids_kg ? a.poids_kg + ' kg' : ''].filter(Boolean).join(' · ');
+  const refuge = a.refuge ? [a.refuge.nom, a.refuge.ville].filter(Boolean).join(' · ') : '';
+  const compat = [a.compatible_enfants === false && '🚫 Pas d\'enfants', a.compatible_chiens === false && '🚫 Pas de chiens', a.compatible_chats === false && '🚫 Pas de chats']
+    .filter(Boolean).map(t => '<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:var(--danger-bg);color:#FCA5A5;">' + t + '</span>').join(' ');
+  const score = p.score != null ? '<div style="text-align:center;flex-shrink:0;"><div style="font-size:20px;font-weight:700;color:' + scoreCouleur(p.score) + '">' + p.score + '%</div><div style="font-size:10px;color:var(--text3)">compatibilité</div></div>' : '';
+  return '<div class="animal-compat-card" style="cursor:default">'
+    + '<div class="acc-header"><div class="acc-emoji" style="background:' + u.bg + ';">' + (ESPECE_ICON[a.espece] || '🐾') + '</div>'
+    + '<div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml(a.nom || 'Animal') + '</div>'
+    + '<div style="font-size:12px;color:var(--text2);">' + escHtml(meta) + '</div>'
+    + (refuge ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;">🏢 ' + escHtml(refuge) + '</div>' : '')
+    + '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;"><span class="ubadge ' + u.cls + '">' + u.txt + '</span>' + compat + '</div></div>' + score + '</div>'
+    + '<div style="padding:4px 18px 16px;">'
+    + (p.resume_ia ? '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin:10px 0 0;">✦ ' + escHtml(p.resume_ia) + '</div>' : '')
+    + (a.description ? '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px;"><b style="color:var(--text)">Consignes du refuge :</b> ' + escHtml(a.description) + '</div>' : '')
+    + (a.besoins_specifiques ? '<div style="font-size:12px;color:var(--warning);line-height:1.6;margin-top:6px;">⚠ ' + escHtml(a.besoins_specifiques) + '</div>' : '')
+    + (actions ? '<div style="margin-top:12px;">' + actions + '</div>' : '') + '</div></div>';
+}
+
+function afficherPropositionsFA() {
+  const zone = document.getElementById('fa-propositions'); if (!zone) return;
+  const props = faPropositions.filter(p => p.statut === 'accepte');
+  if (!props.length) {
+    const msg = faMoi?.statut_dossier === 'valide'
+      ? 'Aucune proposition pour l\'instant. Dès qu\'un refuge validera un animal compatible avec votre profil, il apparaîtra ici.'
+      : 'Les propositions apparaîtront ici une fois votre dossier validé par l\'équipe PetIA.';
+    zone.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6">' + msg + '</div>';
+    return;
+  }
+  zone.innerHTML = props.map(p => {
+    let actions;
+    if (!p.reponse_fa) actions = '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-p co" style="flex:1;justify-content:center;font-size:13px" onclick="repondrePropositionFA(\'' + p.id + '\',\'oui\',this)">✓ J\'accepte d\'accueillir ' + escHtml(p.animal?.nom || '') + '</button>'
+      + '<button class="btn btn-s" style="font-size:13px" onclick="repondrePropositionFA(\'' + p.id + '\',\'non\',this)">Décliner</button></div>';
+    else if (p.reponse_fa === 'oui') {
+      const r = p.animal?.refuge || {};
+      actions = '<div style="font-size:12px;color:var(--success);font-weight:600;">✅ Vous avez accepté. Le refuge va vous contacter pour organiser l\'arrivée.</div>'
+        + ((r.telephone || r.email) ? '<div style="font-size:12px;color:var(--text2);margin-top:4px;">Contact du refuge : ' + escHtml([r.telephone, r.email].filter(Boolean).join(' · ')) + '</div>' : '');
+    } else actions = '<div style="font-size:12px;color:var(--text3);">Vous avez décliné cette proposition.</div>';
+    return carteAnimalFA(p, actions);
+  }).join('');
+}
+
+function afficherAccueilsFA() {
+  const zone = document.getElementById('fa-accueils'); if (!zone) return;
+  const acc = faPropositions.filter(p => ['en_cours', 'termine'].includes(p.statut));
+  const btn = document.getElementById('fa-tab-accueils-btn'); if (btn) btn.textContent = '📋 Mes accueils' + (acc.length ? ' (' + acc.length + ')' : '');
+  zone.innerHTML = acc.length
+    ? acc.map(p => carteAnimalFA(p, '<span class="ubadge ' + (p.statut === 'en_cours' ? 'no' : 'pl') + '">' + (p.statut === 'en_cours' ? '🏠 Accueil en cours' : '✓ Accueil terminé') + '</span>')).join('')
+    : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;color:var(--text3);font-size:13px">Aucun accueil pour l\'instant.</div>';
+}
+
+function afficherProfilFA() {
+  const f = faMoi, zone = document.getElementById('fa-profil-contenu'); if (!zone || !f) return;
+  const ligne = (k, v) => v ? '<div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;"><span style="color:var(--text2);">' + k + '</span><span style="color:var(--text);text-align:right;">' + escHtml(v) + '</span></div>' : '';
+  const carte = (titre, contenu, bouton) => '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;">'
+    + '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;"><div style="font-size:13px;font-weight:700;color:var(--text);">' + titre + '</div>' + (bouton || '') + '</div>'
+    + '<div style="padding:14px 20px;display:flex;flex-direction:column;gap:10px;">' + contenu + '</div></div>';
+  const enfants = Array.isArray(f.enfants) ? (f.enfants.length ? f.enfants.join(', ') : 'Non') : '';
+  const animaux = Array.isArray(f.animaux_actuels) ? (f.animaux_actuels.length ? f.animaux_actuels.join(', ') : 'Aucun') : '';
+  const especes = (f.peut_accueillir || []).map(e => FA_LIB.especes[e] || e).join(', ')
+    + (f.nac_acceptes?.length ? ' (' + f.nac_acceptes.map(n => (SOUS_ESPECE_TXT[n] || n).toLowerCase()).join(', ') + ')' : '');
+  const qTxt = f.questionnaire_soumis_le ? 'Envoyé le ' + new Date(f.questionnaire_soumis_le).toLocaleDateString('fr-FR') : 'Pas encore envoyé';
+  zone.innerHTML =
+    carte('Informations personnelles', ligne('Nom', [f.prenom, f.nom].filter(Boolean).join(' ')) + ligne('Email', f.email) + ligne('Téléphone', f.telephone) + ligne('Ville', [f.code_postal, f.ville].filter(Boolean).join(' ')))
+  + carte('Mon foyer', ligne('Logement', FA_LIB.logement[f.type_logement] && (FA_LIB.logement[f.type_logement] + (f.jardin ? ' avec jardin' : ''))) + ligne('Enfants', enfants) + ligne('Animaux au foyer', animaux)
+      + ligne('Temps seul par jour', FA_LIB.seul[f.heures_seul]) + ligne('Présence en journée', FA_LIB.presence[f.presence_journee]) || '<div style="font-size:12px;color:var(--text3)">Non renseigné.</div>')
+  + carte('Mon questionnaire', ligne('Animaux accueillis', especes || 'Non renseigné') + ligne('Questionnaire', qTxt),
+      '<button class="btn btn-s" style="font-size:11px;padding:5px 12px;" onclick="ouvrirQuestionnaireFA()">' + (f.questionnaire_soumis_le ? 'Modifier' : 'Compléter') + '</button>')
+  + carte('Disponibilité', '<div style="font-size:12px;color:var(--text3);">Si vous êtes indisponible, aucune proposition ne vous est faite.</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="fa-dispo-select" style="flex:1;min-width:180px">'
+      + Object.entries(FA_LIB.dispo).map(([v, t]) => '<option value="' + v + '"' + (f.disponible_le === v ? ' selected' : '') + '>' + t + '</option>').join('')
+      + '</select><button class="btn btn-p" style="font-size:12px" onclick="enregistrerDispoFA(this)">Enregistrer</button></div>');
+}
+
+async function enregistrerDispoFA(btn) {
+  btn.disabled = true;
+  try {
+    const v = document.getElementById('fa-dispo-select').value;
+    await faFetch('/disponibilite', { method: 'PATCH', body: JSON.stringify({ disponible_le: v }) });
+    faMoi.disponible_le = v; afficherEspaceFA();
+    showToast('✅ Disponibilité mise à jour');
+  } catch (e) { showToast('⚠ ' + e.message); }
+  btn.disabled = false;
+}
+
+async function repondrePropositionFA(id, reponse, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    await faFetch('/propositions/' + id, { method: 'PATCH', body: JSON.stringify({ reponse }) });
+    showToast(reponse === 'oui' ? '✅ Merci ! Le refuge est prévenu et va vous contacter.' : 'Proposition déclinée.');
+    chargerEspaceFA();
+  } catch (e) { showToast('⚠ ' + e.message); if (btn) btn.disabled = false; }
+}
+
+// Questionnaire prérempli avec les réponses déjà envoyées
+function ouvrirQuestionnaireFA() {
+  go('questionnaire-fa');
+  const f = faMoi; if (!f) return;
+  const q = f.questionnaire || {}, ce = f.criteres_especes || {};
+  const coche = (sel) => { const el = document.querySelector(sel); if (el && !el.classList.contains('s')) el.classList.add('s'); };
+  const tagGroupe = (groupe, v) => { if (v) coche('[onclick*="\'' + groupe + '\'"][data-v="' + v + '"]'); };
+  (f.peut_accueillir || []).forEach(e => coche('#q-especes .tag[data-v="' + e + '"]'));
+  (f.nac_acceptes || []).forEach(e => coche('#q-nac-especes .tag[data-v="' + e + '"]'));
+  appliquerEspecesFA();
+  const textes = { 'q-motivation': f.motivation, 'q-attachement': f.attachement, 'q-duree-longue': f.duree_longue, 'q-b-grogne': f.situation_grogne,
+    'q-sit-nuits': f.situation_nuits, 'q-sit-destruction': f.situation_destruction, 'q-sit-absence': f.situation_absence, 'q-sit-reactivite': f.situation_reactivite,
+    'q-sit-morsure': f.situation_morsure, 'q-sit-consignes': f.situation_consignes, 'q-sit-decouragement': f.situation_decouragement, 'q-limite': f.situation_limite,
+    'q-autres': f.autres_infos, 'q-b-destruction': q.destruction_affaires, 'q-sit-attachement': q.situation_attachement,
+    'q-chat-sit-litiere': ce.chat?.situation_litiere, 'q-chat-sit-cache': ce.chat?.situation_cache,
+    'q-nac-sit-urgence': ce.nac?.situation_urgence, 'q-nac-sit-predateur': ce.nac?.situation_predateur };
+  for (const [id, v] of Object.entries(textes)) { const el = document.getElementById(id); if (el && v && !el.value) el.value = v; }
+  const EXP_LIB = { jamais: 'Non', enfance: 'Oui, enfance', '1_2_ans': 'Oui, récemment', '3_5_ans': "Oui, j'en ai", '5_plus_ans': "Oui, j'en ai" };
+  if (f.experience_chien) { const t = [...document.querySelectorAll('[onclick*="\'exp1\'"]')].find(x => x.textContent.trim() === EXP_LIB[f.experience_chien]); if (t) E(t, 's', 'exp1'); }
+  tagGroupe('expchat', ce.chat?.experience); tagGroupe('chatsecu', ce.chat?.securise); tagGroupe('chatext', ce.chat?.exterieur);
+  tagGroupe('expnac', ce.nac?.experience); tagGroupe('nacgroupe', ce.nac?.groupe);
+  const cocherChk = (conteneur, valeurs) => (valeurs || []).forEach(v => { const c = document.querySelector('#' + conteneur + ' .chk[data-v="' + v + '"]'); if (c && !c.classList.contains('on')) c.classList.add('on'); });
+  cocherChk('q-chat-gerees', ce.chat?.gerees); cocherChk('q-chat-refus', ce.chat?.refus); cocherChk('q-nac-install', ce.nac?.installations);
+  const cocherLib = (section, libelles) => (libelles || []).forEach(l => { const c = [...document.querySelectorAll('#' + section + ' .chk')].find(x => decodeTxt(x.querySelector('span')?.textContent || '') === l); if (c && !c.classList.contains('on')) c.classList.add('on'); });
+  cocherLib('q-section-chien-exp', q.experiences_gerees_libelles); cocherLib('q-section-chien-refus', q.refus_libelles);
+  if (f.engagement) { const b = [...document.querySelectorAll('#sc-eng .sc-btn')].find(x => x.textContent.trim() === String(f.engagement)); if (b) SC(b, 'sc-eng'); }
 }
 </script>
 </body>
