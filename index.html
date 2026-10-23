@@ -1428,7 +1428,7 @@ select{background-image:none;}
       </button>
 
       <div class="sb-label">Compte</div>
-      <button class="sb-item" id="sb-securite" onclick="dashView('v-securite',this)">
+      <button class="sb-item" id="sb-securite" onclick="dashView('v-securite',this);afficherBlocMFA('ref')">
         <div class="sb-icon" style="background:rgba(124,58,237,.2);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
         <div style="flex:1;text-align:left;">
           <div>Sécurité</div>
@@ -1441,6 +1441,7 @@ select{background-image:none;}
 
       <!-- ── VUE ANIMAUX ── -->
       <div id="v-animaux">
+        <div class="mfa-incitation mfa-rappel" data-profil="ref" style="display:none;"></div>
         <div class="dash-topbar">
           <div><h2>Mes animaux</h2><p id="dash-animaux-resume">Chargement…</p></div>
           <button class="btn btn-p co" onclick="go('ajouter-animal')"><span style="font-size:17px;line-height:1">+</span>Ajouter</button>
@@ -1641,74 +1642,16 @@ select{background-image:none;}
         </div>
 
         <!-- Banner MFA si non activée -->
-        <div id="mfa-banner" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(43,78,212,.12));border:1px solid rgba(124,58,237,.35);border-radius:16px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:flex-start;gap:14px;">
+        <div id="mfa-banner" class="mfa-incitation" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(43,78,212,.12));border:1px solid rgba(124,58,237,.35);border-radius:16px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:flex-start;gap:14px;">
           <div style="font-size:28px;flex-shrink:0;">🔓</div>
           <div style="flex:1;">
-            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Authentification à deux facteurs non activée</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:4px;">Votre compte n'est protégé que par votre mot de passe. En cas de compromission, un attaquant aurait accès aux données de toutes vos familles d'accueil.</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Double authentification non activée</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:4px;">Votre compte n'est protégé que par votre mot de passe. S'il est volé ou deviné, quelqu'un pourrait accéder aux données de vos animaux et de vos familles d'accueil. Avec Google Authenticator, il faut en plus un code qui change toutes les 30 secondes sur votre téléphone : <b style="color:var(--text)">c'est largement plus sûr</b>.</div>
             <div style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px;"><span style="background:rgba(124,58,237,.2);color:#A78BFA;padding:2px 8px;border-radius:20px;font-weight:600;">✓ Recommandation ANSSI</span> Utiliser un second facteur sur tous les accès sensibles</div>
           </div>
         </div>
 
-        <!-- Bloc MFA -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:18px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:40px;height:40px;border-radius:11px;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center;font-size:20px;">📱</div>
-              <div>
-                <div style="font-size:14px;font-weight:700;color:var(--text);">Vérification par SMS</div>
-                <div style="font-size:12px;color:var(--text2);">Un code à 6 chiffres est envoyé sur votre téléphone à chaque connexion</div>
-              </div>
-            </div>
-            <!-- Toggle switch -->
-            <div id="mfa-toggle-wrap" style="flex-shrink:0;">
-              <button id="mfa-toggle" onclick="toggleMFA()" style="width:48px;height:26px;border-radius:13px;border:none;background:var(--bg4);cursor:pointer;position:relative;transition:background .2s;" aria-label="Activer MFA">
-                <div id="mfa-toggle-dot" style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>
-              </button>
-            </div>
-          </div>
-
-          <!-- Formulaire activation MFA (caché par défaut) -->
-          <div id="mfa-setup" style="display:none;border-top:1px solid var(--border);padding-top:18px;margin-top:4px;">
-            <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.65;">Entrez votre numéro de téléphone. Un code de confirmation vous sera envoyé pour valider l'activation.</div>
-            <div id="mfa-step1">
-              <div class="fg" style="margin-bottom:12px;">
-                <div class="field">
-                  <label>Numéro de téléphone <span class="req">*</span></label>
-                  <input type="tel" id="mfa-phone" placeholder="+33 6 XX XX XX XX" style="max-width:260px;"/>
-                </div>
-              </div>
-              <button class="btn btn-p" style="background:var(--violet);font-size:13px;" onclick="sendMFACode()">Recevoir le code SMS →</button>
-            </div>
-            <div id="mfa-step2" style="display:none;">
-              <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Code envoyé sur <strong id="mfa-phone-display"></strong>. Valable 5 minutes.</div>
-              <div class="otp-row" style="margin-bottom:16px;">
-                <input class="otp-input" id="mfa-otp-1" maxlength="1" type="text" inputmode="numeric" oninput="otpNav(this,'mfa-otp-2')">
-                <input class="otp-input" id="mfa-otp-2" maxlength="1" type="text" inputmode="numeric" oninput="otpNav(this,'mfa-otp-3')">
-                <input class="otp-input" id="mfa-otp-3" maxlength="1" type="text" inputmode="numeric" oninput="otpNav(this,'mfa-otp-4')">
-                <input class="otp-input" id="mfa-otp-4" maxlength="1" type="text" inputmode="numeric" oninput="otpNav(this,'mfa-otp-5')">
-                <input class="otp-input" id="mfa-otp-5" maxlength="1" type="text" inputmode="numeric" oninput="otpNav(this,'mfa-otp-6')">
-                <input class="otp-input" id="mfa-otp-6" maxlength="1" type="text" inputmode="numeric" oninput="otpNav(this,null)">
-              </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button class="btn btn-p" style="background:var(--violet);font-size:13px;" onclick="verifyMFACode()">✓ Activer la MFA</button>
-                <button class="btn btn-s" style="font-size:12px;" onclick="document.getElementById('mfa-step1').style.display='';document.getElementById('mfa-step2').style.display='none';">← Changer le numéro</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Numéro enregistré (visible si MFA active) -->
-          <div id="mfa-active-info" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:18px;">✅</span>
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--success);">MFA activée</div>
-                <div style="font-size:12px;color:var(--text2);">Numéro : <span id="mfa-active-phone">+33 6 •• •• •• ••</span></div>
-              </div>
-              <button class="btn btn-s" style="margin-left:auto;font-size:11px;padding:6px 12px;" onclick="changeMFAPhone()">Modifier le numéro</button>
-            </div>
-          </div>
-        </div>
+        <div id="mfa-bloc-ref" style="margin-bottom:18px;"></div>
 
         <!-- Changement de mot de passe -->
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:18px;">
@@ -4370,6 +4313,8 @@ Signature électronique validée par l'Association</div>
         </div>
       </div>
 
+      <div class="mfa-incitation mfa-rappel" data-profil="fa" style="display:none;"></div>
+
       <!-- Notifications -->
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
         <div class="fa-dash-notif new" style="width:fit-content;" onclick="go('proposition-accueil')">
@@ -4386,6 +4331,7 @@ Signature électronique validée par l'Association</div>
         <button class="cond-tab" onclick="faDashTab(this,'fa-tab-accueils')">📋 Mes accueils (1)</button>
         <button class="cond-tab" onclick="faDashTab(this,'fa-tab-evaluations')">⭐ Mes évaluations</button>
         <button class="cond-tab" onclick="faDashTab(this,'fa-tab-profil')">👤 Mon profil</button>
+        <button class="cond-tab" id="fa-tab-securite-btn" onclick="faDashTab(this,'fa-tab-securite');afficherBlocMFA('fa')">🔐 Sécurité</button>
       </div>
 
       <!-- ── ANIMAUX COMPATIBLES ── -->
@@ -4614,6 +4560,14 @@ Signature électronique validée par l'Association</div>
       </div>
 
       <!-- ── MON PROFIL ── -->
+      <div id="fa-tab-securite" style="display:none;">
+        <div class="mfa-incitation" data-profil="fa" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(43,78,212,.12));border:1px solid rgba(124,58,237,.35);border-radius:16px;padding:16px 18px;margin-bottom:18px;display:flex;gap:12px;">
+          <div style="font-size:26px;flex-shrink:0;">🔓</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.65;"><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Double authentification non activée</div>Votre compte n'est protégé que par votre mot de passe. Avec Google Authenticator, il faut en plus un code qui change toutes les 30 secondes sur votre téléphone : <b style="color:var(--text)">c'est largement plus sûr</b>, et ça ne prend qu'une minute.</div>
+        </div>
+        <div id="mfa-bloc-fa"></div>
+      </div>
+
       <div id="fa-tab-profil" style="display:none;">
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;">
           <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
@@ -5162,6 +5116,16 @@ Signature électronique validée par l'Association</div>
   </div>
 </div>
 
+<div id="mfa-login-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,.75);z-index:9000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:24px 22px;width:100%;max-width:380px;">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">🔢 Code de vérification</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:16px;">Ouvrez Google Authenticator et saisissez le code PetIA à 6 chiffres.</div>
+    <input id="mfa-login-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" onkeydown="if(event.key==='Enter')validerEtapeCode()" style="width:100%;text-align:center;font-size:24px;letter-spacing:.4em;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;padding:12px;color:var(--text);outline:none;margin-bottom:14px;"/>
+    <button class="btn btn-p co" id="mfa-login-btn" style="width:100%;justify-content:center;" onclick="validerEtapeCode()">Valider</button>
+    <button class="btn btn-s" style="width:100%;justify-content:center;margin-top:8px;" onclick="fermerEtapeCode()">Annuler</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"><span id="toast-msg">Action effectuée</span></div>
 
 <script>
@@ -5194,15 +5158,11 @@ async function loginFA() {
       showToast(data.message || '⚠ Email ou mot de passe incorrect');
       return;
     }
-    // Stockage session
-    sessionFA = { token: data.token, famille: data.famille };
-    sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA));
-    // Effacer le formulaire
     if (emailInput) emailInput.value = '';
     if (pwdInput)   pwdInput.value   = '';
     resetButton(btn);
-    populateDashboardFA(data.famille);
-    go('dashboard-fa');
+    if (data.mfa_required) return ouvrirEtapeCode(data.ticket, 'fa');
+    finaliserConnexionFA(data);
   } catch(err) {
     resetButton(btn);
     showToast('⚠ Impossible de joindre le serveur — réessayez');
@@ -5227,16 +5187,28 @@ async function loginRefuge(btn) {
     });
     const data = await res.json();
     if (!res.ok) { resetButton(btn); showToast(data.message || '⚠ Email ou mot de passe incorrect'); return; }
-    sessionRef = { token: data.token, refuge: data.refuge };
-    sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef));
     if (emailInput) emailInput.value = '';
     if (pwdInput)   pwdInput.value   = '';
     resetButton(btn);
-    go('dashboard-fourriere');
+    if (data.mfa_required) return ouvrirEtapeCode(data.ticket, 'refuge');
+    finaliserConnexionRefuge(data);
   } catch(e) {
     resetButton(btn);
     showToast('⚠ Impossible de joindre le serveur — réessayez');
   }
+}
+
+function finaliserConnexionFA(data) {
+  sessionFA = { token: data.token, famille: data.famille };
+  sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA));
+  populateDashboardFA(data.famille);
+  go('dashboard-fa');
+}
+
+function finaliserConnexionRefuge(data) {
+  sessionRef = { token: data.token, refuge: data.refuge };
+  sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef));
+  go('dashboard-fourriere');
 }
 
 function populateDashboardFA(fa) {
@@ -5285,10 +5257,12 @@ function go(id){
   closeMobileNav();
   window.scrollTo(0,0);
   if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
+  if(id==='dashboard-fourriere' && typeof majStatutMFA==='function') majStatutMFA('ref');
+  if(id==='dashboard-fa' && typeof majStatutMFA==='function') majStatutMFA('fa');
 }
 
 function dashView(vid,btn){
-  ['v-animaux','v-matchs','v-config'].forEach(v=>{const e=document.getElementById(v);if(e)e.style.display='none';});
+  ['v-animaux','v-matchs','v-config','v-securite'].forEach(v=>{const e=document.getElementById(v);if(e)e.style.display='none';});
   const t=document.getElementById(vid);if(t)t.style.display='block';
   document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
@@ -6015,7 +5989,7 @@ function supprimerIndispo(btn) {
 function faDashTab(btn, tabId) {
   document.querySelectorAll('#dashboard-fa .cond-tab').forEach(t => t.classList.remove('on'));
   btn.classList.add('on');
-  ['fa-tab-animaux','fa-tab-accueils','fa-tab-evaluations','fa-tab-profil'].forEach(id => {
+  ['fa-tab-animaux','fa-tab-accueils','fa-tab-evaluations','fa-tab-profil','fa-tab-securite'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -7639,6 +7613,188 @@ async function deciderMatch(matchId, statut, btn) {
   }
 }
 
+
+// ═══════════════════════════════════════════════════════════════════
+// DOUBLE AUTHENTIFICATION (facultative) — Google Authenticator
+// ═══════════════════════════════════════════════════════════════════
+const MFA_PROFILS = {
+  ref: { session: () => getRefSession(), cle: 'petia_ref', set: (t) => { sessionRef.token = t; sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef)); }, bloc: 'mfa-bloc-ref', ouvrir: "go('dashboard-fourriere');dashView('v-securite',document.getElementById('sb-securite'));afficherBlocMFA('ref')" },
+  fa:  { session: () => { if (!sessionFA) { try { sessionFA = JSON.parse(sessionStorage.getItem('petia_fa') || 'null'); } catch (_) {} } return sessionFA; },
+         cle: 'petia_fa', set: (t) => { sessionFA.token = t; sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA)); }, bloc: 'mfa-bloc-fa', ouvrir: "faDashTab(document.getElementById('fa-tab-securite-btn'),'fa-tab-securite');afficherBlocMFA('fa')" }
+};
+const mfaEtat = { ref: null, fa: null };
+let mfaFacteur = { ref: null, fa: null };
+
+// ── Étape « code » à la connexion
+let etapeCode = null;
+function ouvrirEtapeCode(ticket, type) {
+  etapeCode = { ticket, type };
+  const o = document.getElementById('mfa-login-overlay');
+  o.style.display = 'flex';
+  document.getElementById('mfa-login-code').value = '';
+  setTimeout(() => document.getElementById('mfa-login-code').focus(), 50);
+}
+function fermerEtapeCode() { etapeCode = null; document.getElementById('mfa-login-overlay').style.display = 'none'; }
+async function validerEtapeCode() {
+  if (!etapeCode) return;
+  const code = document.getElementById('mfa-login-code').value.replace(/\D/g, '');
+  if (code.length !== 6) return showToast('⚠ Le code doit contenir 6 chiffres.');
+  const btn = document.getElementById('mfa-login-btn');
+  btn.disabled = true; btn.textContent = 'Vérification…';
+  try {
+    const res = await fetch(API_URL + '/api/auth/mfa/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: etapeCode.ticket, code, type: etapeCode.type }) });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById('mfa-login-code').value = ''; throw new Error(data.message || 'Code incorrect.'); }
+    const type = etapeCode.type;
+    fermerEtapeCode();
+    if (type === 'fa') finaliserConnexionFA(data); else finaliserConnexionRefuge(data);
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Valider';
+  }
+}
+
+// ── Appels authentifiés
+async function mfaFetch(profil, path, body) {
+  const s = MFA_PROFILS[profil].session();
+  const res = await fetch(API_URL + '/api/auth/mfa' + path, {
+    method: body === undefined ? 'GET' : 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (s?.token || '') },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || 'Erreur serveur.');
+  return data;
+}
+
+// ── État + bandeaux d'incitation
+async function majStatutMFA(profil) {
+  if (!MFA_PROFILS[profil].session()?.token) return;
+  try { mfaEtat[profil] = (await mfaFetch(profil, '/statut')).active; }
+  catch (_) { return; }
+  majIncitations(profil);
+}
+
+function majIncitations(profil) {
+  const actif = mfaEtat[profil];
+  let masque = false;
+  try { masque = sessionStorage.getItem('petia_mfa_rappel_' + profil) === 'masque'; } catch (_) {}
+  document.querySelectorAll('.mfa-incitation').forEach(el => {
+    const p = el.dataset.profil || (el.id === 'mfa-banner' ? 'ref' : null);
+    if (p !== profil) return;
+    if (el.classList.contains('mfa-rappel')) {
+      el.style.display = actif || masque ? 'none' : 'flex';
+      el.style.cssText += ';align-items:center;gap:12px;flex-wrap:wrap;background:rgba(124,58,237,.10);border:1px solid rgba(124,58,237,.3);border-radius:14px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--text2);line-height:1.55;';
+      el.innerHTML = '<span style="font-size:20px">🔐</span><span style="flex:1;min-width:180px"><b style="color:var(--text)">Protégez votre compte :</b> activez la double authentification avec Google Authenticator. C\'est largement plus sûr qu\'un mot de passe seul.</span>'
+        + '<button class="btn btn-p" style="font-size:12px;padding:7px 14px;background:var(--violet)" onclick="' + MFA_PROFILS[profil].ouvrir + '">Activer</button>'
+        + '<button class="btn btn-s" style="font-size:11px;padding:6px 10px" onclick="masquerRappelMFA(\'' + profil + '\')" aria-label="Plus tard">Plus tard</button>';
+    } else {
+      el.style.display = actif ? 'none' : 'flex';
+    }
+  });
+  if (profil === 'ref') {
+    const hint = document.getElementById('sb-mfa-hint');
+    if (hint) { hint.textContent = actif ? '🔒 Double authentification activée' : '🔓 Double authentification non activée'; hint.style.color = actif ? 'var(--success)' : 'var(--warning)'; }
+  }
+}
+
+function masquerRappelMFA(profil) {
+  try { sessionStorage.setItem('petia_mfa_rappel_' + profil, 'masque'); } catch (_) {}
+  majIncitations(profil);
+}
+
+// ── Bloc d'activation / désactivation
+async function afficherBlocMFA(profil, etape) {
+  const bloc = document.getElementById(MFA_PROFILS[profil].bloc);
+  if (!bloc) return;
+  const carte = (contenu) => '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;">'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:40px;height:40px;border-radius:11px;background:rgba(124,58,237,.15);display:flex;align-items:center;justify-content:center;font-size:20px;">📱</div>'
+    + '<div><div style="font-size:14px;font-weight:700;color:var(--text);">Double authentification · Google Authenticator</div>'
+    + '<div style="font-size:12px;color:var(--text2);">Facultative · un code à 6 chiffres en plus de votre mot de passe à chaque connexion</div></div></div>' + contenu + '</div>';
+  const champCode = (id, action) => '<input id="' + id + '" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Code à 6 chiffres" onkeydown="if(event.key===\'Enter\')' + action + '" style="width:100%;max-width:240px;text-align:center;font-size:18px;letter-spacing:.3em;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px;color:var(--text);outline:none;margin:0 10px 10px 0;"/>';
+
+  if (etape === 'qr') {
+    const f = mfaFacteur[profil];
+    bloc.innerHTML = carte(
+      '<ol style="font-size:12px;color:var(--text2);line-height:1.8;margin:0 0 14px 18px;">'
+      + '<li>Installez <b>Google Authenticator</b> sur votre téléphone (App Store ou Google Play).</li>'
+      + '<li>Dans l\'application, touchez <b>+</b> puis <b>Scanner un code QR</b>, et scannez ce code.</li>'
+      + '<li>Saisissez le code à 6 chiffres qui s\'affiche.</li></ol>'
+      + '<div style="background:#fff;border-radius:12px;padding:10px;width:200px;height:200px;margin:0 0 12px;display:flex;align-items:center;justify-content:center;"><img src="' + escHtml(f.qr_code) + '" alt="QR code" style="width:180px;height:180px"/></div>'
+      + '<a class="btn btn-s" href="' + escHtml(f.uri) + '" style="font-size:12px;padding:7px 12px;text-decoration:none;margin-bottom:10px;display:inline-flex;">📲 Sur ce téléphone : ouvrir dans Google Authenticator</a>'
+      + '<div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Impossible de scanner ? Saisissez cette clé dans l\'application :</div>'
+      + '<div style="font-family:monospace;font-size:11px;word-break:break-all;background:var(--bg3);padding:8px 10px;border-radius:8px;color:var(--text2);margin-bottom:14px;">' + escHtml(f.secret) + '</div>'
+      + champCode('mfa-code-' + profil, "confirmerMFA('" + profil + "')")
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-p" style="background:var(--violet);font-size:13px;" onclick="confirmerMFA(\'' + profil + '\',this)">✓ Activer</button>'
+      + '<button class="btn btn-s" style="font-size:12px;" onclick="afficherBlocMFA(\'' + profil + '\')">Annuler</button></div>');
+    setTimeout(() => document.getElementById('mfa-code-' + profil)?.focus(), 50);
+    return;
+  }
+  if (etape === 'desactiver') {
+    bloc.innerHTML = carte('<div style="font-size:12px;color:var(--warning);line-height:1.65;margin-bottom:12px;">⚠ Désactiver la double authentification rend votre compte moins sûr. Pour confirmer, saisissez le code actuel de Google Authenticator.</div>'
+      + champCode('mfa-code-' + profil, "desactiverMFA('" + profil + "')")
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-s" style="font-size:12px;border-color:rgba(239,68,68,.3);color:#FCA5A5;" onclick="desactiverMFA(\'' + profil + '\',this)">Désactiver</button>'
+      + '<button class="btn btn-p" style="font-size:12px;" onclick="afficherBlocMFA(\'' + profil + '\')">Garder la protection</button></div>');
+    setTimeout(() => document.getElementById('mfa-code-' + profil)?.focus(), 50);
+    return;
+  }
+
+  bloc.innerHTML = carte('<div style="font-size:12px;color:var(--text3)">Chargement…</div>');
+  await majStatutMFA(profil);
+  if (mfaEtat[profil] === null) { bloc.innerHTML = carte('<div style="font-size:12px;color:var(--danger)">Impossible de vérifier l\'état. Reconnectez-vous puis réessayez.</div>'); return; }
+  bloc.innerHTML = mfaEtat[profil]
+    ? carte('<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:18px">✅</span><div style="flex:1;font-size:13px;font-weight:600;color:var(--success);">Activée — votre compte est protégé par un code à chaque connexion.</div>'
+      + '<button class="btn btn-s" style="font-size:11px;padding:6px 12px;" onclick="afficherBlocMFA(\'' + profil + '\',\'desactiver\')">Désactiver</button></div>')
+    : carte('<div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:14px;">Même si votre mot de passe est volé, personne ne pourra se connecter sans votre téléphone. <b style="color:var(--text)">C\'est largement plus sûr</b> et ça ne prend qu\'une minute.</div>'
+      + '<button class="btn btn-p" style="background:var(--violet);font-size:13px;" onclick="demarrerMFA(\'' + profil + '\',this)">🔐 Activer la double authentification</button>');
+}
+
+async function demarrerMFA(profil, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = 'Préparation…'; }
+  try {
+    mfaFacteur[profil] = await mfaFetch(profil, '/activer', {});
+    afficherBlocMFA(profil, 'qr');
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🔐 Activer la double authentification'; }
+  }
+}
+
+async function confirmerMFA(profil, btn) {
+  const code = (document.getElementById('mfa-code-' + profil)?.value || '').replace(/\D/g, '');
+  if (code.length !== 6) return showToast('⚠ Le code doit contenir 6 chiffres.');
+  if (btn) btn.disabled = true;
+  try {
+    const data = await mfaFetch(profil, '/confirmer', { factor_id: mfaFacteur[profil].factor_id, code });
+    MFA_PROFILS[profil].set(data.token);
+    mfaEtat[profil] = true; mfaFacteur[profil] = null;
+    showToast('✅ Double authentification activée. Le code vous sera demandé à chaque connexion.');
+    majIncitations(profil);
+    afficherBlocMFA(profil);
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    const el = document.getElementById('mfa-code-' + profil); if (el) el.value = '';
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function desactiverMFA(profil, btn) {
+  const code = (document.getElementById('mfa-code-' + profil)?.value || '').replace(/\D/g, '');
+  if (code.length !== 6) return showToast('⚠ Le code doit contenir 6 chiffres.');
+  if (btn) btn.disabled = true;
+  try {
+    const data = await mfaFetch(profil, '/desactiver', { code });
+    MFA_PROFILS[profil].set(data.token);
+    mfaEtat[profil] = false;
+    showToast('Double authentification désactivée.');
+    majIncitations(profil);
+    afficherBlocMFA(profil);
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    if (btn) btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
