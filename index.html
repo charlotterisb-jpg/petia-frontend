@@ -1267,7 +1267,7 @@ select{background-image:none;}
         <button class="mobile-nav-item" onclick="closeMobileNav();go('ajouter-animal')">
           <div class="mni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>Ajouter un animal
         </button>
-        <button class="mobile-nav-item" onclick="closeMobileNav();go('dashboard-fourriere');dashView('v-matchs',null)">
+        <button class="mobile-nav-item" onclick="closeMobileNav();go('dashboard-fourriere');ouvrirMatchs()">
           <div class="mni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>Matchs IA<span class="mobile-nav-badge urg">3</span>
         </button>
         <button class="mobile-nav-item" onclick="closeMobileNav();go('annuaire-familles')">
@@ -1298,7 +1298,7 @@ select{background-image:none;}
       <span class="mbn-icon">🐕</span>
       <span class="mbn-label">Animaux</span>
     </button>
-    <button class="mbn-item" onclick="go('dashboard-fourriere');dashView('v-matchs',null)">
+    <button class="mbn-item" onclick="go('dashboard-fourriere');ouvrirMatchs()">
       <span class="mbn-icon">💡</span>
       <span class="mbn-label">Matchs</span>
       <span class="mbn-dot"></span>
@@ -1415,7 +1415,7 @@ select{background-image:none;}
       <div class="sb-label">Gestion des animaux</div>
       <button class="sb-item on" id="sb-animaux" onclick="dashView('v-animaux',this)"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>Mes animaux<span class="sb-badge" id="sb-animaux-count">0</span></button>
       <button class="sb-item" onclick="go('ajouter-animal')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>Ajouter un animal</button>
-      <button class="sb-item" id="sb-matchs" onclick="dashView('v-matchs',this)"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>Matchs IA<span class="sb-badge urg">3</span></button>
+      <button class="sb-item" id="sb-matchs" onclick="ouvrirMatchs()"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>Matchs IA<span class="sb-badge urg" id="sb-matchs-count" style="display:none">0</span></button>
       <button class="sb-item" id="sb-annuaire" onclick="go('annuaire-familles')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>Annuaire FA</button>
       <button class="sb-item" onclick="go('previsite')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>Prévisites</button>
       <button class="sb-item" onclick="go('notation')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>Évaluations</button>
@@ -1463,24 +1463,15 @@ select{background-image:none;}
       <!-- ── VUE MATCHS ── -->
       <div id="v-matchs" style="display:none">
         <div class="dash-topbar">
-          <div><h2>Matchs IA en attente</h2><p>3 matchs prioritaires à valider</p></div>
+          <div><h2>Matchs IA</h2><p id="matchs-resume">Choisissez un animal pour voir les familles proposées.</p></div>
           <button class="btn btn-s" onclick="dashView('v-animaux',document.getElementById('sb-animaux'))">← Retour</button>
         </div>
-        <div class="ia-hint" style="margin-bottom:18px"><span>✦</span>L'IA a analysé 124 profils. Les matchs ci-dessous sont pré-validés pour les urgences &lt;48h.</div>
-        <div class="form-section">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span class="ubadge cr">🔴 Urgence critique</span><span style="font-size:14px;font-weight:600">Rox → Famille Martin</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
-            <div class="kpi" style="padding:12px 14px"><div class="kpi-l">Score</div><div class="kpi-v" style="font-size:20px;color:var(--success)">94%</div></div>
-            <div class="kpi" style="padding:12px 14px"><div class="kpi-l">Distance</div><div class="kpi-v" style="font-size:20px">2.1 km</div></div>
-            <div class="kpi" style="padding:12px 14px"><div class="kpi-l">Dispo</div><div class="kpi-v" style="font-size:14px;color:var(--success)">Dès demain</div></div>
-          </div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.65">Marie Martin · Paris 15e · Maison jardin clôturé · Expérience Labrador · Score motivation : 10/10</div>
-          <div style="display:flex;gap:9px;flex-wrap:wrap">
-            <button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px">✓ Valider</button>
-            <button class="btn btn-s" style="font-size:13px">Voir profil</button>
-            <button class="btn btn-s" style="font-size:13px">Refuser</button>
-          </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px">
+          <select id="matchs-animal" onchange="chargerMatchs(this.value)" style="flex:1;min-width:200px;max-width:420px"></select>
+          <button class="btn btn-p" id="btn-relancer-matching" onclick="relancerMatching()">✦ Relancer le matching</button>
         </div>
+        <div class="ia-hint" style="margin-bottom:18px"><span>✦</span>Les familles qui ne respectent pas une contrainte impérative de l'animal sont écartées d'office. Les autres sont classées par un score de compatibilité, affiné par l'IA à partir de critères sans donnée d'identité.</div>
+        <div id="matchs-list"></div>
       </div>
 
       <!-- ── VUE CONFIGURATION ── -->
@@ -8319,7 +8310,10 @@ function afficherAnimaux() {
   set('kpi-total-sub', semaine ? '+' + semaine + ' cette semaine' : '');
   set('kpi-urg', urg.length);
   set('kpi-fa', fa.length);
-  set('kpi-matchs', 0);
+  const proposes = tous.reduce((n, a) => n + (a.matchs || []).filter(m => m.statut === 'propose').length, 0);
+  set('kpi-matchs', proposes);
+  const badge = document.getElementById('sb-matchs-count');
+  if (badge) { badge.textContent = proposes; badge.style.display = proposes ? '' : 'none'; }
   set('sb-animaux-count', tous.length);
   set('dash-animaux-resume', tous.length + (tous.length > 1 ? ' animaux' : ' animal') + ' · ' + urg.length + (urg.length > 1 ? ' urgences actives' : ' urgence active'));
 
@@ -8348,11 +8342,11 @@ function afficherAnimaux() {
       + '<div><div class="aname">' + escHtml(a.nom) + '</div><div class="ameta">' + escHtml(meta || '—') + '</div></div>'
       + '<div><span class="ubadge ' + u.cls + '">' + u.txt + '</span></div>'
       + '<div style="font-size:12px;font-weight:700;color:' + delaiCol + '" title="Depuis l\'enregistrement">' + depuisTxt(a.created_at) + '</div>'
-      + '<div style="font-size:12px;color:var(--text3)">—</div>'
+      + matchsCellule(a)
       + '<div>' + statut + '</div>'
       + '<div>' + (place
           ? '<button class="btn btn-s" style="padding:5px 12px;font-size:11px">Détails</button>'
-          : '<button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();dashView(\'v-matchs\',document.getElementById(\'sb-matchs\'))">Matchs</button>')
+          : '<button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();ouvrirMatchs(\'' + a.id + '\')">Matchs</button>')
       + '</div></div>';
   }).join('');
 }
@@ -8362,6 +8356,157 @@ function filtAnimaux(btn, f) {
   if (btn) btn.classList.add('on');
   filtreAnimaux = f;
   afficherAnimaux();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MATCHS IA — /api/matching
+// ═══════════════════════════════════════════════════════════════════
+let animalMatchsId = null;
+
+const RECO = {
+  FORT_MATCH:     { cls: 'no', txt: '✦ Très bon match' },
+  BON_MATCH:      { cls: 'no', txt: 'Bon match' },
+  MATCH_POSSIBLE: { cls: 'el', txt: 'Match possible' },
+  DECONSEILLE:    { cls: 'cr', txt: 'Déconseillé' },
+  INCOMPATIBLE:   { cls: 'cr', txt: 'Incompatible' }
+};
+const LOGEMENT_TXT = { maison: 'Maison', appartement: 'Appartement', autre: 'Autre logement' };
+const DISPO_TXT = { maintenant: 'Dès maintenant', cette_semaine: 'Cette semaine', ce_mois: 'Ce mois-ci', non_dispo: 'Indisponible' };
+const EXP_TXT = { jamais: 'Pas d\'expérience chien', enfance: 'Chien dans l\'enfance', '1_2_ans': '1–2 ans d\'expérience', '3_5_ans': '3–5 ans d\'expérience', '5_plus_ans': '5 ans et + d\'expérience' };
+
+function matchsCellule(a) {
+  const ms = (a.matchs || []).filter(m => m.statut === 'propose');
+  if (!ms.length) return '<div style="font-size:12px;color:var(--text3)">—</div>';
+  const best = Math.max(...ms.map(m => m.score));
+  const dot = best >= 70 ? 'h' : 'm';
+  return '<div style="font-size:12px;font-weight:700"><span class="sdot ' + dot + '"></span>' + best + '% · ' + ms.length + ' FA</div>';
+}
+
+function scoreCouleur(s) { return s >= 70 ? 'var(--success)' : s >= 50 ? 'var(--warning)' : 'var(--danger)'; }
+
+async function ouvrirMatchs(animalId) {
+  dashView('v-matchs', document.getElementById('sb-matchs'));
+  if (!animauxRefuge.length) await chargerAnimaux();
+  const sel = document.getElementById('matchs-animal');
+  const dispo = animauxRefuge.filter(a => a.statut === 'disponible');
+  const ordre = { critique: 0, haute: 1, normale: 2 };
+  dispo.sort((x, y) => (ordre[x.urgence] ?? 3) - (ordre[y.urgence] ?? 3));
+  if (!dispo.length) {
+    sel.innerHTML = '<option value="">Aucun animal en attente</option>';
+    document.getElementById('matchs-list').innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px">Aucun animal en attente de famille d\'accueil.</div>';
+    document.getElementById('btn-relancer-matching').disabled = true;
+    return;
+  }
+  document.getElementById('btn-relancer-matching').disabled = false;
+  sel.innerHTML = dispo.map(a => '<option value="' + a.id + '">' + (ESPECE_ICON[a.espece] || '🐾') + ' ' + escHtml(a.nom) + ' — ' + (URG_BADGE[a.urgence] || URG_BADGE.normale).txt + '</option>').join('');
+  const cible = animalId && dispo.some(a => a.id === animalId) ? animalId : dispo[0].id;
+  sel.value = cible;
+  chargerMatchs(cible);
+}
+
+async function chargerMatchs(animalId, stats) {
+  animalMatchsId = animalId;
+  const list = document.getElementById('matchs-list');
+  const ref = getRefSession();
+  if (!animalId || !ref?.token) return;
+  list.innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px">Chargement des matchs…</div>';
+  try {
+    const res = await fetch(API_URL + '/api/matching/' + animalId, { headers: { 'Authorization': 'Bearer ' + ref.token } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erreur');
+    afficherMatchs(data.matchs || [], stats);
+  } catch (e) {
+    console.error('chargerMatchs:', e);
+    list.innerHTML = '<div class="form-section" style="text-align:center;color:var(--danger);font-size:13px">Impossible de charger les matchs. Réessayez dans un instant.</div>';
+  }
+}
+
+async function relancerMatching() {
+  const ref = getRefSession();
+  if (!animalMatchsId || !ref?.token) return;
+  const btn = document.getElementById('btn-relancer-matching');
+  btn.disabled = true; btn.textContent = 'Analyse en cours…';
+  document.getElementById('matchs-list').innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px">Analyse des familles d\'accueil… (jusqu\'à une minute)</div>';
+  try {
+    const res = await fetch(API_URL + '/api/matching/' + animalMatchsId, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ref.token } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erreur');
+    afficherMatchs(data.matchs || [], data);
+    chargerAnimaux();
+  } catch (e) {
+    console.error('relancerMatching:', e);
+    showToast('⚠ ' + (e.message || 'Erreur lors du matching.'));
+    chargerMatchs(animalMatchsId);
+  } finally {
+    btn.disabled = false; btn.textContent = '✦ Relancer le matching';
+  }
+}
+
+function afficherMatchs(matchs, stats) {
+  const resume = document.getElementById('matchs-resume');
+  const proposes = matchs.filter(m => m.statut === 'propose').length;
+  if (resume) {
+    let t = matchs.length ? proposes + (proposes > 1 ? ' familles proposées' : ' famille proposée') : 'Aucune famille proposée pour l\'instant';
+    if (stats && stats.familles_validees != null)
+      t += ' · ' + stats.familles_validees + ' famille(s) au dossier validé, ' + stats.exclues_par_regles + ' écartée(s) par les règles' + (stats.ia_utilisee ? '' : ' · IA indisponible, score par règles');
+    resume.textContent = t;
+  }
+  const list = document.getElementById('matchs-list');
+  if (!matchs.length) {
+    list.innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px;line-height:1.7">'
+      + (stats ? 'Aucune famille compatible parmi les familles au dossier validé.' : 'Aucun match enregistré pour cet animal.')
+      + '<br>Seules les familles dont le dossier est <b>validé</b> sont proposées.</div>';
+    return;
+  }
+  list.innerHTML = matchs.map(m => {
+    const f = m.famille || {};
+    const r = RECO[m.recommandation] || RECO.MATCH_POSSIBLE;
+    const infos = [
+      LOGEMENT_TXT[f.type_logement], f.jardin ? 'jardin' : null,
+      EXP_TXT[f.experience_chien], f.nb_accueils ? f.nb_accueils + ' accueil(s)' : null,
+      f.note_moyenne ? '★ ' + Number(f.note_moyenne).toFixed(1) : null
+    ].filter(Boolean).join(' · ');
+    const attention = (m.incompatibilites || []).map(x => '<li>' + escHtml(x) + '</li>').join('');
+    const resumeIA = m.details_score?.resume_ia;
+    const actions = m.statut === 'propose'
+      ? '<div style="display:flex;gap:9px;flex-wrap:wrap">'
+        + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'accepte\',this)">✓ Valider</button>'
+        + '<button class="btn btn-s" style="font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'refuse\',this)">Refuser</button></div>'
+      : '<span class="ubadge ' + (m.statut === 'accepte' ? 'pl' : 'cr') + '">' + (m.statut === 'accepte' ? '✓ Validé' : m.statut === 'refuse' ? 'Refusé' : escHtml(m.statut)) + '</span>';
+    return '<div class="form-section">'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px"><span class="ubadge ' + r.cls + '">' + r.txt + '</span>'
+      + '<span style="font-size:14px;font-weight:600">' + escHtml(f.prenom || 'Famille') + (f.ville ? ' · ' + escHtml(f.ville) : '') + '</span></div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px">'
+      + '<div class="kpi" style="padding:12px 14px"><div class="kpi-l">Score</div><div class="kpi-v" style="font-size:20px;color:' + scoreCouleur(m.score) + '">' + m.score + '%</div>'
+      + (m.bonus_urgence ? '<div class="kpi-s danger">dont +' + m.bonus_urgence + ' urgence</div>' : '') + '</div>'
+      + '<div class="kpi" style="padding:12px 14px"><div class="kpi-l">Dispo</div><div class="kpi-v" style="font-size:14px">' + (DISPO_TXT[f.disponible_le] || '—') + '</div></div>'
+      + '</div>'
+      + (infos ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">' + escHtml(infos) + '</div>' : '')
+      + (resumeIA ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">✦ ' + escHtml(resumeIA) + '</div>' : '')
+      + (attention ? '<ul style="font-size:12px;color:var(--warning);margin:0 0 14px 18px;line-height:1.7">' + attention + '</ul>' : '')
+      + actions + '</div>';
+  }).join('');
+}
+
+async function deciderMatch(matchId, statut, btn) {
+  const ref = getRefSession();
+  if (!ref?.token) return;
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(API_URL + '/api/matching/match/' + matchId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ref.token },
+      body: JSON.stringify({ statut })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Erreur');
+    showToast(statut === 'accepte' ? '✅ Match validé' : 'Match refusé');
+    chargerMatchs(animalMatchsId);
+    chargerAnimaux();
+  } catch (e) {
+    showToast('⚠ ' + (e.message || 'Erreur'));
+    if (btn) btn.disabled = false;
+  }
 }
 </script>
 </body>
