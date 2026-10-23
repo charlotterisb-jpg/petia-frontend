@@ -1408,12 +1408,12 @@ select{background-image:none;}
     <aside class="dash-sidebar">
       <div style="padding:0 14px 18px;border-bottom:1px solid var(--border);margin-bottom:6px;">
         <div style="font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;">Connecté</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text);">SPA de Paris Nord</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Paris 19e · S. Lemaire</div>
+        <div id="dash-ref-nom" style="font-size:13px;font-weight:600;color:var(--text);">—</div>
+        <div id="dash-ref-ville" style="font-size:11px;color:var(--text3);margin-top:2px;"></div>
       </div>
 
       <div class="sb-label">Gestion des animaux</div>
-      <button class="sb-item on" id="sb-animaux" onclick="dashView('v-animaux',this)"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>Mes animaux<span class="sb-badge">12</span></button>
+      <button class="sb-item on" id="sb-animaux" onclick="dashView('v-animaux',this)"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>Mes animaux<span class="sb-badge" id="sb-animaux-count">0</span></button>
       <button class="sb-item" onclick="go('ajouter-animal')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>Ajouter un animal</button>
       <button class="sb-item" id="sb-matchs" onclick="dashView('v-matchs',this)"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>Matchs IA<span class="sb-badge urg">3</span></button>
       <button class="sb-item" id="sb-annuaire" onclick="go('annuaire-familles')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>Annuaire FA</button>
@@ -1444,53 +1444,19 @@ select{background-image:none;}
       <!-- ── VUE ANIMAUX ── -->
       <div id="v-animaux">
         <div class="dash-topbar">
-          <div><h2>Mes animaux</h2><p>12 animaux · 3 urgences actives</p></div>
+          <div><h2>Mes animaux</h2><p id="dash-animaux-resume">Chargement…</p></div>
           <button class="btn btn-p co" onclick="go('ajouter-animal')"><span style="font-size:17px;line-height:1">+</span>Ajouter</button>
         </div>
         <div class="kpi-grid">
-          <div class="kpi"><div class="kpi-l">Total</div><div class="kpi-v">12</div><div class="kpi-s up">+2 cette semaine</div></div>
-          <div class="kpi"><div class="kpi-l">Urgences</div><div class="kpi-v" style="color:var(--danger)">3</div><div class="kpi-s danger">FA requise &lt;48h</div></div>
-          <div class="kpi"><div class="kpi-l">En FA</div><div class="kpi-v" style="color:var(--success)">5</div><div class="kpi-s up">Placés avec succès</div></div>
-          <div class="kpi"><div class="kpi-l">Matchs</div><div class="kpi-v">8</div><div class="kpi-s warn">En attente</div></div>
+          <div class="kpi"><div class="kpi-l">Total</div><div class="kpi-v" id="kpi-total">0</div><div class="kpi-s up" id="kpi-total-sub">&nbsp;</div></div>
+          <div class="kpi"><div class="kpi-l">Urgences</div><div class="kpi-v" id="kpi-urg" style="color:var(--danger)">0</div><div class="kpi-s danger">FA requise &lt;48h</div></div>
+          <div class="kpi"><div class="kpi-l">En FA</div><div class="kpi-v" id="kpi-fa" style="color:var(--success)">0</div><div class="kpi-s up">Placés avec succès</div></div>
+          <div class="kpi"><div class="kpi-l">Matchs</div><div class="kpi-v" id="kpi-matchs">0</div><div class="kpi-s warn">En attente</div></div>
         </div>
         <div class="table-wrap">
-          <div class="table-head-row"><h3>Liste des animaux</h3><div class="filters"><button class="fbtn on" onclick="filt(this)">Tous</button><button class="fbtn" onclick="filt(this)">🔴 Urgences</button><button class="fbtn" onclick="filt(this)">En attente</button><button class="fbtn" onclick="filt(this)">Placés</button></div></div>
-          <div class="animal-row th"><div></div><div>Animal</div><div>Urgence</div><div>Délai</div><div>Matchs IA</div><div>Statut</div><div>Action</div></div>
-          <div class="animal-row" onclick="go('ajouter-animal')">
-            <div class="av" style="background:rgba(239,68,68,.1)">🐕</div><div><div class="aname">Rox</div><div class="ameta">Labrador · 3 ans · 32 kg</div></div>
-            <div><span class="ubadge cr">🔴 Critique</span></div><div style="font-size:12px;font-weight:700;color:var(--danger)">J+1</div>
-            <div style="font-size:12px;font-weight:700"><span class="sdot h"></span>94% · 3 FA</div>
-            <div style="font-size:11px;color:var(--text3)">En attente</div>
-            <div><button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();dashView('v-matchs',document.getElementById('sb-matchs'))">Matchs</button></div>
-          </div>
-          <div class="animal-row">
-            <div class="av" style="background:rgba(239,68,68,.1)">🐕</div><div><div class="aname">Duke</div><div class="ameta">Malinois · 2 ans · 28 kg</div></div>
-            <div><span class="ubadge cr">🔴 Critique</span></div><div style="font-size:12px;font-weight:700;color:var(--danger)">J+2</div>
-            <div style="font-size:12px;font-weight:700"><span class="sdot m"></span>71% · 1 FA</div>
-            <div style="font-size:11px;color:var(--text3)">En attente</div>
-            <div><button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();dashView('v-matchs',document.getElementById('sb-matchs'))">Matchs</button></div>
-          </div>
-          <div class="animal-row">
-            <div class="av" style="background:rgba(245,158,11,.1)">🐕</div><div><div class="aname">Bella</div><div class="ameta">Croisé Beagle · 5 ans · 14 kg</div></div>
-            <div><span class="ubadge el">🟡 Élevé</span></div><div style="font-size:12px;font-weight:700;color:var(--warning)">J+5</div>
-            <div style="font-size:12px;font-weight:700"><span class="sdot h"></span>88% · 6 FA</div>
-            <div style="font-size:11px;color:var(--text3)">En attente</div>
-            <div><button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();dashView('v-matchs',document.getElementById('sb-matchs'))">Matchs</button></div>
-          </div>
-          <div class="animal-row">
-            <div class="av" style="background:var(--success-bg)">🐕</div><div><div class="aname">Milo</div><div class="ameta">Berger australien · 2 ans · 22 kg</div></div>
-            <div><span class="ubadge no">🟢 Normal</span></div><div style="font-size:11px;color:var(--text3)">J+14</div>
-            <div style="font-size:12px;font-weight:700"><span class="sdot h"></span>91% · 4 FA</div>
-            <div><span class="ubadge pl">✓ Placé</span></div>
-            <div><button class="btn btn-s" style="padding:5px 12px;font-size:11px">Détails</button></div>
-          </div>
-          <div class="animal-row">
-            <div class="av" style="background:var(--success-bg)">🐕</div><div><div class="aname">Luna</div><div class="ameta">Golden · 7 ans · 27 kg</div></div>
-            <div><span class="ubadge no">🟢 Normal</span></div><div style="font-size:11px;color:var(--text3)">J+21</div>
-            <div style="font-size:12px;font-weight:700"><span class="sdot h"></span>96% · 2 FA</div>
-            <div><span class="ubadge pl">✓ Placé</span></div>
-            <div><button class="btn btn-s" style="padding:5px 12px;font-size:11px">Détails</button></div>
-          </div>
+          <div class="table-head-row"><h3>Liste des animaux</h3><div class="filters"><button class="fbtn on" onclick="filtAnimaux(this,'tous')">Tous</button><button class="fbtn" onclick="filtAnimaux(this,'urg')">🔴 Urgences</button><button class="fbtn" onclick="filtAnimaux(this,'attente')">En attente</button><button class="fbtn" onclick="filtAnimaux(this,'place')">Placés</button></div></div>
+          <div class="animal-row th"><div></div><div>Animal</div><div>Urgence</div><div>Depuis</div><div>Matchs IA</div><div>Statut</div><div>Action</div></div>
+          <div id="animaux-list"></div>
         </div>
       </div>
 
@@ -6154,6 +6120,7 @@ function go(id){
   updateMobileNav(id);
   closeMobileNav();
   window.scrollTo(0,0);
+  if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
 }
 
 function dashView(vid,btn){
@@ -8273,6 +8240,129 @@ async function submitAnimal() {
     showToast('⚠ Erreur réseau. Vérifiez votre connexion.');
     if (btn) { btn.disabled = false; btn.textContent = 'Enregistrer & lancer le matching →'; }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TABLEAU DE BORD REFUGE — animaux réels depuis /api/animal
+// ═══════════════════════════════════════════════════════════════════
+let animauxRefuge = [];
+let filtreAnimaux = 'tous';
+
+function getRefSession() {
+  if (sessionRef?.token) return sessionRef;
+  try { sessionRef = JSON.parse(sessionStorage.getItem('petia_ref') || 'null'); } catch (_) { sessionRef = null; }
+  return sessionRef;
+}
+
+function escHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const ESPECE_ICON = { chien: '🐕', chat: '🐈', nac: '🐇', autre: '🐾' };
+const URG_BADGE = {
+  critique: { cls: 'cr', txt: '🔴 Critique', bg: 'rgba(239,68,68,.1)' },
+  haute:    { cls: 'el', txt: '🟡 Élevé',    bg: 'rgba(245,158,11,.1)' },
+  normale:  { cls: 'no', txt: '🟢 Normal',   bg: 'var(--success-bg)' }
+};
+const STATUT_TXT = { disponible: 'En attente', en_accueil: 'Placé', adopte: 'Adopté', decede: 'Décédé', transfere: 'Transféré' };
+
+function ageTxt(a) {
+  if (a.age_annees > 0) return a.age_annees + (a.age_annees > 1 ? ' ans' : ' an');
+  if (a.age_mois > 0) return a.age_mois + ' mois';
+  return '';
+}
+
+function depuisTxt(d) {
+  if (!d) return '—';
+  const j = Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+  return j <= 0 ? "Aujourd'hui" : 'J+' + j;
+}
+
+async function chargerAnimaux() {
+  const ref = getRefSession();
+  const nomEl = document.getElementById('dash-ref-nom');
+  const villeEl = document.getElementById('dash-ref-ville');
+  if (nomEl) nomEl.textContent = ref?.refuge?.nom || '—';
+  if (villeEl) villeEl.textContent = [ref?.refuge?.ville, ref?.refuge?.code_postal].filter(Boolean).join(' · ');
+
+  const list = document.getElementById('animaux-list');
+  if (!list) return;
+  if (!ref?.token) {
+    list.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Connectez-vous pour voir vos animaux.</div>';
+    return;
+  }
+  list.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Chargement de vos animaux…</div>';
+
+  try {
+    const res = await fetch(API_URL + '/api/animal', { headers: { 'Authorization': 'Bearer ' + ref.token } });
+    const data = await res.json();
+    if (res.status === 401) {
+      list.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Session expirée, reconnectez-vous.</div>';
+      return;
+    }
+    if (!res.ok) throw new Error(data.message || 'Erreur');
+    animauxRefuge = data.animaux || [];
+    afficherAnimaux();
+  } catch (e) {
+    console.error('chargerAnimaux:', e);
+    list.innerHTML = '<div style="padding:28px;text-align:center;color:var(--danger);font-size:13px">Impossible de charger vos animaux. Réessayez dans un instant.</div>';
+  }
+}
+
+function afficherAnimaux() {
+  const tous = animauxRefuge;
+  const urg = tous.filter(a => a.statut === 'disponible' && (a.urgence === 'critique' || a.urgence === 'haute'));
+  const fa = tous.filter(a => a.statut === 'en_accueil');
+  const semaine = tous.filter(a => Date.now() - new Date(a.created_at).getTime() < 7 * 86400000).length;
+
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('kpi-total', tous.length);
+  set('kpi-total-sub', semaine ? '+' + semaine + ' cette semaine' : '');
+  set('kpi-urg', urg.length);
+  set('kpi-fa', fa.length);
+  set('kpi-matchs', 0);
+  set('sb-animaux-count', tous.length);
+  set('dash-animaux-resume', tous.length + (tous.length > 1 ? ' animaux' : ' animal') + ' · ' + urg.length + (urg.length > 1 ? ' urgences actives' : ' urgence active'));
+
+  let rows = tous;
+  if (filtreAnimaux === 'urg') rows = urg;
+  else if (filtreAnimaux === 'attente') rows = tous.filter(a => a.statut === 'disponible');
+  else if (filtreAnimaux === 'place') rows = fa;
+
+  const list = document.getElementById('animaux-list');
+  if (!list) return;
+  if (!rows.length) {
+    list.innerHTML = tous.length
+      ? '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Aucun animal dans ce filtre.</div>'
+      : '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Aucun animal pour l\'instant. <a href="#" onclick="go(\'ajouter-animal\');return false" style="color:var(--corail)">Ajouter un animal →</a></div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(a => {
+    const u = URG_BADGE[a.urgence] || URG_BADGE.normale;
+    const meta = [a.race, ageTxt(a), a.poids_kg ? a.poids_kg + ' kg' : ''].filter(Boolean).join(' · ');
+    const place = a.statut === 'en_accueil';
+    const statut = place ? '<span class="ubadge pl">✓ Placé</span>' : '<span style="font-size:11px;color:var(--text3)">' + escHtml(STATUT_TXT[a.statut] || a.statut) + '</span>';
+    const delaiCol = a.urgence === 'critique' ? 'var(--danger)' : a.urgence === 'haute' ? 'var(--warning)' : 'var(--text3)';
+    return '<div class="animal-row">'
+      + '<div class="av" style="background:' + u.bg + '">' + (ESPECE_ICON[a.espece] || '🐾') + '</div>'
+      + '<div><div class="aname">' + escHtml(a.nom) + '</div><div class="ameta">' + escHtml(meta || '—') + '</div></div>'
+      + '<div><span class="ubadge ' + u.cls + '">' + u.txt + '</span></div>'
+      + '<div style="font-size:12px;font-weight:700;color:' + delaiCol + '" title="Depuis l\'enregistrement">' + depuisTxt(a.created_at) + '</div>'
+      + '<div style="font-size:12px;color:var(--text3)">—</div>'
+      + '<div>' + statut + '</div>'
+      + '<div>' + (place
+          ? '<button class="btn btn-s" style="padding:5px 12px;font-size:11px">Détails</button>'
+          : '<button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();dashView(\'v-matchs\',document.getElementById(\'sb-matchs\'))">Matchs</button>')
+      + '</div></div>';
+  }).join('');
+}
+
+function filtAnimaux(btn, f) {
+  document.querySelectorAll('#v-animaux .fbtn').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  filtreAnimaux = f;
+  afficherAnimaux();
 }
 </script>
 </body>
