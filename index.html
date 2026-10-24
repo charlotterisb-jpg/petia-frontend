@@ -1154,7 +1154,7 @@ select{background-image:none;}
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
-        <button style="background:none;border:none;font-size:12px;color:var(--bleu-bright);cursor:pointer;padding:0;" onclick="showToast('📧 Lien de réinitialisation envoyé')">Mot de passe oublié ?</button>
+        <button style="background:none;border:none;font-size:12px;color:var(--bleu-bright);cursor:pointer;padding:0;" onclick="ouvrirMdpOublie('ref')">Mot de passe oublié ?</button>
       </div>
       <div class="form-actions" style="margin-top:16px;">
         <button class="btn btn-p co" style="width:100%;justify-content:center;" onclick="loginRefuge(this)">Se connecter →</button>
@@ -1164,6 +1164,14 @@ select{background-image:none;}
       <span style="font-size:13px;color:var(--text2);">Pas encore de compte ?</span>
       <button style="background:none;border:none;font-size:13px;color:var(--bleu-bright);cursor:pointer;margin-left:6px;font-family:'Sora',sans-serif;" onclick="go('fourriere-inscription')">Inscrire ma structure →</button>
     </div>
+  </div>
+</div>
+
+<!-- ========== MOT DE PASSE (oubli / nouveau / blocage) ========== -->
+<div id="mot-de-passe" class="page">
+  <div class="form-wrap" style="max-width:440px;">
+    <button class="page-back" onclick="go('landing')">← Accueil</button>
+    <div id="mdp-contenu"></div>
   </div>
 </div>
 
@@ -1189,7 +1197,7 @@ select{background-image:none;}
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
-        <button style="background:none;border:none;font-size:12px;color:var(--corail);cursor:pointer;padding:0;" onclick="showToast('📧 Lien de réinitialisation envoyé')">Mot de passe oublié ?</button>
+        <button style="background:none;border:none;font-size:12px;color:var(--corail);cursor:pointer;padding:0;" onclick="ouvrirMdpOublie('fa')">Mot de passe oublié ?</button>
       </div>
       <div class="form-actions" style="margin-top:16px;">
         <button class="btn btn-p co" style="width:100%;justify-content:center;background:var(--corail);" onclick="loginFA()">Se connecter →</button>
@@ -1260,7 +1268,7 @@ select{background-image:none;}
         </button>
       </div>
       <div class="mobile-nav-section">
-        <button class="mobile-nav-item" onclick="closeMobileNav();go('landing')">
+        <button class="mobile-nav-item" onclick="closeMobileNav();seDeconnecter()">
           <div class="mni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>Déconnexion
         </button>
       </div>
@@ -1416,7 +1424,7 @@ select{background-image:none;}
           <div id="sb-mfa-hint" style="font-size:10px;color:var(--warning);margin-top:1px;">🔓 MFA non activée</div>
         </div>
       </button>
-      <button class="sb-item" onclick="go('landing')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>Déconnexion</button>
+      <button class="sb-item" onclick="seDeconnecter('ref')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>Déconnexion</button>
     </aside>
     <main class="dash-main">
 
@@ -1634,68 +1642,7 @@ select{background-image:none;}
 
         <div id="mfa-bloc-ref" style="margin-bottom:18px;"></div>
 
-        <!-- Changement de mot de passe -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;margin-bottom:18px;">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-            <div style="width:40px;height:40px;border-radius:11px;background:rgba(43,78,212,.15);display:flex;align-items:center;justify-content:center;font-size:20px;">🔑</div>
-            <div>
-              <div style="font-size:14px;font-weight:700;color:var(--text);">Mot de passe</div>
-              <div style="font-size:12px;color:var(--text2);">Modifié pour la dernière fois il y a 30 jours</div>
-            </div>
-          </div>
-          <div id="changepwd-form" style="display:none;border-top:1px solid var(--border);padding-top:18px;">
-            <div class="fg" style="margin-bottom:0;">
-              <div class="field">
-                <label>Mot de passe actuel <span class="req">*</span></label>
-                <div class="pwd-wrap"><input type="password" id="old-pwd" placeholder="••••••••"/><button type="button" class="pwd-toggle" onclick="togglePwd('old-pwd',this)">👁</button></div>
-              </div>
-              <div class="field">
-                <label>Nouveau mot de passe <span class="req">*</span></label>
-                <div class="pwd-wrap"><input type="password" id="new-pwd" placeholder="••••••••" oninput="checkPwd('new')"/><button type="button" class="pwd-toggle" onclick="togglePwd('new-pwd',this)">👁</button></div>
-              </div>
-            </div>
-            <div class="field" style="max-width:300px;margin-bottom:14px;">
-              <label>Confirmer le nouveau mot de passe <span class="req">*</span></label>
-              <div class="pwd-wrap"><input type="password" id="new-pwd-confirm" placeholder="••••••••" oninput="checkPwdMatch('new')"/><button type="button" class="pwd-toggle" onclick="togglePwd('new-pwd-confirm',this)">👁</button></div>
-            </div>
-            <div id="securite-mfa-warn" style="display:none;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#A78BFA;">🔐 Un code SMS sera envoyé sur votre téléphone pour confirmer ce changement.</div>
-            <div style="display:flex;gap:10px;">
-              <button class="btn btn-p" style="font-size:13px;" onclick="initChangePwd()">Changer le mot de passe →</button>
-              <button class="btn btn-s" style="font-size:12px;" onclick="document.getElementById('changepwd-form').style.display='none';">Annuler</button>
-            </div>
-          </div>
-          <button class="btn btn-s" id="changepwd-btn" style="font-size:12px;padding:9px 16px;" onclick="document.getElementById('changepwd-form').style.display='';document.getElementById('changepwd-btn').style.display='none';updateSecuriteMFAWarn();">Modifier le mot de passe →</button>
-        </div>
-
-        <!-- Changement d'email -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-            <div style="width:40px;height:40px;border-radius:11px;background:rgba(16,185,129,.15);display:flex;align-items:center;justify-content:center;font-size:20px;">✉️</div>
-            <div>
-              <div style="font-size:14px;font-weight:700;color:var(--text);">Adresse email</div>
-              <div style="font-size:12px;color:var(--text2);">contact@spa.fr</div>
-            </div>
-          </div>
-          <div id="changeemail-form" style="display:none;border-top:1px solid var(--border);padding-top:18px;">
-            <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--success);line-height:1.6;">✅ Un lien de confirmation sera envoyé sur le <strong>nouvel email</strong>. Votre email actuel restera actif jusqu'à la confirmation.</div>
-            <div class="fg" style="margin-bottom:14px;">
-              <div class="field">
-                <label>Nouvel email <span class="req">*</span></label>
-                <input type="email" id="new-email" placeholder="nouveau@structure.fr"/>
-              </div>
-              <div class="field">
-                <label>Mot de passe actuel <span class="req">*</span></label>
-                <div class="pwd-wrap"><input type="password" id="email-pwd" placeholder="••••••••"/><button type="button" class="pwd-toggle" onclick="togglePwd('email-pwd',this)">👁</button></div>
-              </div>
-            </div>
-            <div id="securite-email-mfa-warn" style="display:none;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#A78BFA;">🔐 Un code SMS sera également envoyé sur votre téléphone pour confirmer ce changement.</div>
-            <div style="display:flex;gap:10px;">
-              <button class="btn btn-p" style="font-size:13px;" onclick="initChangeEmail()">Confirmer le changement →</button>
-              <button class="btn btn-s" style="font-size:12px;" onclick="document.getElementById('changeemail-form').style.display='none';">Annuler</button>
-            </div>
-          </div>
-          <button class="btn btn-s" id="changeemail-btn" style="font-size:12px;padding:9px 16px;" onclick="document.getElementById('changeemail-form').style.display='';document.getElementById('changeemail-btn').style.display='none';updateSecuriteMFAWarn();">Modifier l'email →</button>
-        </div>
+        <div id="compte-bloc-ref"></div>
 
       </div>
 
@@ -4426,6 +4373,7 @@ Signature électronique validée par l'Association</div>
           <div style="font-size:12px;color:var(--text2);line-height:1.65;"><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Double authentification non activée</div>Votre compte n'est protégé que par votre mot de passe. Avec Google Authenticator, il faut en plus un code qui change toutes les 30 secondes sur votre téléphone : <b style="color:var(--text)">c'est largement plus sûr</b>, et ça ne prend qu'une minute.</div>
         </div>
         <div id="mfa-bloc-fa"></div>
+        <div id="compte-bloc-fa"></div>
       </div>
 
       <div id="fa-tab-profil" style="display:none;">
@@ -4695,62 +4643,12 @@ Signature électronique validée par l'Association</div>
 
       <!-- ── MODIFIER MOT DE PASSE ── -->
       <div id="modif-mp" style="display:none;">
-        <div style="background:var(--warning-bg);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#FCD34D;line-height:1.65;display:flex;gap:8px;">
-          <span>🔒</span>
-          <span>Votre nouveau mot de passe doit comporter au moins <strong>12 caractères</strong>, une majuscule, une minuscule, un chiffre et un caractère spécial.</span>
-        </div>
-
-        <div id="modif-mp-step1">
-          <div class="field">
-            <label>Mot de passe actuel <span class="req">*</span></label>
-            <div class="pwd-wrap">
-              <input type="password" id="current-pwd" placeholder="••••••••"/>
-              <button type="button" class="pwd-toggle" onclick="togglePwd('current-pwd',this)">👁</button>
-            </div>
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;font-size:13px;color:var(--text2);line-height:1.7;">
+          🔑 Le mot de passe se modifie dans votre espace, onglet <b style="color:var(--text)">Sécurité</b> : mot de passe actuel, code Google Authenticator si activé, puis fermeture de toutes vos sessions.
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn btn-p co" style="font-size:12px;" onclick="go('dashboard-fa');setTimeout(()=>{faDashTab(document.getElementById('fa-tab-securite-btn'),'fa-tab-securite');afficherBlocMFA('fa')},50)">Ouvrir l'onglet Sécurité →</button>
+            <button class="btn btn-s" style="font-size:12px;" onclick="ouvrirMdpOublie('fa')">Mot de passe oublié ?</button>
           </div>
-          <div class="field">
-            <label>Nouveau mot de passe <span class="req">*</span></label>
-            <div class="pwd-wrap">
-              <input type="password" id="new-pwd" placeholder="••••••••" oninput="checkPwd('new-pwd-modif')" />
-              <button type="button" class="pwd-toggle" onclick="togglePwd('new-pwd',this)">👁</button>
-            </div>
-            <div class="pwd-strength" id="pwd-strength-new-pwd-modif" style="display:none;">
-              <div class="pwd-bars">
-                <div class="pwd-bar" id="pb-new-pwd-modif-1"></div>
-                <div class="pwd-bar" id="pb-new-pwd-modif-2"></div>
-                <div class="pwd-bar" id="pb-new-pwd-modif-3"></div>
-                <div class="pwd-bar" id="pb-new-pwd-modif-4"></div>
-              </div>
-              <div class="pwd-label" id="pl-new-pwd-modif">Entrez votre mot de passe</div>
-              <div class="pwd-rules">
-                <div class="pwd-rule" id="pr-new-pwd-modif-len"><div class="rule-icon">✓</div>12 caractères minimum</div>
-                <div class="pwd-rule" id="pr-new-pwd-modif-maj"><div class="rule-icon">✓</div>1 majuscule</div>
-                <div class="pwd-rule" id="pr-new-pwd-modif-min"><div class="rule-icon">✓</div>1 minuscule</div>
-                <div class="pwd-rule" id="pr-new-pwd-modif-num"><div class="rule-icon">✓</div>1 chiffre</div>
-                <div class="pwd-rule" id="pr-new-pwd-modif-spe"><div class="rule-icon">✓</div>1 caractère spécial</div>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <label>Confirmer le nouveau mot de passe <span class="req">*</span></label>
-            <div class="pwd-wrap">
-              <input type="password" id="new-pwd-confirm" placeholder="••••••••" oninput="checkPwdMatch('new-pwd-modif')"/>
-              <button type="button" class="pwd-toggle" onclick="togglePwd('new-pwd-confirm',this)">👁</button>
-            </div>
-            <div class="pwd-match" id="pwd-match-new-pwd-modif">
-              <span id="pwd-match-icon-new-pwd-modif"></span>
-              <span id="pwd-match-txt-new-pwd-modif"></span>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button class="btn btn-p co" onclick="changerMotDePasse()">Changer mon mot de passe →</button>
-          </div>
-        </div>
-
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);text-align:center;">
-          <button class="btn btn-s" style="font-size:12px;" onclick="showToast('📧 Lien de réinitialisation envoyé à votre email')">
-            🔑 Mot de passe oublié ? Recevoir un lien de réinitialisation
-          </button>
         </div>
       </div>
 
@@ -4978,9 +4876,9 @@ function restoreSession() {
 restoreSession();
 
 // ── NAVIGATION ───────────────────────────────────────────────────────────────
-const PAGES=['landing','login-fourriere','login-fa','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','success-page','proposition-accueil','lecture-contrat','confirmation-signature','previsite','notation','dashboard-fa','contact','modifier-donnees'];
-const IN_SHELL=['login-fourriere','login-fa','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','proposition-accueil','lecture-contrat','confirmation-signature','previsite','notation','dashboard-fa','contact','modifier-donnees'];
-const BADGES={'login-fourriere':'Connexion refuge','login-fa':'Connexion famille d\'accueil','fourriere-inscription':'Inscription refuge','dashboard-fourriere':'Espace refuge','ajouter-animal':'Saisie animal','annuaire-familles':'Annuaire FA','conditions-accueil':"Conditions d'accueil",'contrat-fa':'Contrat FA','famille-compte':"Inscription FA",'questionnaire-fa':'Questionnaire FA','proposition-accueil':"Proposition d'accueil",'lecture-contrat':'Lecture du contrat','confirmation-signature':'Signature validée','previsite':'Prévisites','notation':'Évaluation','dashboard-fa':'Mon espace FA','contact':'Contact & réclamations','modifier-donnees':'Modifier mes informations'};
+const PAGES=['landing','login-fourriere','login-fa','mot-de-passe','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','success-page','proposition-accueil','lecture-contrat','confirmation-signature','previsite','notation','dashboard-fa','contact','modifier-donnees'];
+const IN_SHELL=['login-fourriere','login-fa','mot-de-passe','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','proposition-accueil','lecture-contrat','confirmation-signature','previsite','notation','dashboard-fa','contact','modifier-donnees'];
+const BADGES={'login-fourriere':'Connexion refuge','mot-de-passe':'Mot de passe','login-fa':'Connexion famille d\'accueil','fourriere-inscription':'Inscription refuge','dashboard-fourriere':'Espace refuge','ajouter-animal':'Saisie animal','annuaire-familles':'Annuaire FA','conditions-accueil':"Conditions d'accueil",'contrat-fa':'Contrat FA','famille-compte':"Inscription FA",'questionnaire-fa':'Questionnaire FA','proposition-accueil':"Proposition d'accueil",'lecture-contrat':'Lecture du contrat','confirmation-signature':'Signature validée','previsite':'Prévisites','notation':'Évaluation','dashboard-fa':'Mon espace FA','contact':'Contact & réclamations','modifier-donnees':'Modifier mes informations'};
 
 function go(id){
   PAGES.forEach(p=>{const e=document.getElementById(p);if(e)e.classList.remove('active');});
@@ -5569,11 +5467,7 @@ function changerMotDePasse() {
   const current = document.getElementById('current-pwd');
   const newPwd = document.getElementById('new-pwd');
   const confirm = document.getElementById('new-pwd-confirm');
-  if (!current?.value) { showToast('⚠ Entrez votre mot de passe actuel'); return; }
-  if (!newPwd?.value || newPwd.value.length < 12) { showToast('⚠ Nouveau mot de passe trop court (12 caractères minimum)'); return; }
-  if (newPwd.value !== confirm?.value) { showToast('⚠ Les mots de passe ne correspondent pas'); return; }
-  showToast('✅ Mot de passe modifié avec succès');
-  setTimeout(() => go('dashboard-fa'), 1500);
+  go('dashboard-fa');
 }
 
 // Add contact links to profile sections
@@ -6111,7 +6005,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function togglePwd(inputId, btn) {
-  const input = document.getElementById(inputId);
+  const input = typeof inputId === 'string' ? document.getElementById(inputId) : inputId;
   if (!input) return;
   const isHidden = input.type === 'password';
   input.type = isHidden ? 'text' : 'password';
@@ -7516,6 +7410,7 @@ async function afficherBlocMFA(profil, etape) {
 
   bloc.innerHTML = carte('<div style="font-size:12px;color:var(--text3)">Chargement…</div>');
   await majStatutMFA(profil);
+  if (typeof afficherBlocCompte === 'function') afficherBlocCompte(profil);
   if (mfaEtat[profil] === null) { bloc.innerHTML = carte('<div style="font-size:12px;color:var(--danger)">Impossible de vérifier l\'état. Reconnectez-vous puis réessayez.</div>'); return; }
   bloc.innerHTML = mfaEtat[profil]
     ? carte('<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:18px">✅</span><div style="flex:1;font-size:13px;font-weight:600;color:var(--success);">Activée — votre compte est protégé par un code à chaque connexion.</div>'
@@ -8066,6 +7961,250 @@ function majBandeauValidationRefuge() {
   el.style.display = statut === 'en_attente' ? '' : 'none';
   el.innerHTML = '⏳ <b style="color:var(--text)">Votre structure est en cours de validation par l\'équipe PetIA.</b> En attendant, vous pouvez configurer votre espace. La publication d\'animaux sera possible dès la validation.';
 }
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// MOT DE PASSE, SESSIONS, CLÔTURE DU COMPTE
+// ═══════════════════════════════════════════════════════════════════
+const COMPTE_PROFILS = {
+  fa:  { cle: 'petia_fa',  login: 'login-fa',        bloc: 'compte-bloc-fa',  session: () => MFA_PROFILS.fa.session() },
+  ref: { cle: 'petia_ref', login: 'login-fourriere', bloc: 'compte-bloc-ref', session: () => MFA_PROFILS.ref.session() },
+};
+
+function viderSession(profil) {
+  (profil ? [profil] : ['fa', 'ref']).forEach(p => {
+    try { sessionStorage.removeItem(COMPTE_PROFILS[p].cle); } catch (_) {}
+    if (p === 'fa') sessionFA = null; else sessionRef = null;
+    if (typeof mfaEtat !== 'undefined') mfaEtat[p] = null;
+  });
+}
+
+// Déconnexion : la session est fermée côté serveur, pas seulement oubliée par le navigateur
+async function seDeconnecter(profil) {
+  const profils = profil ? [profil] : ['fa', 'ref'];
+  for (const p of profils) {
+    const token = COMPTE_PROFILS[p].session()?.token;
+    if (token) fetch(API_URL + '/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+  }
+  viderSession(profil);
+  go('landing');
+  showToast('Vous êtes déconnecté(e).');
+}
+
+async function appelCompte(profil, path, body) {
+  const s = COMPTE_PROFILS[profil].session();
+  const res = await fetch(API_URL + '/api/auth' + path, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (s?.token || '') },
+    body: JSON.stringify(body || {})
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(data.message || 'Erreur serveur.'); e.code = data.code; e.status = res.status; throw e; }
+  return data;
+}
+
+const styleChamp = 'width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:\'Sora\',sans-serif;font-size:13px;color:var(--text);outline:none;';
+const styleCode = 'width:100%;max-width:240px;text-align:center;font-size:18px;letter-spacing:.3em;font-weight:700;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px;color:var(--text);outline:none;';
+function carteCompte(icone, couleur, titre, sousTitre, contenu) {
+  return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:22px;margin-top:18px;">'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="width:40px;height:40px;border-radius:11px;background:' + couleur + ';display:flex;align-items:center;justify-content:center;font-size:20px;">' + icone + '</div>'
+    + '<div><div style="font-size:14px;font-weight:700;color:var(--text);">' + titre + '</div><div style="font-size:12px;color:var(--text2);">' + sousTitre + '</div></div></div>' + contenu + '</div>';
+}
+function champMdp(id, label, auto) {
+  return '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><div class="pwd-wrap"><input type="password" id="' + id + '" autocomplete="' + (auto || 'new-password') + '" style="' + styleChamp + '"/>'
+    + '<button type="button" class="pwd-toggle" onclick="togglePwd(\'' + id + '\',this)">👁</button></div></div>';
+}
+
+function afficherBlocCompte(profil, etape) {
+  const bloc = document.getElementById(COMPTE_PROFILS[profil].bloc);
+  if (!bloc) return;
+  const mfa = typeof mfaEtat !== 'undefined' && mfaEtat[profil];
+  const p = "'" + profil + "'";
+
+  const mdp = etape === 'mdp'
+    ? carteCompte('🔑', 'rgba(43,78,212,.15)', 'Mot de passe', '12 caractères minimum · les mots de passe déjà divulgués sur Internet sont refusés',
+        champMdp('cp-actuel-' + profil, 'Mot de passe actuel', 'current-password')
+        + champMdp('cp-nouveau-' + profil, 'Nouveau mot de passe') + champMdp('cp-confirm-' + profil, 'Confirmer le nouveau mot de passe')
+        + (mfa ? '<div class="field" style="margin-bottom:10px;"><label>Code Google Authenticator</label><input id="cp-code-' + profil + '" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="' + styleCode + '"/></div>' : '')
+        + '<div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6;">Après le changement, toutes vos sessions sont fermées et un e-mail de confirmation vous est envoyé.</div>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-p" style="font-size:13px;" onclick="changerMdpCompte(' + p + ',this)">Changer le mot de passe →</button>'
+        + '<button class="btn btn-s" style="font-size:12px;" onclick="afficherBlocCompte(' + p + ')">Annuler</button></div>')
+    : carteCompte('🔑', 'rgba(43,78,212,.15)', 'Mot de passe', 'Mot de passe actuel' + (mfa ? ' et code Google Authenticator' : '') + ' demandés',
+        '<button class="btn btn-s" style="font-size:12px;padding:9px 16px;" onclick="afficherBlocCompte(' + p + ',\'mdp\')">Modifier le mot de passe →</button>');
+
+  const sessions = carteCompte('💻', 'rgba(16,185,129,.15)', 'Appareils connectés', 'Un doute sur un ordinateur ou un téléphone ? Fermez toutes les sessions.',
+    '<button class="btn btn-s" style="font-size:12px;padding:9px 16px;" onclick="fermerToutesSessions(' + p + ',this)">Déconnecter tous mes appareils</button>');
+
+  const cloture = etape === 'cloture'
+    ? carteCompte('🚪', 'rgba(239,68,68,.15)', 'Clôturer mon compte', 'Action définitive',
+        '<div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">'
+        + (profil === 'fa' ? 'Vous ne recevrez plus de propositions et les propositions en attente seront annulées.' : 'Vos animaux ne recevront plus de propositions et les propositions en attente seront annulées.')
+        + ' Vous ne pourrez plus vous connecter. Vos données sont <b style="color:var(--text)">supprimées définitivement 2 ans après la clôture</b> ; vous pouvez demander leur suppression immédiate en nous contactant.</div>'
+        + champMdp('cl-mdp-' + profil, 'Confirmez avec votre mot de passe', 'current-password')
+        + '<label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);margin:4px 0 14px;cursor:pointer;"><input type="checkbox" id="cl-ok-' + profil + '" style="width:16px;height:16px;min-height:0;padding:0;margin:2px 0 0;appearance:auto;-webkit-appearance:checkbox;accent-color:#EF4444;"> Je comprends que la clôture est définitive.</label>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-s" style="font-size:12px;border-color:rgba(239,68,68,.4);color:#FCA5A5;" onclick="cloturerCompte(' + p + ',this)">Clôturer définitivement</button>'
+        + '<button class="btn btn-p" style="font-size:12px;" onclick="afficherBlocCompte(' + p + ')">Annuler</button></div>')
+    : carteCompte('🚪', 'rgba(239,68,68,.15)', 'Clôturer mon compte', 'Vos données sont supprimées 2 ans après la clôture',
+        '<button class="btn btn-s" style="font-size:12px;padding:9px 16px;color:#FCA5A5;" onclick="afficherBlocCompte(' + p + ',\'cloture\')">Clôturer mon compte…</button>');
+
+  bloc.innerHTML = mdp + sessions + cloture;
+}
+
+async function changerMdpCompte(profil, btn) {
+  const v = (id) => document.getElementById(id + '-' + profil)?.value || '';
+  const actuel = v('cp-actuel'), nouveau = v('cp-nouveau'), confirm = v('cp-confirm'), code = v('cp-code').replace(/\D/g, '');
+  if (!actuel) return showToast('⚠ Saisissez votre mot de passe actuel.');
+  if (nouveau.length < 12) return showToast('⚠ Le nouveau mot de passe doit contenir au moins 12 caractères.');
+  if (nouveau !== confirm) return showToast('⚠ Les deux nouveaux mots de passe ne correspondent pas.');
+  if (mfaEtat[profil] && code.length !== 6) return showToast('⚠ Saisissez le code Google Authenticator.');
+  btn.disabled = true; btn.textContent = 'Vérification…';
+  try {
+    const d = await appelCompte(profil, '/mot-de-passe/changer', { actuel, nouveau, code: code || undefined });
+    viderSession(profil);
+    go(COMPTE_PROFILS[profil].login);
+    showToast('✅ ' + d.message);
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    btn.disabled = false; btn.textContent = 'Changer le mot de passe →';
+  }
+}
+
+async function fermerToutesSessions(profil, btn) {
+  btn.disabled = true;
+  try {
+    const d = await appelCompte(profil, '/sessions/fermer');
+    viderSession(profil);
+    go(COMPTE_PROFILS[profil].login);
+    showToast('✅ ' + d.message);
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+async function cloturerCompte(profil, btn) {
+  const mdp = document.getElementById('cl-mdp-' + profil)?.value || '';
+  if (!mdp) return showToast('⚠ Confirmez avec votre mot de passe.');
+  if (!document.getElementById('cl-ok-' + profil)?.checked) return showToast('⚠ Cochez la case de confirmation.');
+  btn.disabled = true; btn.textContent = 'Clôture…';
+  try {
+    const d = await appelCompte(profil, '/cloturer', { mot_de_passe: mdp });
+    viderSession(profil);
+    go('landing');
+    showToast('Compte clôturé. Données supprimées au plus tard le ' + d.suppression_prevue + '.');
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    btn.disabled = false; btn.textContent = 'Clôturer définitivement';
+  }
+}
+
+// ── Page « mot de passe » : oubli, nouveau mot de passe, « Ce n'était pas moi »
+let mdpLien = null, mdpMinuteur = null;
+function pageMdp(html) {
+  document.getElementById('mdp-contenu').innerHTML = html;
+}
+const enteteMdp = (titre, texte) => '<div style="text-align:center;margin-bottom:24px;"><h1 style="font-family:\'DM Serif Display\',serif;font-size:24px;color:var(--text);margin-bottom:6px;">' + titre + '</h1>'
+  + '<p style="font-size:13px;color:var(--text2);line-height:1.6;">' + texte + '</p></div>';
+
+function ouvrirMdpOublie(profil) {
+  clearInterval(mdpMinuteur);
+  const email = document.getElementById(profil === 'fa' ? 'fa-login-email' : 'ref-login-email')?.value?.trim() || '';
+  go('mot-de-passe');
+  pageMdp(enteteMdp('Mot de passe oublié', 'Saisissez l\'adresse e-mail de votre compte. Vous recevrez un lien valable <b style="color:var(--text)">5 minutes</b>, utilisable une seule fois.')
+    + '<div class="form-section"><div class="field"><label>Adresse e-mail</label><input type="email" id="mdp-email" autocomplete="email" value="' + escHtml(email) + '" onkeydown="if(event.key===\'Enter\')demanderLienMdp(\'' + profil + '\')"/></div>'
+    + '<button class="btn btn-p co" id="mdp-btn" style="width:100%;justify-content:center;margin-top:8px;" onclick="demanderLienMdp(\'' + profil + '\')">Recevoir le lien →</button></div>');
+  setTimeout(() => document.getElementById('mdp-email')?.focus(), 50);
+}
+
+async function demanderLienMdp(profil) {
+  const email = document.getElementById('mdp-email')?.value?.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || '')) return showToast('⚠ Adresse e-mail invalide.');
+  const btn = document.getElementById('mdp-btn'); btn.disabled = true; btn.textContent = 'Envoi…';
+  try {
+    const res = await fetch(API_URL + '/api/auth/mot-de-passe/demande', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    pageMdp(enteteMdp('Vérifiez votre messagerie', escHtml(d.message))
+      + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.7;">Le lien expire au bout de 5 minutes. S\'il a expiré, refaites une demande (3 demandes par heure au maximum). Pensez à regarder dans les courriers indésirables.</div>'
+      + '<button class="btn btn-s" style="width:100%;justify-content:center;margin-top:16px;" onclick="go(\'' + COMPTE_PROFILS[profil].login + '\')">← Retour à la connexion</button>');
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; btn.textContent = 'Recevoir le lien →'; }
+}
+
+async function ouvrirNouveauMdp(jeton) {
+  mdpLien = jeton;
+  go('mot-de-passe');
+  pageMdp('<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Vérification du lien…</div>');
+  try {
+    const res = await fetch(API_URL + '/api/auth/mot-de-passe/verifier', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jeton }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Lien invalide.');
+    pageMdp(enteteMdp('Nouveau mot de passe', 'Lien valable encore <b id="mdp-reste" style="color:var(--text)"></b>.')
+      + '<div class="form-section">' + champMdp('nm-mdp', 'Nouveau mot de passe (12 caractères minimum)') + champMdp('nm-confirm', 'Confirmer le mot de passe')
+      + (d.mfa ? '<div class="field"><label>Code Google Authenticator</label><input id="nm-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="' + styleCode + '"/></div>' : '')
+      + '<div style="font-size:11px;color:var(--text3);margin:4px 0 12px;line-height:1.6;">Les mots de passe déjà divulgués sur Internet sont refusés. Toutes vos sessions seront fermées.</div>'
+      + '<button class="btn btn-p co" id="nm-btn" style="width:100%;justify-content:center;" onclick="enregistrerNouveauMdp()">Enregistrer →</button></div>');
+    let reste = d.expire_dans;
+    const maj = () => {
+      const el = document.getElementById('mdp-reste'); if (!el) return clearInterval(mdpMinuteur);
+      if (reste <= 0) { clearInterval(mdpMinuteur); el.textContent = '0 s'; return lienMdpExpire(); }
+      el.textContent = Math.floor(reste / 60) + ' min ' + String(reste % 60).padStart(2, '0') + ' s'; reste--;
+    };
+    clearInterval(mdpMinuteur); maj(); mdpMinuteur = setInterval(maj, 1000);
+  } catch (e) { lienMdpExpire(e.message); }
+}
+
+function lienMdpExpire(message) {
+  clearInterval(mdpMinuteur);
+  pageMdp(enteteMdp('Lien expiré', escHtml(message || 'Ce lien n\'est plus valable (5 minutes, usage unique). Faites une nouvelle demande.'))
+    + '<button class="btn btn-p co" style="width:100%;justify-content:center;" onclick="ouvrirMdpOublie(\'fa\')">Faire une nouvelle demande →</button>');
+}
+
+async function enregistrerNouveauMdp() {
+  const mdp = document.getElementById('nm-mdp')?.value || '', confirm = document.getElementById('nm-confirm')?.value || '';
+  const codeEl = document.getElementById('nm-code');
+  const code = codeEl ? codeEl.value.replace(/\D/g, '') : undefined;
+  if (mdp.length < 12) return showToast('⚠ 12 caractères minimum.');
+  if (mdp !== confirm) return showToast('⚠ Les deux mots de passe ne correspondent pas.');
+  if (codeEl && code.length !== 6) return showToast('⚠ Saisissez le code Google Authenticator.');
+  const btn = document.getElementById('nm-btn'); btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    const res = await fetch(API_URL + '/api/auth/mot-de-passe/nouveau', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jeton: mdpLien, mot_de_passe: mdp, code }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.status === 410) return lienMdpExpire(d.message);
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    clearInterval(mdpMinuteur); mdpLien = null; viderSession();
+    pageMdp(enteteMdp('Mot de passe modifié ✅', escHtml(d.message))
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-p" style="flex:1;justify-content:center;background:var(--corail);" onclick="go(\'login-fa\')">Connexion famille d\'accueil</button>'
+      + '<button class="btn btn-p" style="flex:1;justify-content:center;" onclick="go(\'login-fourriere\')">Connexion refuge</button></div>');
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    if (codeEl) codeEl.value = '';
+    btn.disabled = false; btn.textContent = 'Enregistrer →';
+  }
+}
+
+function ouvrirBlocage(jeton) {
+  go('mot-de-passe');
+  pageMdp(enteteMdp('Ce n\'était pas vous ?', 'Si vous n\'êtes pas à l\'origine de cette connexion ou de ce changement de mot de passe, bloquez votre compte : toutes les sessions seront fermées et plus personne ne pourra s\'y connecter. L\'équipe PetIA vous recontactera pour rétablir l\'accès.')
+    + '<button class="btn btn-p" id="bl-btn" style="width:100%;justify-content:center;background:#EF4444;" onclick="confirmerBlocage(\'' + jeton + '\')">🔒 Bloquer mon compte</button>'
+    + '<button class="btn btn-s" style="width:100%;justify-content:center;margin-top:8px;" onclick="go(\'landing\')">C\'était bien moi</button>');
+}
+
+async function confirmerBlocage(jeton) {
+  const btn = document.getElementById('bl-btn'); btn.disabled = true; btn.textContent = 'Blocage…';
+  try {
+    const res = await fetch(API_URL + '/api/auth/compte-bloque', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jeton }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    viderSession();
+    pageMdp(enteteMdp('Compte bloqué 🔒', escHtml(d.message)));
+  } catch (e) { pageMdp(enteteMdp('Blocage impossible', escHtml(e.message))); }
+}
+
+// Liens reçus par e-mail : #mdp=… (nouveau mot de passe) ou #blocage=… (« Ce n'était pas moi »).
+// Le jeton est retiré de l'adresse aussitôt lu (historique, partage d'écran).
+document.addEventListener('DOMContentLoaded', () => setTimeout(() => {
+  const m = location.hash.match(/^#(mdp|blocage)=([A-Za-z0-9_-]{20,100})$/);
+  if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  if (m[1] === 'mdp') ouvrirNouveauMdp(m[2]); else ouvrirBlocage(m[2]);
+}, 0));
 </script>
 </body>
 </html>

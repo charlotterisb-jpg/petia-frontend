@@ -1051,6 +1051,43 @@ select{background-image:none;}
     <div id="admin-rubriques" style="display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;">
       <button class="btn btn-p" id="rub-familles" style="font-size:13px" onclick="rubriqueAdmin('familles')">👨‍👩‍👧 Familles d'accueil</button>
       <button class="btn btn-s" id="rub-refuges" style="font-size:13px" onclick="rubriqueAdmin('refuges')">🏢 Refuges</button>
+      <button class="btn btn-s" id="rub-journal" style="font-size:13px" onclick="rubriqueAdmin('journal')">📜 Journal des accès</button>
+      <button class="btn btn-s" id="rub-dpo" style="font-size:13px" onclick="rubriqueAdmin('dpo')">🛡 Outil DPO</button>
+    </div>
+    <div id="zone-journal" style="display:none;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+        <select id="j-jours" onchange="chargerJournal()" style="background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:12px;">
+          <option value="1">24 dernières heures</option><option value="7" selected>7 derniers jours</option><option value="30">30 derniers jours</option><option value="365">12 derniers mois</option>
+        </select>
+        <select id="j-evt" onchange="chargerJournal()" style="background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--text);font-size:12px;max-width:220px;">
+          <option value="">Tous les événements</option>
+          <option value="connexion_reussie">Connexions</option><option value="connexion_echec">Échecs de connexion</option><option value="connexion_admin">Connexions admin</option>
+          <option value="consultation_dossier_fa">Dossiers FA consultés</option><option value="consultation_matchs">Familles proposées consultées</option>
+          <option value="mdp_reinitialise">Mots de passe réinitialisés</option><option value="compte_cloture">Clôtures</option>
+          <option value="suppression_automatique">Suppressions automatiques</option><option value="dpo_suppression">Suppressions DPO</option>
+        </select>
+        <input id="j-email" placeholder="Filtrer par e-mail" onkeydown="if(event.key==='Enter')chargerJournal()" style="background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-size:12px;min-width:180px;flex:1;"/>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" id="j-alertes" onchange="chargerJournal()" style="width:16px;height:16px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> Alertes et échecs seulement</label>
+        <button class="btn btn-s" style="font-size:12px;padding:8px 12px;" onclick="chargerJournal()">↻</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.6;">Journal en ajout seul : aucune ligne ne peut être modifiée ; conservation 1 an. Les alertes (nouvel appareil, connexion admin, consultation inhabituelle, blocage) sont aussi envoyées par e-mail.</div>
+      <div id="journal-liste"></div>
+    </div>
+    <div id="zone-dpo" style="display:none;">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Retrouver toutes les données d'une personne</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Recherche par e-mail, nom, prénom ou téléphone, dans les familles d'accueil, les refuges et le journal.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input id="dpo-q" placeholder="ex. marie.dupont@mail.fr, Dupont, 06 12…" onkeydown="if(event.key==='Enter')dpoRechercher()" style="flex:1;min-width:200px;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;"/>
+          <button class="btn btn-p" style="font-size:13px;" onclick="dpoRechercher()">Rechercher</button>
+        </div>
+      </div>
+      <div id="dpo-resultats"></div>
+      <div id="dpo-fiche"></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-top:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;font-size:12px;color:var(--text2);line-height:1.6;"><b style="color:var(--text)">Suppression automatique</b> : chaque jour, comptes clôturés ou inactifs depuis 2 ans (après avertissement par e-mail), dossiers refusés depuis 6 mois, journal de plus d'un an.</div>
+        <button class="btn btn-s" style="font-size:12px;" onclick="lancerPurgeManuelle(this)">Lancer maintenant</button>
+      </div>
     </div>
     <div id="zone-refuges" style="display:none;">
       <div id="refuges-onglets" style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:20px;overflow-x:auto;">
@@ -1137,6 +1174,14 @@ async function suite() {
 
   const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel === 'aal2') {
+    // Chaque connexion admin est journalisée et signalée par e-mail (une fois par session)
+    const cleConnexion = 'petia_admin_connexion_' + (session.user.id || '');
+    try {
+      if (sessionStorage.getItem(cleConnexion) !== '1') {
+        const r = await fetch(API_URL + '/api/admin/connexion', { method: 'POST', headers: { Authorization: 'Bearer ' + session.access_token } });
+        if (r.ok) sessionStorage.setItem(cleConnexion, '1');
+      }
+    } catch (_) {}
     ecran('ecran-admin');
     document.getElementById('admin-email-affiche').textContent = session.user.email;
     chargerRefuges().catch(() => {});
@@ -1194,6 +1239,7 @@ async function validerCode() {
 }
 
 async function deconnexion() {
+  try { Object.keys(sessionStorage).filter(k => k.startsWith('petia_admin_connexion_')).forEach(k => sessionStorage.removeItem(k)); } catch (_) {}
   await sb.auth.signOut();
   ecran('ecran-login');
 }
@@ -1306,7 +1352,7 @@ function adminAfficherDossiers(familles) {
     return '<div id="dossier-' + f.id + '" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;margin-bottom:16px;overflow:hidden;">'
       + '<div style="padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">'
       + '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--bleu-bright),var(--violet));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👤</div>'
-      + '<div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml([f.prenom, f.nom].filter(Boolean).join(' ') || 'Sans nom') + '</div>'
+      + '<div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml([f.prenom, f.nom].filter(Boolean).join(' ') || 'Sans nom') + etatCompte(f) + '</div>'
       + '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + escHtml([f.ville, f.code_postal].filter(Boolean).join(' ') || 'Ville non renseignée') + ' · inscrit(e) ' + adminIlYa(f.created_at) + '</div>'
       + '<div style="font-size:11px;color:var(--text3);margin-top:2px;">' + escHtml(f.email || '') + (f.email_verifie ? ' · ✓ email vérifié' : ' · ⚠ email non vérifié') + (f.previsitee ? ' · 🏠 prévisitée' : '') + '</div></div>'
       + '</div>'
@@ -1321,6 +1367,7 @@ function adminAfficherDossiers(familles) {
       + '</div>'
       + '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
       + '<button class="btn btn-s" style="font-size:12px;padding:8px 14px;" onclick="adminVoirDossier(\'' + f.id + '\',this)">📖 Dossier complet</button>'
+      + boutonBlocage(f)
       + '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">' + actions + '</div>'
       + '</div></div>';
   }).join('');
@@ -1407,12 +1454,18 @@ let refugesStatut = 'en_attente';
 const TYPE_TXT = { fourriere: 'Fourrière municipale', spa: 'SPA / Refuge', association: 'Association de protection animale', autre: 'Autre' };
 const DELAI_TXT = { moins_24h: 'moins de 24 h', '24_48h': '24 à 48 h', '2_5_jours': '2 à 5 jours', plus_semaine: 'plus d\'une semaine' };
 
+let rubriqueCourante = 'familles';
 function rubriqueAdmin(r) {
-  document.getElementById('zone-familles').style.display = r === 'familles' ? '' : 'none';
-  document.getElementById('zone-refuges').style.display = r === 'refuges' ? '' : 'none';
-  document.getElementById('rub-familles').className = 'btn ' + (r === 'familles' ? 'btn-p' : 'btn-s');
-  document.getElementById('rub-refuges').className = 'btn ' + (r === 'refuges' ? 'btn-p' : 'btn-s');
-  if (r === 'refuges') chargerRefuges(); else adminChargerDossiers();
+  rubriqueCourante = r;
+  ['familles', 'refuges', 'journal', 'dpo'].forEach(x => {
+    document.getElementById('zone-' + x).style.display = r === x ? '' : 'none';
+    document.getElementById('rub-' + x).className = 'btn ' + (r === x ? 'btn-p' : 'btn-s');
+  });
+  rafraichirRubrique();
+}
+function rafraichirRubrique() {
+  const r = rubriqueCourante;
+  if (r === 'refuges') chargerRefuges(); else if (r === 'journal') chargerJournal(); else if (r === 'dpo') { if (document.getElementById('dpo-q').value.trim()) dpoRechercher(); } else adminChargerDossiers();
 }
 function ongletRefuges(btn, statut) {
   document.querySelectorAll('#refuges-onglets .cond-tab').forEach(t => t.classList.remove('on'));
@@ -1449,7 +1502,7 @@ function afficherRefuges(liste) {
                       suspendu: btn('✅ Réactiver', 'actif') }[r.statut] || '';
     return '<div id="refuge-' + r.id + '" style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;margin-bottom:16px;overflow:hidden;">'
       + '<div style="padding:18px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;"><div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--bleu-bright),var(--violet));display:flex;align-items:center;justify-content:center;font-size:20px;">🏢</div>'
-      + '<div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml(r.nom) + '</div>'
+      + '<div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml(r.nom) + etatCompte(r) + '</div>'
       + '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + escHtml([TYPE_TXT[r.type_structure], [r.code_postal, r.ville].filter(Boolean).join(' ')].filter(Boolean).join(' · ')) + ' · inscrit ' + adminIlYa(r.created_at) + '</div>'
       + '<div style="font-size:11px;color:var(--text3);margin-top:2px;">' + escHtml(r.email || '') + (r.email_verifie ? ' · ✓ email vérifié' : ' · ⚠ email non vérifié') + ' · ' + r.nb_animaux + ' animal(aux) publié(s)</div></div></div>'
       + '<div style="padding:0 20px 14px;">'
@@ -1460,7 +1513,7 @@ function afficherRefuges(liste) {
       + '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;">Message au refuge (motif)</div>'
       + '<textarea id="motif-ref-' + r.id + '" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:\'Sora\',sans-serif;font-size:12px;color:var(--text);resize:vertical;height:56px;min-height:0;outline:none;" placeholder="Obligatoire pour un refus ou une suspension."></textarea>'
       + '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-top:8px;cursor:pointer;"><input type="checkbox" id="notif-ref-' + r.id + '" checked style="width:16px;height:16px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> Prévenir le refuge par e-mail</label>'
-      + '</div><div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">' + actions + '</div></div>';
+      + '</div><div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">' + boutonBlocage(r) + '<span style="flex:1"></span>' + actions + '</div></div>';
   }).join('');
 }
 async function deciderRefuge(id, statut, btn) {
@@ -1473,6 +1526,175 @@ async function deciderRefuge(id, statut, btn) {
     showToast({ actif: '✅ Refuge validé : il peut publier ses animaux', refuse: '❌ Inscription refusée', suspendu: '🚫 Refuge suspendu', en_attente: '↩ Remis en attente' }[statut] + mail);
     chargerRefuges();
   } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+
+// ═══ SÉCURITÉ : blocage, journal des accès ══════════════════════════════════
+function etatCompte(x) {
+  if (x.cloture_le) return '<span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(100,116,139,.2);color:#CBD5E1;margin-left:6px;">🚪 Clôturé ' + adminIlYa(x.cloture_le) + '</span>';
+  if (x.bloque_le) return '<span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,.15);color:#FCA5A5;margin-left:6px;">🔒 Bloqué ' + adminIlYa(x.bloque_le) + '</span>';
+  return '';
+}
+function boutonBlocage(x) {
+  if (x.cloture_le) return '';
+  return x.bloque_le
+    ? '<button class="btn btn-s" style="font-size:12px;padding:8px 14px;" onclick="adminBlocage(\'' + x.id + '\',false,this)">🔓 Débloquer le compte</button>'
+    : '<button class="btn btn-s" style="font-size:12px;padding:8px 14px;color:#FCA5A5;" onclick="adminBlocage(\'' + x.id + '\',true,this)">🔒 Bloquer le compte</button>';
+}
+async function adminBlocage(id, bloquer, btn) {
+  let motif = null;
+  if (bloquer) {
+    motif = prompt('Motif du blocage (conservé dans le journal) :');
+    if (motif === null) return;
+  }
+  btn.disabled = true;
+  try {
+    const d = await adminFetch('/comptes/' + id + (bloquer ? '/bloquer' : '/debloquer'), { method: 'POST', body: JSON.stringify({ motif }) });
+    showToast((bloquer ? '🔒 ' : '🔓 ') + d.message);
+    rafraichirRubrique();
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+const EVT_TXT = {
+  connexion_reussie: '✅ Connexion', connexion_echec: '❌ Échec de connexion', connexion_mdp_ok_code_attendu: '🔢 Mot de passe correct, code attendu',
+  connexion_refusee_verrou: '⛔ Refus (verrouillage)', connexion_refusee_bloque: '⛔ Refus (compte bloqué)', connexion_refusee_statut: '⛔ Refus (statut)',
+  mfa_echec: '❌ Code erroné', mfa_active: '🔐 Double authentification activée', mfa_desactive: '🔓 Double authentification désactivée',
+  deconnexion: '👋 Déconnexion', sessions_fermees: '💻 Toutes les sessions fermées', inscription: '🆕 Inscription', questionnaire_envoye: '📝 Questionnaire envoyé',
+  mdp_demande: '🔑 Demande de lien', mdp_demande_ignoree: '🔑 Demande ignorée (limite)', mdp_reinitialise: '🔑 Mot de passe réinitialisé',
+  mdp_change: '🔑 Mot de passe changé', mdp_reinit_code_echec: '❌ Code erroné (réinitialisation)',
+  compte_bloque_par_utilisateur: '🔒 Bloqué par le titulaire', compte_bloque_par_admin: '🔒 Bloqué par l\'admin', compte_debloque: '🔓 Débloqué',
+  compte_cloture: '🚪 Compte clôturé', connexion_admin: '🛡 Connexion admin',
+  consultation_liste_fa: '👁 Liste des FA', consultation_dossier_fa: '👁 Dossier FA consulté', consultation_liste_refuges: '👁 Liste des refuges',
+  consultation_matchs: '👁 Familles proposées consultées', decision_famille: '⚖ Décision dossier FA', decision_refuge: '⚖ Décision refuge',
+  notes_famille: '📝 Note interne FA', notes_refuge: '📝 Note interne refuge', match_accepte: '🤝 Match validé', match_refuse: '✋ Match refusé',
+  proposition_oui: '👍 Proposition acceptée', proposition_non: '👎 Proposition déclinée', accueil_debut: '🏠 Arrivée en famille', accueil_fin: '🏁 Fin d\'accueil',
+  alerte_nouvel_appareil: '⚠ Alerte nouvel appareil', alerte_consultation: '⚠ Alerte consultation', alerte_connexion_admin: '⚠ Alerte connexion admin',
+  alerte_compte_bloque: '⚠ Alerte blocage', alerte_admin: '⚠ Alerte',
+  dpo_recherche: '🛡 DPO : recherche', dpo_consultation: '🛡 DPO : inventaire', dpo_export: '🛡 DPO : export', dpo_suppression: '🛡 DPO : suppression',
+  dpo_anonymisation_journal: '🛡 DPO : journal anonymisé', suppression_automatique: '🗑 Suppression automatique', avertissement_inactivite: '⏳ Avertissement inactivité',
+  purge_executee: '🗑 Purge exécutée',
+};
+
+async function chargerJournal() {
+  const zone = document.getElementById('journal-liste');
+  zone.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Chargement…</div>';
+  const params = new URLSearchParams({ jours: document.getElementById('j-jours').value });
+  if (document.getElementById('j-alertes').checked) params.set('alertes', '1');
+  const evt = document.getElementById('j-evt').value; if (evt) params.set('evenement', evt);
+  const email = document.getElementById('j-email').value.trim(); if (email) params.set('email', email);
+  try {
+    const d = await adminFetch('/journal?' + params);
+    if (!d.lignes.length) { zone.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Aucun événement.</div>'; return; }
+    zone.innerHTML = '<div style="font-size:11px;color:var(--text3);margin-bottom:8px;">' + d.lignes.length + ' événement(s)' + (d.lignes.length === 300 ? ' (300 plus récents)' : '') + '</div>'
+      + d.lignes.map(l => {
+        const alerte = /^alerte_|echec|refusee|bloque/.test(l.evenement);
+        return '<div style="background:var(--bg2);border:1px solid ' + (alerte ? 'rgba(239,68,68,.35)' : 'var(--border)') + ';border-radius:12px;padding:10px 14px;margin-bottom:6px;font-size:12px;color:var(--text2);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;">'
+          + '<span style="color:var(--text3);min-width:118px;">' + new Date(l.cree_le).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' }) + '</span>'
+          + '<b style="color:var(--text);min-width:200px;">' + escHtml(EVT_TXT[l.evenement] || l.evenement) + '</b>'
+          + '<span style="flex:1;min-width:160px;">' + escHtml([l.email, l.role, l.cible_type && (l.cible_type + ' ' + String(l.cible_id || '').slice(0, 8))].filter(Boolean).join(' · ')) + '</span>'
+          + '<span style="color:var(--text3);">' + escHtml([l.ip, l.appareil].filter(Boolean).join(' · ')) + '</span>'
+          + (l.details ? '<span style="width:100%;color:var(--text3);font-size:11px;font-family:monospace;word-break:break-all;">' + escHtml(JSON.stringify(l.details)) + '</span>' : '')
+          + '</div>';
+      }).join('');
+  } catch (e) { zone.innerHTML = '<div style="padding:28px;text-align:center;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'; }
+}
+
+// ═══ OUTIL DPO ══════════════════════════════════════════════════════════════
+async function dpoRechercher() {
+  const q = document.getElementById('dpo-q').value.trim();
+  const zone = document.getElementById('dpo-resultats');
+  document.getElementById('dpo-fiche').innerHTML = '';
+  if (q.length < 3) return showToast('⚠ Saisissez au moins 3 caractères.');
+  zone.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Recherche…</div>';
+  try {
+    const d = await adminFetch('/dpo/recherche?q=' + encodeURIComponent(q));
+    const TYPES = { fa: 'Famille d\'accueil', refuge: 'Refuge' };
+    let html = d.personnes.map(p => '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
+      + '<div style="flex:1;min-width:200px;"><div style="font-size:14px;font-weight:700;color:var(--text);">' + escHtml(p.nom || '—') + etatCompte(p) + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);">' + escHtml(p.email || '') + ' · ' + p.types.map(t => TYPES[t]).join(' + ') + '</div></div>'
+      + '<button class="btn btn-p" style="font-size:12px;padding:8px 14px;" onclick="dpoOuvrir(\'' + p.id + '\')">Voir toutes ses données →</button></div>').join('');
+    if (d.journal_seul) html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
+      + '<div style="flex:1;min-width:200px;font-size:12px;color:var(--text2);">Pas de compte, mais <b style="color:var(--text)">' + d.journal_seul.lignes + ' ligne(s) du journal</b> mentionnent ' + escHtml(d.journal_seul.email) + ' (ex. tentatives de connexion).</div>'
+      + '<button class="btn btn-s" style="font-size:12px;padding:8px 14px;color:#FCA5A5;" onclick="dpoAnonymiserEmail(\'' + escHtml(d.journal_seul.email) + '\',this)">Anonymiser ces lignes</button></div>';
+    zone.innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Aucune personne trouvée.</div>';
+  } catch (e) { zone.innerHTML = '<div style="padding:20px;text-align:center;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'; }
+}
+
+let dpoCourant = null;
+async function dpoOuvrir(id) {
+  const zone = document.getElementById('dpo-fiche');
+  zone.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Inventaire en cours…</div>';
+  zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  try {
+    const inv = await adminFetch('/dpo/personne/' + id);
+    dpoCourant = inv;
+    const email = inv.compte?.email || inv.famille_accueil?.email || inv.refuge?.email || '';
+    const section = (titre, n, contenu) => '<details style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:8px;">'
+      + '<summary style="cursor:pointer;font-size:13px;font-weight:700;color:var(--text);">' + titre + ' <span style="color:var(--text3);font-weight:400;">(' + n + ')</span></summary>'
+      + '<pre style="white-space:pre-wrap;word-break:break-word;font-size:11px;color:var(--text2);margin:10px 0 0;max-height:360px;overflow:auto;">' + escHtml(JSON.stringify(contenu, null, 2)) + '</pre></details>';
+    zone.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:18px;padding:20px;margin-top:16px;">'
+      + '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">Données de ' + escHtml(email) + '</div>'
+      + '<div style="font-size:12px;color:var(--text3);margin-bottom:14px;">Inventaire généré le ' + new Date(inv.genere_le).toLocaleString('fr-FR') + (inv.administrateur ? ' · ⚠ compte administrateur : l\'accès admin sera conservé' : '') + '</div>'
+      + section('Compte de connexion', inv.compte ? 1 : 0, inv.compte)
+      + (inv.famille_accueil ? section('Dossier famille d\'accueil', 1, inv.famille_accueil) : '')
+      + (inv.refuge ? section('Fiche refuge', 1, inv.refuge) : '')
+      + section('Propositions / accueils (matchs)', inv.matchs.length, inv.matchs)
+      + (inv.refuge ? section('Animaux publiés', inv.animaux.length, inv.animaux) : '')
+      + section('Évaluations', inv.evaluations.length, inv.evaluations)
+      + section('Journal des accès', inv.journal.total, inv.journal.lignes)
+      + section('Jetons (mot de passe, blocage)', inv.jetons.reinitialisation_mdp + inv.jetons.blocage, inv.jetons)
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'
+      + '<button class="btn btn-s" style="font-size:12px;" onclick="dpoExporter(\'' + id + '\')">⬇ Exporter (JSON)</button></div>'
+      + '<div style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px;">'
+      + '<div style="font-size:13px;font-weight:700;color:#FCA5A5;margin-bottom:6px;">Supprimer toutes ses données</div>'
+      + '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">Supprime le compte, le dossier, les matchs, animaux et évaluations liés, et anonymise ses lignes du journal. <b style="color:var(--text)">Irréversible.</b> L\'opération elle-même reste tracée (sans donnée personnelle).</div>'
+      + '<input id="dpo-motif" placeholder="Motif (ex. demande d\'effacement du 24/10/2026)" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);margin-bottom:8px;outline:none;"/>'
+      + '<input id="dpo-confirm" placeholder="Retapez l\'adresse e-mail pour confirmer" autocomplete="off" style="width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);margin-bottom:10px;outline:none;"/>'
+      + '<button class="btn btn-s" style="font-size:12px;border-color:rgba(239,68,68,.4);color:#FCA5A5;" onclick="dpoSupprimer(\'' + id + '\',this)">🗑 Supprimer définitivement</button></div></div>';
+  } catch (e) { zone.innerHTML = '<div style="padding:20px;text-align:center;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'; }
+}
+
+async function dpoExporter(id) {
+  try {
+    const inv = await adminFetch('/dpo/personne/' + id + '?export=1');
+    const blob = new Blob([JSON.stringify(inv, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'petia-donnees-' + (inv.compte?.email || id).replace(/[^a-z0-9@._-]/gi, '_') + '-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    showToast('⬇ Export téléchargé');
+  } catch (e) { showToast('⚠ ' + e.message); }
+}
+
+async function dpoSupprimer(id, btn) {
+  const confirmation = document.getElementById('dpo-confirm').value.trim();
+  if (!confirmation) return showToast('⚠ Retapez l\'adresse e-mail pour confirmer.');
+  btn.disabled = true; btn.textContent = 'Suppression…';
+  try {
+    const d = await adminFetch('/dpo/personne/' + id, { method: 'DELETE', body: JSON.stringify({ confirmation, motif: document.getElementById('dpo-motif').value.trim() || undefined }) });
+    showToast('🗑 Données supprimées · journal : ' + d.bilan.journal_anonymise + ' ligne(s) anonymisée(s)');
+    document.getElementById('dpo-fiche').innerHTML = '';
+    dpoRechercher();
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; btn.textContent = '🗑 Supprimer définitivement'; }
+}
+
+async function dpoAnonymiserEmail(email, btn) {
+  if (!confirm('Anonymiser toutes les lignes du journal qui mentionnent ' + email + ' ?')) return;
+  btn.disabled = true;
+  try { const d = await adminFetch('/dpo/journal-email', { method: 'POST', body: JSON.stringify({ email }) }); showToast('✅ ' + d.message); dpoRechercher(); }
+  catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+async function lancerPurgeManuelle(btn) {
+  if (!confirm('Lancer maintenant la suppression automatique (comptes clôturés ou inactifs depuis 2 ans, refus de plus de 6 mois, journal de plus d\'un an) ?')) return;
+  btn.disabled = true;
+  try {
+    const d = await adminFetch('/purge', { method: 'POST' });
+    const b = d.bilan || {};
+    showToast('🗑 Purge : ' + (Object.entries(b).map(([k, v]) => k + ' ' + v).join(' · ') || 'rien à supprimer'));
+  } catch (e) { showToast('⚠ ' + e.message); }
+  btn.disabled = false;
 }
 
 suite().catch(() => ecran('ecran-login'));
