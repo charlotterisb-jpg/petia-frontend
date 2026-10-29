@@ -8254,6 +8254,7 @@ const CFG_CHOIX = {
   nourriture: [['refuge_fournit', 'Fournie par le refuge'], ['rembourse', 'Achetée par la famille, remboursée sur justificatif'], ['famille', 'À la charge de la famille']],
   veterinaire: [['refuge_100', 'Pris en charge à 100 % par le refuge'], ['refuge_sur_accord', 'Pris en charge par le refuge, après accord (sauf urgence)'], ['partage', 'Répartis selon accord']],
   transport: [['refuge', 'Assurés ou remboursés par le refuge'], ['famille', 'À la charge de la famille'], ['selon_cas', 'Au cas par cas']],
+  veto_mode: [['liste_lien', 'Liste de vétérinaires partenaires en ligne (lien)'], ['liste_remise', 'Liste remise à la famille avec l\'animal'], ['au_choix', 'Vétérinaire au choix de la famille']],
 };
 const CFG_MATERIEL = [['laisse', 'Laisse / collier / harnais'], ['gamelles', 'Gamelles'], ['couchage', 'Couchage'], ['caisse', 'Caisse de transport'], ['jouets', 'Jouets'], ['litiere', 'Litière et bac'], ['cage', 'Cage / enclos']];
 
@@ -8301,8 +8302,9 @@ function afficherConfigRefuge() {
       + CFG_MATERIEL.map(([k, t]) => '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 10px;"><input type="checkbox" class="cfg-mat" value="' + k + '"' + ((c.materiel || []).includes(k) ? ' checked' : '') + ' style="width:15px;height:15px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(t) + '</label>').join('') + '</div></div>'
       + champ('cfg-indemnite', 'Indemnité versée à la famille (laisser vide si aucune)', c.indemnite, 'ex. 5 € par jour'))
     + carte('🩺', 'Santé et urgences', 'Reprises dans l\'article 5 du contrat',
-      champ('cfg-veto-nom', 'Vétérinaire partenaire', c.veto_nom, 'Dr Moreau, Clinique du Parc') + champ('cfg-veto-adresse', 'Adresse du vétérinaire', c.veto_adresse)
-      + champ('cfg-veto-tel', 'Téléphone du vétérinaire', c.veto_telephone, '', 'tel') + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end', c.urgence, 'Clinique vétérinaire 24h/24, téléphone…'))
+      choix('cfg-veto-mode', 'Vétérinaires', CFG_CHOIX.veto_mode, c.veto_mode).replace('<select id="cfg-veto-mode">', '<select id="cfg-veto-mode" onchange="document.getElementById(\'cfg-veto-lien-zone\').style.display=this.value===\'liste_lien\'?\'\':\'none\'">')
+      + '<div id="cfg-veto-lien-zone" style="display:' + (c.veto_mode === 'liste_lien' ? '' : 'none') + '">' + champ('cfg-veto-lien', 'Lien vers votre liste de vétérinaires', c.veto_lien, 'https://www.monasso.fr/veterinaires', 'url') + '</div>'
+      + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end (facultatif)', c.urgence, 'Clinique vétérinaire 24h/24 la plus proche, numéro d\'astreinte…'))
     + carte('📜', 'Règles propres à votre structure', 'Ajoutées à l\'article 3 du contrat (facultatif)',
       '<textarea id="cfg-regles" style="width:100%;height:90px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>')
     + '<button class="btn btn-p co" id="cfg-btn" style="width:100%;justify-content:center;margin-bottom:24px;" onclick="enregistrerConfigRefuge()">Enregistrer</button>';
@@ -8316,7 +8318,7 @@ async function enregistrerConfigRefuge() {
       infos: { adresse: val('cfg-adresse'), telephone: val('cfg-tel'), site_web: val('cfg-site'), contact_prenom: val('cfg-cprenom'), contact_nom: val('cfg-cnom'), contact_fonction: val('cfg-cfonction') },
       conditions: { nourriture: val('cfg-nourriture'), veterinaire: val('cfg-veterinaire'), transport: val('cfg-transport'),
         materiel: [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value), indemnite: val('cfg-indemnite'),
-        veto_nom: val('cfg-veto-nom'), veto_adresse: val('cfg-veto-adresse'), veto_telephone: val('cfg-veto-tel'), urgence: val('cfg-urgence'), regles: val('cfg-regles') },
+        veto_mode: val('cfg-veto-mode'), veto_lien: val('cfg-veto-lien'), urgence: val('cfg-urgence'), regles: val('cfg-regles') },
     });
     configRefuge = d.refuge; majEtatConfig(d.a_completer || []);
     showToast(d.a_completer?.length ? '✅ Enregistré · encore ' + d.a_completer.length + ' élément(s) à compléter' : '✅ Configuration complète');
