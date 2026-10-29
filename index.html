@@ -1409,11 +1409,11 @@ select{background-image:none;}
       <button class="sb-item" onclick="go('notation')"><div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A5B4FC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>Évaluations</button>
 
       <div class="sb-label">⚙️ Configuration structure</div>
-      <button class="sb-item" id="sb-config" onclick="dashView('v-config',this)">
+      <button class="sb-item" id="sb-config" onclick="dashView('v-config',this);chargerConfigRefuge()">
         <div class="sb-icon" style="background:rgba(245,158,11,.2);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
         <div style="flex:1;text-align:left;">
           <div>Mon espace</div>
-          <div style="font-size:10px;color:var(--warning);margin-top:1px;">⚠ 3 éléments à configurer</div>
+          <div id="sb-config-etat" style="font-size:10px;color:var(--text3);margin-top:1px;"></div>
         </div>
       </button>
 
@@ -1467,163 +1467,11 @@ select{background-image:none;}
       <!-- ── VUE CONFIGURATION ── -->
       <div id="v-config" style="display:none">
         <div class="dash-topbar">
-          <div>
-            <h2>Configuration de votre structure</h2>
-            <p>Personnalisez vos conditions d'accueil, votre contrat FA et vos CGU. Ces éléments sont envoyés automatiquement à chaque famille lors d'un placement.</p>
-          </div>
+          <div><h2>Configuration de votre structure</h2>
+          <p>Ces informations sont reprises automatiquement dans le contrat d'accueil signé par chaque famille.</p></div>
         </div>
-
-        <!-- Alerte setup incomplet -->
-        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:flex-start;gap:12px;">
-          <span style="font-size:20px;flex-shrink:0;">⚠️</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--warning);margin-bottom:4px;">3 éléments à configurer avant de pouvoir placer des animaux</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.6;">Sans ces configurations, les familles d'accueil ne pourront pas voir les conditions de votre structure, ni signer un contrat valide.</div>
-          </div>
-        </div>
-
-        <!-- Cartes de configuration -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;">
-
-          <!-- Carte 1 : Infos structure -->
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--success);"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div style="font-size:22px;">🏢</div>
-              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--success-bg);color:#6EE7B7;">✓ Complété</span>
-            </div>
-            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;">Informations structure</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:14px;">Nom, adresse, contact référent, rayon de recherche FA.</div>
-            <button class="btn btn-s" style="font-size:12px;padding:8px 14px;width:100%;justify-content:center;" onclick="go('fourriere-inscription')">Modifier →</button>
-          </div>
-
-          <!-- Carte 2 : Conditions financières -->
-          <div style="background:var(--bg2);border:1.5px solid rgba(245,158,11,.35);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--warning);"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div style="font-size:22px;">💰</div>
-              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--warning-bg);color:#FCD34D;">⚠ À configurer</span>
-            </div>
-            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;">Conditions financières</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:14px;">Qui paie la nourriture, les frais vétérinaires, le transport ? Indemnités FA ?</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Affiché sur chaque fiche animal · Intégré au contrat FA</div>
-            <button class="btn btn-p" style="font-size:12px;padding:9px 14px;width:100%;justify-content:center;background:var(--warning);" onclick="go('conditions-accueil')">Configurer maintenant →</button>
-          </div>
-
-          <!-- Carte 3 : Règles & CGU -->
-          <div style="background:var(--bg2);border:1.5px solid rgba(245,158,11,.35);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--warning);"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div style="font-size:22px;">📜</div>
-              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--warning-bg);color:#FCD34D;">⚠ À configurer</span>
-            </div>
-            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;">Règles & Conditions Générales</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:14px;">Obligations FA, lien vers vos CGU complètes. Un modèle est disponible.</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">La FA devra les accepter avant de signer</div>
-            <button class="btn btn-p" style="font-size:12px;padding:9px 14px;width:100%;justify-content:center;background:var(--warning);" onclick="go('conditions-accueil');setTimeout(()=>condTab(document.querySelector('.cond-tab:nth-child(2)'),\'tab-regles\'),100)">Configurer maintenant →</button>
-          </div>
-
-          <!-- Carte 4 : Contrat FA -->
-          <div style="background:var(--bg2);border:1.5px solid rgba(245,158,11,.35);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--violet);"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div style="font-size:22px;">✍️</div>
-              <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--warning-bg);color:#FCD34D;">⚠ À personnaliser</span>
-            </div>
-            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;">Contrat famille d'accueil</div>
-            <div style="font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:14px;">Modèle pré-rédigé à personnaliser. 12 articles · Variables automatiques · Signature OTP.</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Envoyé et signé automatiquement à chaque placement</div>
-            <button class="btn btn-p" style="font-size:12px;padding:9px 14px;width:100%;justify-content:center;" onclick="go('contrat-fa')">Personnaliser le contrat →</button>
-          </div>
-
-        </div>
-
-        <!-- Parcours de configuration guidé -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:24px;">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">📍 Parcours de configuration recommandé</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Suivez ces 4 étapes dans l'ordre pour être opérationnel rapidement.</div>
-          <div style="display:flex;flex-direction:column;gap:0;">
-
-            <div style="display:flex;gap:14px;padding-bottom:18px;position:relative;">
-              <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
-                <div style="width:28px;height:28px;border-radius:50%;background:var(--success);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;">✓</div>
-                <div style="width:2px;flex:1;background:var(--border);margin-top:6px;min-height:20px;"></div>
-              </div>
-              <div style="padding-top:4px;">
-                <div style="font-size:13px;font-weight:600;color:var(--text);">Étape 1 — Créer votre compte structure</div>
-                <div style="font-size:12px;color:var(--text3);margin-top:2px;">Nom, adresse, contact. Déjà fait ✓</div>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:14px;padding-bottom:18px;position:relative;">
-              <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
-                <div style="width:28px;height:28px;border-radius:50%;background:var(--warning);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;">2</div>
-                <div style="width:2px;flex:1;background:var(--border);margin-top:6px;min-height:20px;"></div>
-              </div>
-              <div style="padding-top:4px;flex:1;">
-                <div style="font-size:13px;font-weight:600;color:var(--text);">Étape 2 — Configurer les conditions financières</div>
-                <div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.55;">Définissez qui prend en charge la nourriture, les frais vétérinaires, le transport et les éventuelles indemnités.</div>
-                <button class="btn btn-p" style="margin-top:10px;font-size:12px;padding:8px 16px;background:var(--warning);" onclick="go('conditions-accueil')">Configurer les conditions →</button>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:14px;padding-bottom:18px;">
-              <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
-                <div style="width:28px;height:28px;border-radius:50%;background:var(--bg4);border:2px solid var(--border);color:var(--text3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;">3</div>
-                <div style="width:2px;flex:1;background:var(--border);margin-top:6px;min-height:20px;"></div>
-              </div>
-              <div style="padding-top:4px;flex:1;">
-                <div style="font-size:13px;font-weight:600;color:var(--text2);">Étape 3 — Personnaliser le contrat FA</div>
-                <div style="font-size:12px;color:var(--text3);margin-top:2px;line-height:1.55;">Adaptez les 12 articles du modèle à votre structure. Ajoutez vos contacts d'urgence, votre vétérinaire partenaire.</div>
-                <button class="btn btn-s" style="margin-top:10px;font-size:12px;padding:8px 16px;" onclick="go('contrat-fa')">Personnaliser le contrat →</button>
-              </div>
-            </div>
-
-            <div style="display:flex;gap:14px;">
-              <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
-                <div style="width:28px;height:28px;border-radius:50%;background:var(--bg4);border:2px solid var(--border);color:var(--text3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;">4</div>
-              </div>
-              <div style="padding-top:4px;flex:1;">
-                <div style="font-size:13px;font-weight:600;color:var(--text2);">Étape 4 — Ajouter votre premier animal</div>
-                <div style="font-size:12px;color:var(--text3);margin-top:2px;line-height:1.55;">Une fois la configuration complète, saisissez vos animaux et laissez l'IA trouver les meilleures familles d'accueil.</div>
-                <button class="btn btn-s" style="margin-top:10px;font-size:12px;padding:8px 16px;opacity:.5;cursor:not-allowed;">Disponible après config →</button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Aperçu de ce que voit la FA -->
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px;">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">👁 Ce que verra la famille d'accueil</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Aperçu du parcours FA une fois votre configuration complète.</div>
-          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">
-            <div style="flex-shrink:0;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;text-align:center;min-width:110px;">
-              <div style="font-size:20px;margin-bottom:6px;">📧</div>
-              <div style="font-size:11px;font-weight:600;color:var(--text);">Notification</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:2px;">SMS + email match IA</div>
-            </div>
-            <div style="flex-shrink:0;color:var(--text3);display:flex;align-items:center;font-size:16px;">→</div>
-            <div style="flex-shrink:0;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 16px;text-align:center;min-width:110px;">
-              <div style="font-size:20px;margin-bottom:6px;">🐕</div>
-              <div style="font-size:11px;font-weight:600;color:var(--text);">Proposition</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:2px;">Fiche animal + conditions</div>
-            </div>
-            <div style="flex-shrink:0;color:var(--text3);display:flex;align-items:center;font-size:16px;">→</div>
-            <div style="flex-shrink:0;background:rgba(255,122,89,.08);border:1px solid rgba(255,122,89,.2);border-radius:12px;padding:12px 16px;text-align:center;min-width:110px;">
-              <div style="font-size:20px;margin-bottom:6px;">📋</div>
-              <div style="font-size:11px;font-weight:600;color:var(--corail);">Votre contrat</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:2px;">Lecture obligatoire</div>
-            </div>
-            <div style="flex-shrink:0;color:var(--text3);display:flex;align-items:center;font-size:16px;">→</div>
-            <div style="flex-shrink:0;background:var(--success-bg);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px 16px;text-align:center;min-width:110px;">
-              <div style="font-size:20px;margin-bottom:6px;">✍️</div>
-              <div style="font-size:11px;font-weight:600;color:var(--success);">Signature OTP</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:2px;">Code email · eIDAS</div>
-            </div>
-          </div>
-          <button class="btn btn-s" style="margin-top:14px;font-size:12px;padding:9px 16px;" onclick="go('proposition-accueil')">🎯 Voir la démo du parcours FA →</button>
-        </div>
+        <div id="config-etat"></div>
+        <div id="config-contenu"><div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Chargement…</div></div>
       </div>
 
       <!-- ── VUE SÉCURITÉ ── -->
@@ -4664,6 +4512,7 @@ function go(id, opts = {}){
   if(id==='dashboard-fourriere' && typeof majBandeauValidationRefuge==='function') majBandeauValidationRefuge();
   if(id==='dashboard-fourriere' && typeof majStatutMFA==='function') majStatutMFA('ref');
   if(id==='dashboard-fourriere' && typeof majAFaireRefuge==='function') majAFaireRefuge();
+  if(id==='dashboard-fourriere' && typeof refugeApi==='function') refugeApi('GET').then(d => majEtatConfig(d.a_completer || [])).catch(() => {});
   if(id==='dashboard-fa' && typeof majStatutMFA==='function') majStatutMFA('fa');
   if(id==='dashboard-fa' && typeof chargerEspaceFA==='function') chargerEspaceFA();
   if(id==='questionnaire-fa' && typeof appliquerEspecesFA==='function') appliquerEspecesFA();
@@ -8396,6 +8245,84 @@ async function majAFaireRefuge() {
       + el.map(x => '<div style="font-size:12px;padding:5px 0;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="flex:1;color:var(--text2);">' + (ICONE[x.type] || '•') + ' ' + escHtml(x.texte) + '</span>'
         + '<button class="btn btn-s" style="font-size:11px;padding:4px 10px;" onclick="ouvrirMatchs(\'' + x.animal_id + '\')">Ouvrir</button></div>').join('') + '</div>';
   } catch (_) {}
+}
+</script>
+<script>
+// ═══ CONFIGURATION DU REFUGE (reprise dans le contrat d'accueil) ═══════════
+let configRefuge = null;
+const CFG_CHOIX = {
+  nourriture: [['refuge_fournit', 'Fournie par le refuge'], ['rembourse', 'Achetée par la famille, remboursée sur justificatif'], ['famille', 'À la charge de la famille']],
+  veterinaire: [['refuge_100', 'Pris en charge à 100 % par le refuge'], ['refuge_sur_accord', 'Pris en charge par le refuge, après accord (sauf urgence)'], ['partage', 'Répartis selon accord']],
+  transport: [['refuge', 'Assurés ou remboursés par le refuge'], ['famille', 'À la charge de la famille'], ['selon_cas', 'Au cas par cas']],
+};
+const CFG_MATERIEL = [['laisse', 'Laisse / collier / harnais'], ['gamelles', 'Gamelles'], ['couchage', 'Couchage'], ['caisse', 'Caisse de transport'], ['jouets', 'Jouets'], ['litiere', 'Litière et bac'], ['cage', 'Cage / enclos']];
+
+async function refugeApi(methode, corps) {
+  const ref = getRefSession(); if (!ref?.token) throw new Error('Connectez-vous.');
+  const res = await fetch(API_URL + '/api/refuge/moi', { method: methode, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + ref.token }, body: corps ? JSON.stringify(corps) : undefined });
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+  return d;
+}
+
+function majEtatConfig(manque) {
+  const sb = document.getElementById('sb-config-etat');
+  if (sb) { sb.textContent = manque.length ? '⚠ ' + manque.length + ' élément(s) à compléter' : '✓ Complète'; sb.style.color = manque.length ? 'var(--warning)' : 'var(--success)'; }
+  const z = document.getElementById('config-etat'); if (!z) return;
+  z.innerHTML = manque.length
+    ? '<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.7;"><b style="color:var(--warning)">⚠ À compléter pour un contrat complet :</b><br>' + manque.map(m => '• ' + escHtml(m.txt)).join('<br>') + '</div>'
+    : '<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:14px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:var(--success);font-weight:600;">✓ Configuration complète : vos contrats d\'accueil reprennent ces informations.</div>';
+}
+
+async function chargerConfigRefuge() {
+  try {
+    const d = await refugeApi('GET');
+    configRefuge = d.refuge; majEtatConfig(d.a_completer || []); afficherConfigRefuge();
+  } catch (e) { const z = document.getElementById('config-contenu'); if (z) z.innerHTML = '<div style="padding:20px;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'; }
+}
+
+function afficherConfigRefuge() {
+  const r = configRefuge || {}, c = r.details?.conditions || {};
+  const v = (x) => escHtml(x || '');
+  const champ = (id, label, val, ph, type) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><input id="' + id + '" type="' + (type || 'text') + '" value="' + v(val) + '" placeholder="' + v(ph) + '"/></div>';
+  const choix = (id, label, opts, val) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><select id="' + id + '"><option value="">— Choisir —</option>'
+    + opts.map(([k, t]) => '<option value="' + k + '"' + (val === k ? ' selected' : '') + '>' + escHtml(t) + '</option>').join('') + '</select></div>';
+  const carte = (icone, titre, sous, contenu) => '<div class="form-section" style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:22px;">' + icone + '</span><div><div style="font-size:15px;font-weight:700;color:var(--text);">' + titre + '</div><div style="font-size:12px;color:var(--text2);">' + sous + '</div></div></div>' + contenu + '</div>';
+  document.getElementById('config-contenu').innerHTML =
+    carte('🏢', 'Ma structure', escHtml([r.nom, r.siret && 'SIRET ' + r.siret].filter(Boolean).join(' · ')),
+      champ('cfg-adresse', 'Adresse', r.adresse, '12 rue des Lilas') + '<div style="font-size:11px;color:var(--text3);margin:-6px 0 10px;">' + escHtml([r.code_postal, r.ville].filter(Boolean).join(' ')) + '</div>'
+      + champ('cfg-tel', 'Téléphone', r.telephone, '01 23 45 67 89', 'tel') + champ('cfg-site', 'Site web', r.site_web, 'www.monrefuge.fr')
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + champ('cfg-cprenom', 'Prénom du référent', r.contact_prenom) + champ('cfg-cnom', 'Nom du référent', r.contact_nom) + '</div>'
+      + champ('cfg-cfonction', 'Fonction du référent', r.contact_fonction, 'Responsable placements'))
+    + carte('💰', 'Conditions d\'accueil', 'Reprises dans l\'article 4 du contrat',
+      choix('cfg-nourriture', 'Nourriture', CFG_CHOIX.nourriture, c.nourriture) + choix('cfg-veterinaire', 'Frais vétérinaires', CFG_CHOIX.veterinaire, c.veterinaire)
+      + choix('cfg-transport', 'Trajets (vétérinaire, visites)', CFG_CHOIX.transport, c.transport)
+      + '<div class="field" style="margin-bottom:10px;"><label>Matériel fourni par le refuge</label><div style="display:flex;flex-wrap:wrap;gap:8px;">'
+      + CFG_MATERIEL.map(([k, t]) => '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 10px;"><input type="checkbox" class="cfg-mat" value="' + k + '"' + ((c.materiel || []).includes(k) ? ' checked' : '') + ' style="width:15px;height:15px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(t) + '</label>').join('') + '</div></div>'
+      + champ('cfg-indemnite', 'Indemnité versée à la famille (laisser vide si aucune)', c.indemnite, 'ex. 5 € par jour'))
+    + carte('🩺', 'Santé et urgences', 'Reprises dans l\'article 5 du contrat',
+      champ('cfg-veto-nom', 'Vétérinaire partenaire', c.veto_nom, 'Dr Moreau, Clinique du Parc') + champ('cfg-veto-adresse', 'Adresse du vétérinaire', c.veto_adresse)
+      + champ('cfg-veto-tel', 'Téléphone du vétérinaire', c.veto_telephone, '', 'tel') + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end', c.urgence, 'Clinique vétérinaire 24h/24, téléphone…'))
+    + carte('📜', 'Règles propres à votre structure', 'Ajoutées à l\'article 3 du contrat (facultatif)',
+      '<textarea id="cfg-regles" style="width:100%;height:90px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>')
+    + '<button class="btn btn-p co" id="cfg-btn" style="width:100%;justify-content:center;margin-bottom:24px;" onclick="enregistrerConfigRefuge()">Enregistrer</button>';
+}
+
+async function enregistrerConfigRefuge() {
+  const val = (id) => document.getElementById(id)?.value || '';
+  const btn = document.getElementById('cfg-btn'); btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    const d = await refugeApi('PATCH', {
+      infos: { adresse: val('cfg-adresse'), telephone: val('cfg-tel'), site_web: val('cfg-site'), contact_prenom: val('cfg-cprenom'), contact_nom: val('cfg-cnom'), contact_fonction: val('cfg-cfonction') },
+      conditions: { nourriture: val('cfg-nourriture'), veterinaire: val('cfg-veterinaire'), transport: val('cfg-transport'),
+        materiel: [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value), indemnite: val('cfg-indemnite'),
+        veto_nom: val('cfg-veto-nom'), veto_adresse: val('cfg-veto-adresse'), veto_telephone: val('cfg-veto-tel'), urgence: val('cfg-urgence'), regles: val('cfg-regles') },
+    });
+    configRefuge = d.refuge; majEtatConfig(d.a_completer || []);
+    showToast(d.a_completer?.length ? '✅ Enregistré · encore ' + d.a_completer.length + ' élément(s) à compléter' : '✅ Configuration complète');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { showToast('⚠ ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Enregistrer';
 }
 </script>
 </body>
