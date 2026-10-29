@@ -8286,6 +8286,7 @@ async function ouvrirContrat(profil, matchId) {
     const res = await fetch(urlContrat(profil, matchId), { headers: { Authorization: 'Bearer ' + jetonProfil(profil) } });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(d.message || 'Contrat indisponible.');
+    await majStatutMFA(profil).catch(() => {});
     afficherContrat(profil, matchId, d.contrat);
   } catch (e) { ouvrirFenetre('<div style="padding:24px;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'); }
 }
@@ -8307,15 +8308,20 @@ function afficherContrat(profil, matchId, c) {
     + '<div style="font-size:10px;color:var(--text3);margin-top:4px;word-break:break-all;">Empreinte SHA-256 : ' + escHtml(c.empreinte) + '</div>';
   const champ = (id, label, type, extra) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><input id="' + id + '" type="' + type + '" ' + (extra || '') + '/></div>';
   let formulaire = '';
-  if (aSigner) {
+  if (aSigner && !mfa) {
+    formulaire = '<div style="margin-top:16px;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(43,78,212,.12));border:1px solid rgba(124,58,237,.35);border-radius:14px;padding:14px 16px;">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">🔐 Double authentification requise pour signer</div>'
+      + '<div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:12px;">Pour que personne ne puisse signer à votre place, même avec votre mot de passe, la signature demande un code Google Authenticator. L\'activation prend une minute ; revenez ensuite sur ce contrat.</div>'
+      + '<button class="btn btn-p" style="background:var(--violet);font-size:13px;width:100%;justify-content:center;" onclick="fermerFenetre();' + MFA_PROFILS[profil].ouvrir.replace(/"/g, '&quot;') + '">Activer Google Authenticator →</button></div>';
+  } else if (aSigner) {
     const cases = profil === 'fa' ? (t.confirmations_fa || []).map((x, i) =>
       '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer;"><input type="checkbox" class="ct-conf" style="width:16px;height:16px;min-height:0;padding:0;margin:2px 0 0;flex-shrink:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(x) + '</label>').join('') : '';
     formulaire = '<div id="ct-form" style="margin-top:16px;opacity:.45;pointer-events:none;transition:opacity .2s;">'
       + '<div id="ct-lecture" style="font-size:12px;color:var(--warning);margin-bottom:10px;">📖 Faites défiler le contrat jusqu\'en bas pour pouvoir signer.</div>'
       + cases
       + champ('ct-nom', profil === 'fa' ? 'Vos prénom et nom' : 'Nom et fonction du signataire', 'text', 'autocomplete="name"')
-      + champ('ct-mdp', 'Votre mot de passe PetIA (pour authentifier la signature)', 'password', 'autocomplete="current-password"')
-      + (mfa ? champ('ct-code', 'Code Google Authenticator', 'text', 'inputmode="numeric" maxlength="6" autocomplete="one-time-code"') : '')
+      + champ('ct-mdp', 'Votre mot de passe PetIA', 'password', 'autocomplete="current-password"')
+      + champ('ct-code', 'Code Google Authenticator', 'text', 'inputmode="numeric" maxlength="6" autocomplete="one-time-code"')
       + '<button class="btn btn-p co" id="ct-btn" style="width:100%;justify-content:center;" onclick="signerContrat(\'' + profil + '\',\'' + matchId + '\')">✍️ ' + (profil === 'fa' ? 'Signer le contrat' : 'Contresigner le contrat') + '</button></div>';
   } else if (profil === 'ref' && c.statut === 'a_signer_fa') {
     formulaire = '<div style="font-size:12px;color:var(--text3);margin-top:12px;">La famille doit signer en premier. Vous serez prévenu pour contresigner.</div>';
@@ -8344,6 +8350,7 @@ async function signerContrat(profil, matchId) {
   const code = (document.getElementById('ct-code')?.value || '').replace(/\D/g, '');
   if (!nom) return showToast('⚠ Saisissez le nom du signataire.');
   if (!mdp) return showToast('⚠ Saisissez votre mot de passe.');
+  if (code.length !== 6) return showToast('⚠ Saisissez le code à 6 chiffres de Google Authenticator.');
   const btn = document.getElementById('ct-btn'); btn.disabled = true; btn.textContent = 'Signature…';
   try {
     const res = await fetch(urlContrat(profil, matchId, '/signer'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jetonProfil(profil) },
