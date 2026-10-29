@@ -8313,48 +8313,94 @@ async function chargerConfigRefuge() {
   } catch (e) { const z = document.getElementById('config-contenu'); if (z) z.innerHTML = '<div style="padding:20px;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'; }
 }
 
-function afficherConfigRefuge() {
+let configSection = null; // null = vue d'ensemble ; sinon la section en cours de modification
+function afficherConfigRefuge(section) {
+  configSection = section || null;
   const r = configRefuge || {}, c = r.details?.conditions || {};
   const v = (x) => escHtml(x || '');
+  const lib = (liste, k) => (liste.find(x => x[0] === k) || [])[1];
   const champ = (id, label, val, ph, type) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><input id="' + id + '" type="' + (type || 'text') + '" value="' + v(val) + '" placeholder="' + v(ph) + '"/></div>';
   const choix = (id, label, opts, val) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><select id="' + id + '"><option value="">— Choisir —</option>'
     + opts.map(([k, t]) => '<option value="' + k + '"' + (val === k ? ' selected' : '') + '>' + escHtml(t) + '</option>').join('') + '</select></div>';
-  const carte = (icone, titre, sous, contenu) => '<div class="form-section" style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:22px;">' + icone + '</span><div><div style="font-size:15px;font-weight:700;color:var(--text);">' + titre + '</div><div style="font-size:12px;color:var(--text2);">' + sous + '</div></div></div>' + contenu + '</div>';
-  document.getElementById('config-contenu').innerHTML =
-    carte('🏢', 'Ma structure', escHtml([r.nom, r.siret && 'SIRET ' + r.siret].filter(Boolean).join(' · ')),
-      champ('cfg-adresse', 'Adresse', r.adresse, '12 rue des Lilas') + '<div style="font-size:11px;color:var(--text3);margin:-6px 0 10px;">' + escHtml([r.code_postal, r.ville].filter(Boolean).join(' ')) + '</div>'
-      + champ('cfg-tel', 'Téléphone', r.telephone, '01 23 45 67 89', 'tel') + champ('cfg-site', 'Site web', r.site_web, 'www.monrefuge.fr')
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + champ('cfg-cprenom', 'Prénom du référent', r.contact_prenom) + champ('cfg-cnom', 'Nom du référent', r.contact_nom) + '</div>'
-      + champ('cfg-cfonction', 'Fonction du référent', r.contact_fonction, 'Responsable placements'))
-    + carte('💰', 'Conditions d\'accueil', 'Reprises dans l\'article 4 du contrat',
-      choix('cfg-nourriture', 'Nourriture', CFG_CHOIX.nourriture, c.nourriture) + choix('cfg-veterinaire', 'Frais vétérinaires', CFG_CHOIX.veterinaire, c.veterinaire)
-      + choix('cfg-transport', 'Trajets (vétérinaire, visites)', CFG_CHOIX.transport, c.transport)
-      + '<div class="field" style="margin-bottom:10px;"><label>Matériel fourni par le refuge</label><div style="display:flex;flex-wrap:wrap;gap:8px;">'
-      + CFG_MATERIEL.map(([k, t]) => '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 10px;"><input type="checkbox" class="cfg-mat" value="' + k + '"' + ((c.materiel || []).includes(k) ? ' checked' : '') + ' style="width:15px;height:15px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(t) + '</label>').join('') + '</div></div>'
-      + champ('cfg-indemnite', 'Indemnité versée à la famille (laisser vide si aucune)', c.indemnite, 'ex. 5 € par jour'))
-    + carte('🩺', 'Santé et urgences', 'Reprises dans l\'article 5 du contrat',
-      choix('cfg-veto-mode', 'Vétérinaires', CFG_CHOIX.veto_mode, c.veto_mode).replace('<select id="cfg-veto-mode">', '<select id="cfg-veto-mode" onchange="document.getElementById(\'cfg-veto-lien-zone\').style.display=this.value===\'liste_lien\'?\'\':\'none\';document.getElementById(\'cfg-veto-liste-zone\').style.display=this.value===\'liste_texte\'?\'\':\'none\'">')
-      + '<div id="cfg-veto-liste-zone" style="display:' + (c.veto_mode === 'liste_texte' ? '' : 'none') + '"><div class="field" style="margin-bottom:10px;"><label>Collez votre liste (un vétérinaire par ligne : nom, ville, téléphone)</label><textarea id="cfg-veto-liste" style="width:100%;height:140px;" placeholder="Dr Moreau, Clinique du Parc, Paris 15e, 01 45 67 89 10&#10;Clinique des Lilas, Lyon 3e, 04 78 00 00 00">' + v(c.veto_liste) + '</textarea></div></div>'
-      + '<div id="cfg-veto-lien-zone" style="display:' + (c.veto_mode === 'liste_lien' ? '' : 'none') + '">' + champ('cfg-veto-lien', 'Lien vers votre liste de vétérinaires', c.veto_lien, 'https://www.monasso.fr/veterinaires', 'url') + '</div>'
-      + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end (facultatif)', c.urgence, 'Clinique vétérinaire 24h/24 la plus proche, numéro d\'astreinte…'))
-    + carte('📜', 'Règles propres à votre structure', 'Ajoutées à l\'article 3 du contrat (facultatif)',
-      '<textarea id="cfg-regles" style="width:100%;height:90px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>')
-    + '<button class="btn btn-p co" id="cfg-btn" style="width:100%;justify-content:center;margin-bottom:24px;" onclick="enregistrerConfigRefuge()">Enregistrer</button>';
+  const ligne = (k, val) => '<div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text2);flex-shrink:0;">' + k + '</span><span style="color:' + (val ? 'var(--text)' : 'var(--warning)') + ';text-align:right;white-space:pre-wrap;">' + (val ? escHtml(val) : 'À compléter') + '</span></div>';
+  const carte = (cle, icone, titre, sous, contenu, bouton) => '<div class="form-section" style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="font-size:22px;">' + icone + '</span><div style="flex:1;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + titre + '</div><div style="font-size:12px;color:var(--text2);">' + sous + '</div></div>'
+    + (bouton !== undefined ? bouton : (configSection ? '' : '<button class="btn btn-s" style="font-size:12px;padding:6px 12px;" onclick="afficherConfigRefuge(\'' + cle + '\')">Modifier</button>')) + '</div>' + contenu + '</div>';
+  const actions = '<div style="display:flex;gap:8px;margin-bottom:24px;"><button class="btn btn-s" style="flex:1;justify-content:center;" onclick="afficherConfigRefuge()">Annuler</button><button class="btn btn-p co" id="cfg-btn" style="flex:2;justify-content:center;" onclick="enregistrerConfigRefuge()">Enregistrer</button></div>';
+  const vetoTxt = c.veto_mode === 'liste_texte' ? (c.veto_liste || '') : c.veto_mode === 'liste_lien' ? (c.veto_lien ? 'Liste en ligne : ' + c.veto_lien : '') : lib(CFG_CHOIX.veto_mode, c.veto_mode);
+  const materiel = (c.materiel || []).map(m => lib(CFG_MATERIEL, m)).join(', ');
+
+  const sections = {
+    structure: () => carte('structure', '🏢', 'Ma structure', escHtml([r.nom, r.siret && 'SIRET ' + r.siret].filter(Boolean).join(' · ')), configSection === 'structure'
+      ? champ('cfg-adresse', 'Adresse', r.adresse, '12 rue des Lilas') + '<div style="font-size:11px;color:var(--text3);margin:-6px 0 10px;">' + escHtml([r.code_postal, r.ville].filter(Boolean).join(' ')) + '</div>'
+        + champ('cfg-tel', 'Téléphone', r.telephone, '01 23 45 67 89', 'tel') + champ('cfg-site', 'Site web', r.site_web, 'www.monrefuge.fr')
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' + champ('cfg-cprenom', 'Prénom du référent', r.contact_prenom) + champ('cfg-cnom', 'Nom du référent', r.contact_nom) + '</div>'
+        + champ('cfg-cfonction', 'Fonction du référent', r.contact_fonction, 'Responsable placements')
+      : ligne('Adresse', [r.adresse, [r.code_postal, r.ville].filter(Boolean).join(' ')].filter(Boolean).join(', ')) + ligne('Téléphone', r.telephone) + ligne('Site web', r.site_web || '—')
+        + ligne('Référent', [[r.contact_prenom, r.contact_nom].filter(Boolean).join(' '), r.contact_fonction].filter(Boolean).join(', '))),
+    conditions: () => carte('conditions', '💰', 'Conditions d\'accueil', 'Article 4 du contrat', configSection === 'conditions'
+      ? choix('cfg-nourriture', 'Nourriture', CFG_CHOIX.nourriture, c.nourriture) + choix('cfg-veterinaire', 'Frais vétérinaires', CFG_CHOIX.veterinaire, c.veterinaire)
+        + choix('cfg-transport', 'Trajets (vétérinaire, visites)', CFG_CHOIX.transport, c.transport)
+        + '<div class="field" style="margin-bottom:10px;"><label>Matériel fourni par le refuge</label><div style="display:flex;flex-wrap:wrap;gap:8px;">'
+        + CFG_MATERIEL.map(([k, t]) => '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 10px;"><input type="checkbox" class="cfg-mat" value="' + k + '"' + ((c.materiel || []).includes(k) ? ' checked' : '') + ' style="width:15px;height:15px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(t) + '</label>').join('') + '</div></div>'
+        + champ('cfg-indemnite', 'Indemnité versée à la famille (laisser vide si aucune)', c.indemnite, 'ex. 5 € par jour')
+      : ligne('Nourriture', lib(CFG_CHOIX.nourriture, c.nourriture)) + ligne('Frais vétérinaires', lib(CFG_CHOIX.veterinaire, c.veterinaire))
+        + ligne('Trajets', lib(CFG_CHOIX.transport, c.transport) || '—') + ligne('Matériel fourni', materiel || '—') + ligne('Indemnité', c.indemnite || 'Aucune')),
+    sante: () => carte('sante', '🩺', 'Vétérinaires et urgences', 'Article 5 du contrat', configSection === 'sante'
+      ? choix('cfg-veto-mode', 'Vétérinaires', CFG_CHOIX.veto_mode, c.veto_mode).replace('<select id="cfg-veto-mode">', '<select id="cfg-veto-mode" onchange="document.getElementById(\'cfg-veto-lien-zone\').style.display=this.value===\'liste_lien\'?\'\':\'none\';document.getElementById(\'cfg-veto-liste-zone\').style.display=this.value===\'liste_texte\'?\'\':\'none\'">')
+        + '<div id="cfg-veto-liste-zone" style="display:' + (c.veto_mode === 'liste_texte' ? '' : 'none') + '"><div class="field" style="margin-bottom:10px;"><label>Collez votre liste (un vétérinaire par ligne : nom, ville, téléphone)</label><textarea id="cfg-veto-liste" style="width:100%;height:140px;" placeholder="Dr Moreau, Clinique du Parc, Paris 15e, 01 45 67 89 10&#10;Clinique des Lilas, Lyon 3e, 04 78 00 00 00">' + v(c.veto_liste) + '</textarea></div></div>'
+        + '<div id="cfg-veto-lien-zone" style="display:' + (c.veto_mode === 'liste_lien' ? '' : 'none') + '">' + champ('cfg-veto-lien', 'Lien vers votre liste de vétérinaires', c.veto_lien, 'https://www.monasso.fr/veterinaires', 'url') + '</div>'
+        + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end (facultatif)', c.urgence, 'Clinique vétérinaire 24h/24 la plus proche, numéro d\'astreinte…')
+      : ligne('Vétérinaires', vetoTxt) + ligne('Urgences', c.urgence || '—')),
+    regles: () => carte('regles', '📜', 'Règles propres à votre structure', 'Article 3 du contrat (facultatif)', configSection === 'regles'
+      ? '<textarea id="cfg-regles" style="width:100%;height:110px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>'
+      : '<div style="font-size:13px;color:' + (c.regles ? 'var(--text)' : 'var(--text3)') + ';white-space:pre-wrap;line-height:1.6;">' + (c.regles ? escHtml(c.regles) : 'Aucune règle particulière.') + '</div>'),
+  };
+  const zone = document.getElementById('config-contenu');
+  if (configSection) {
+    zone.innerHTML = sections[configSection]() + actions;
+  } else {
+    zone.innerHTML = sections.structure() + sections.conditions() + sections.sante() + sections.regles()
+      + carte('contrat', '📄', 'Modèle de contrat d\'accueil', 'Généré automatiquement pour chaque accueil à partir des informations ci-dessus',
+        '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">La famille signe en premier, puis vous contresignez. Le contrat reprend vos conditions, vos vétérinaires et vos règles, ainsi que la fiche de l\'animal et les modalités de remise.</div>'
+        + '<button class="btn btn-p" style="font-size:12px;" onclick="apercuModeleContrat(this)">👁 Voir l\'aperçu du contrat</button>', '');
+  }
+  if (configSection) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function apercuModeleContrat(btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(API_URL + '/api/refuge/moi'.replace('/moi', '/modele-contrat'), { headers: { Authorization: 'Bearer ' + (getRefSession()?.token || '') } });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    const t = d.contenu;
+    ouvrirFenetre('<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;">Aperçu du contrat</div>'
+      + '<div style="background:#fff;color:#1f2937;border-radius:12px;padding:18px 16px;font-size:13px;line-height:1.65;">'
+      + '<div style="text-align:center;font-weight:700;font-size:16px;">' + escHtml(t.titre) + '</div>'
+      + '<div style="text-align:center;font-size:11px;color:#B45309;margin:4px 0 10px;">' + escHtml(t.avertissement || '') + '</div>'
+      + t.articles.map(a => '<div style="font-weight:700;margin:12px 0 4px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(p => '<p style="margin:0 0 6px;text-align:justify;">' + escHtml(p) + '</p>').join('')).join('')
+      + '</div>');
+  } catch (e) { showToast('⚠ ' + e.message); }
+  if (btn) btn.disabled = false;
 }
 
 async function enregistrerConfigRefuge() {
-  const val = (id) => document.getElementById(id)?.value || '';
+  const r = configRefuge || {}, c0 = r.details?.conditions || {};
+  // Champs affichés : leur valeur ; sinon, la valeur déjà enregistrée
+  const val = (id, existant) => { const el = document.getElementById(id); return el ? el.value : (existant || ''); };
   const btn = document.getElementById('cfg-btn'); btn.disabled = true; btn.textContent = 'Enregistrement…';
   try {
     const d = await refugeApi('PATCH', {
-      infos: { adresse: val('cfg-adresse'), telephone: val('cfg-tel'), site_web: val('cfg-site'), contact_prenom: val('cfg-cprenom'), contact_nom: val('cfg-cnom'), contact_fonction: val('cfg-cfonction') },
-      conditions: { nourriture: val('cfg-nourriture'), veterinaire: val('cfg-veterinaire'), transport: val('cfg-transport'),
-        materiel: [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value), indemnite: val('cfg-indemnite'),
-        veto_mode: val('cfg-veto-mode'), veto_lien: val('cfg-veto-lien'), veto_liste: val('cfg-veto-liste'), urgence: val('cfg-urgence'), regles: val('cfg-regles') },
+      infos: { adresse: val('cfg-adresse', r.adresse), telephone: val('cfg-tel', r.telephone), site_web: val('cfg-site', r.site_web), contact_prenom: val('cfg-cprenom', r.contact_prenom), contact_nom: val('cfg-cnom', r.contact_nom), contact_fonction: val('cfg-cfonction', r.contact_fonction) },
+      conditions: { nourriture: val('cfg-nourriture', c0.nourriture), veterinaire: val('cfg-veterinaire', c0.veterinaire), transport: val('cfg-transport', c0.transport),
+        materiel: document.querySelector('.cfg-mat') ? [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value) : (c0.materiel || []), indemnite: val('cfg-indemnite', c0.indemnite),
+        veto_mode: val('cfg-veto-mode', c0.veto_mode), veto_lien: val('cfg-veto-lien', c0.veto_lien), veto_liste: val('cfg-veto-liste', c0.veto_liste), urgence: val('cfg-urgence', c0.urgence), regles: val('cfg-regles', c0.regles) },
     });
     configRefuge = d.refuge; majEtatConfig(d.a_completer || []);
     showToast(d.a_completer?.length ? '✅ Enregistré · encore ' + d.a_completer.length + ' élément(s) à compléter' : '✅ Configuration complète');
+    afficherConfigRefuge();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
   } catch (e) { showToast('⚠ ' + e.message); }
   btn.disabled = false; btn.textContent = 'Enregistrer';
 }
