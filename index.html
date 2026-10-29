@@ -8079,6 +8079,16 @@ const LIB_DETAILS = {
 };
 const TYPE_STRUCTURE_TXT = { fourriere: 'Fourrière municipale', spa: 'SPA / Refuge', association: 'Association de protection animale', autre: 'Structure' };
 
+function blocVeterinaires(v) {
+  if (!v?.mode) return '';
+  const st = 'font-size:12px;color:var(--text2);margin-top:10px;line-height:1.7;';
+  const titre = '<b style="color:var(--text)">🩺 Vétérinaires</b><br>';
+  let corps = { liste_remise: 'La liste des vétérinaires partenaires vous est remise avec l\'animal.', au_choix: 'Vous pouvez consulter le vétérinaire de votre choix, selon les conditions de prise en charge du contrat.' }[v.mode] || '';
+  if (v.mode === 'liste_texte' && v.liste) corps = '<span style="white-space:pre-wrap;">' + escHtml(v.liste) + '</span>';
+  if (v.mode === 'liste_lien' && v.lien) corps = '<a href="' + escHtml(v.lien) + '" target="_blank" rel="noopener" style="color:var(--corail)">Voir la liste des vétérinaires partenaires ↗</a>';
+  return '<div style="' + st + '">' + titre + corps + (v.urgence ? '<br>🚨 Urgences : ' + escHtml(v.urgence) : '') + '</div>';
+}
+
 function ficheAnimalFA(matchId, section) {
   const p = (faPropositions || []).find(x => x.id === matchId); if (!p) return;
   const a = p.animal || {}, r = a.refuge || {};
@@ -8109,6 +8119,7 @@ function ficheAnimalFA(matchId, section) {
     + bloc('Le refuge', '<div style="font-size:14px;font-weight:700;color:var(--text);">' + escHtml(r.nom || '') + '</div>'
         + '<div style="font-size:12px;color:var(--text2);line-height:1.7;">' + escHtml(TYPE_STRUCTURE_TXT[r.type_structure] || '') + '<br>📍 ' + escHtml([r.adresse, [r.code_postal, r.ville].filter(Boolean).join(' ')].filter(Boolean).join(', ')) + '</div>'
         + (r.site_web ? '<div style="font-size:12px;margin-top:4px;"><a href="' + escHtml(/^https?:\/\//.test(r.site_web) ? r.site_web : 'https://' + r.site_web) + '" target="_blank" rel="noopener" style="color:var(--corail)">Site web ↗</a></div>' : '')
+        + blocVeterinaires(r.veterinaires)
         + (contact.length ? '<div style="font-size:12px;color:var(--text);margin-top:8px;line-height:1.7;">👤 ' + contact.map(escHtml).join('<br>') + '</div>'
            : '<div style="font-size:11px;color:var(--text3);margin-top:8px;">Le téléphone, l\'e-mail et le nom du référent s\'affichent une fois la proposition acceptée.</div>'), 'fiche-refuge')
     + (p.resume_ia ? bloc('Pourquoi cet animal vous est proposé', texte(p.resume_ia)) : ''));
@@ -8274,7 +8285,7 @@ const CFG_CHOIX = {
   nourriture: [['refuge_fournit', 'Fournie par le refuge'], ['rembourse', 'Achetée par la famille, remboursée sur justificatif'], ['famille', 'À la charge de la famille']],
   veterinaire: [['refuge_100', 'Pris en charge à 100 % par le refuge'], ['refuge_sur_accord', 'Pris en charge par le refuge, après accord (sauf urgence)'], ['partage', 'Répartis selon accord']],
   transport: [['refuge', 'Assurés ou remboursés par le refuge'], ['famille', 'À la charge de la famille'], ['selon_cas', 'Au cas par cas']],
-  veto_mode: [['liste_lien', 'Liste de vétérinaires partenaires en ligne (lien)'], ['liste_remise', 'Liste remise à la famille avec l\'animal'], ['au_choix', 'Vétérinaire au choix de la famille']],
+  veto_mode: [['liste_texte', 'Ma liste de vétérinaires partenaires (copier-coller)'], ['liste_lien', 'Liste de vétérinaires partenaires en ligne (lien)'], ['liste_remise', 'Liste remise à la famille avec l\'animal'], ['au_choix', 'Vétérinaire au choix de la famille']],
 };
 const CFG_MATERIEL = [['laisse', 'Laisse / collier / harnais'], ['gamelles', 'Gamelles'], ['couchage', 'Couchage'], ['caisse', 'Caisse de transport'], ['jouets', 'Jouets'], ['litiere', 'Litière et bac'], ['cage', 'Cage / enclos']];
 
@@ -8322,7 +8333,8 @@ function afficherConfigRefuge() {
       + CFG_MATERIEL.map(([k, t]) => '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:5px 10px;"><input type="checkbox" class="cfg-mat" value="' + k + '"' + ((c.materiel || []).includes(k) ? ' checked' : '') + ' style="width:15px;height:15px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(t) + '</label>').join('') + '</div></div>'
       + champ('cfg-indemnite', 'Indemnité versée à la famille (laisser vide si aucune)', c.indemnite, 'ex. 5 € par jour'))
     + carte('🩺', 'Santé et urgences', 'Reprises dans l\'article 5 du contrat',
-      choix('cfg-veto-mode', 'Vétérinaires', CFG_CHOIX.veto_mode, c.veto_mode).replace('<select id="cfg-veto-mode">', '<select id="cfg-veto-mode" onchange="document.getElementById(\'cfg-veto-lien-zone\').style.display=this.value===\'liste_lien\'?\'\':\'none\'">')
+      choix('cfg-veto-mode', 'Vétérinaires', CFG_CHOIX.veto_mode, c.veto_mode).replace('<select id="cfg-veto-mode">', '<select id="cfg-veto-mode" onchange="document.getElementById(\'cfg-veto-lien-zone\').style.display=this.value===\'liste_lien\'?\'\':\'none\';document.getElementById(\'cfg-veto-liste-zone\').style.display=this.value===\'liste_texte\'?\'\':\'none\'">')
+      + '<div id="cfg-veto-liste-zone" style="display:' + (c.veto_mode === 'liste_texte' ? '' : 'none') + '"><div class="field" style="margin-bottom:10px;"><label>Collez votre liste (un vétérinaire par ligne : nom, ville, téléphone)</label><textarea id="cfg-veto-liste" style="width:100%;height:140px;" placeholder="Dr Moreau, Clinique du Parc, Paris 15e, 01 45 67 89 10&#10;Clinique des Lilas, Lyon 3e, 04 78 00 00 00">' + v(c.veto_liste) + '</textarea></div></div>'
       + '<div id="cfg-veto-lien-zone" style="display:' + (c.veto_mode === 'liste_lien' ? '' : 'none') + '">' + champ('cfg-veto-lien', 'Lien vers votre liste de vétérinaires', c.veto_lien, 'https://www.monasso.fr/veterinaires', 'url') + '</div>'
       + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end (facultatif)', c.urgence, 'Clinique vétérinaire 24h/24 la plus proche, numéro d\'astreinte…'))
     + carte('📜', 'Règles propres à votre structure', 'Ajoutées à l\'article 3 du contrat (facultatif)',
@@ -8338,7 +8350,7 @@ async function enregistrerConfigRefuge() {
       infos: { adresse: val('cfg-adresse'), telephone: val('cfg-tel'), site_web: val('cfg-site'), contact_prenom: val('cfg-cprenom'), contact_nom: val('cfg-cnom'), contact_fonction: val('cfg-cfonction') },
       conditions: { nourriture: val('cfg-nourriture'), veterinaire: val('cfg-veterinaire'), transport: val('cfg-transport'),
         materiel: [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value), indemnite: val('cfg-indemnite'),
-        veto_mode: val('cfg-veto-mode'), veto_lien: val('cfg-veto-lien'), urgence: val('cfg-urgence'), regles: val('cfg-regles') },
+        veto_mode: val('cfg-veto-mode'), veto_lien: val('cfg-veto-lien'), veto_liste: val('cfg-veto-liste'), urgence: val('cfg-urgence'), regles: val('cfg-regles') },
     });
     configRefuge = d.refuge; majEtatConfig(d.a_completer || []);
     showToast(d.a_completer?.length ? '✅ Enregistré · encore ' + d.a_completer.length + ' élément(s) à compléter' : '✅ Configuration complète');
