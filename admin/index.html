@@ -1710,5 +1710,40 @@ async function lancerPurgeManuelle(btn) {
 
 suite().catch(() => ecran('ecran-login'));
 </script>
+<script>
+// ═══ Œil 👁 / 🙈 sur TOUS les champs mot de passe (y compris ceux ajoutés plus tard) ═══
+(function () {
+  function equiper(input) {
+    if (input.dataset.oeil) return;
+    const voisin = input.nextElementSibling;
+    if (voisin && (voisin.classList.contains('pwd-toggle') || voisin.dataset.oeil)) { input.dataset.oeil = '1'; return; }
+    input.dataset.oeil = '1';
+    const enveloppe = document.createElement('div');
+    enveloppe.style.cssText = 'position:relative;width:100%;';
+    input.parentNode.insertBefore(enveloppe, input);
+    enveloppe.appendChild(input);
+    input.style.paddingRight = '46px';
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.oeil = '1'; b.textContent = '👁';
+    b.setAttribute('aria-label', 'Afficher le mot de passe');
+    b.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:6px;min-height:0;width:auto;line-height:1;';
+    b.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const cache = input.type === 'password';
+      input.type = cache ? 'text' : 'password';
+      b.textContent = cache ? '🙈' : '👁';
+      b.setAttribute('aria-label', cache ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    });
+    enveloppe.appendChild(b);
+  }
+  const scanner = (racine) => (racine.querySelectorAll ? racine.querySelectorAll('input[type="password"]') : []).forEach(equiper);
+  const demarrer = () => {
+    scanner(document);
+    new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches?.('input[type="password"]')) equiper(n); scanner(n); } })))
+      .observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrer); else demarrer();
+})();
+</script>
 </body>
 </html>
