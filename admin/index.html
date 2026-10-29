@@ -1651,6 +1651,7 @@ async function dpoOuvrir(id) {
       + (inv.refuge ? section('Animaux publiés', inv.animaux.length, inv.animaux) : '')
       + section('Évaluations', inv.evaluations.length, inv.evaluations)
       + section('Contrats d\'accueil', (inv.contrats || []).length, inv.contrats || [])
+      + section('Commentaires de suivi', (inv.notes_suivi || []).length, inv.notes_suivi || [])
       + section('Journal des accès', inv.journal.total, inv.journal.lignes)
       + section('Jetons (mot de passe, blocage)', inv.jetons.reinitialisation_mdp + inv.jetons.blocage, inv.jetons)
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">'

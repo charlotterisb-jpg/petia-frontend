@@ -6729,16 +6729,16 @@ function afficherAnimaux() {
     const place = a.statut === 'en_accueil';
     const statut = place ? '<span class="ubadge pl">✓ Placé</span>' : '<span style="font-size:11px;color:var(--text3)">' + escHtml(STATUT_TXT[a.statut] || a.statut) + '</span>';
     const delaiCol = a.urgence === 'critique' ? 'var(--danger)' : a.urgence === 'haute' ? 'var(--warning)' : 'var(--text3)';
-    return '<div class="animal-row">'
+    return '<div class="animal-row" style="cursor:pointer" onclick="ouvrirSuiviAnimal(\'' + a.id + '\')">'
       + '<div class="av" style="background:' + u.bg + '">' + (ESPECE_ICON[a.espece] || '🐾') + '</div>'
       + '<div><div class="aname">' + escHtml(a.nom) + '</div><div class="ameta">' + escHtml(meta || '—') + '</div></div>'
       + '<div><span class="ubadge ' + u.cls + '">' + u.txt + '</span></div>'
       + '<div style="font-size:12px;font-weight:700;color:' + delaiCol + '" title="Depuis l\'enregistrement">' + depuisTxt(a.created_at) + '</div>'
       + matchsCellule(a)
       + '<div>' + statut + '</div>'
-      + '<div>' + (place
-          ? '<button class="btn btn-s" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();ouvrirMatchs(\'' + a.id + '\')">Suivi</button>'
-          : '<button class="btn btn-p" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();ouvrirMatchs(\'' + a.id + '\')">Matchs</button>')
+      + '<div style="display:flex;gap:5px;flex-wrap:wrap">'
+      + '<button class="btn btn-s" style="padding:5px 10px;font-size:11px" onclick="event.stopPropagation();ouvrirSuiviAnimal(\'' + a.id + '\')">Suivi</button>'
+      + '<button class="btn btn-p" style="padding:5px 10px;font-size:11px" onclick="event.stopPropagation();ouvrirMatchs(\'' + a.id + '\')">Matchs</button>'
       + '</div></div>';
   }).join('');
 }
@@ -8325,6 +8325,100 @@ async function enregistrerConfigRefuge() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) { showToast('⚠ ' + e.message); }
   btn.disabled = false; btn.textContent = 'Enregistrer';
+}
+</script>
+<script>
+// ═══ SUIVI D'UN ANIMAL (refuge) : accueils, contrats, journal ══════════════
+let suiviCourant = null;
+const ISSUE_TXT = { adopte: '🎉 Adopté', retour: '↩ Retour au refuge', transfere: '🔁 Transféré' };
+
+async function ouvrirSuiviAnimal(animalId) {
+  ouvrirFenetre('<div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">Chargement du suivi…</div>');
+  try {
+    const ref = getRefSession();
+    const res = await fetch(API_URL + '/api/animal/' + animalId + '/suivi', { headers: { Authorization: 'Bearer ' + (ref?.token || '') } });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    suiviCourant = d; afficherSuiviAnimal();
+  } catch (e) { ouvrirFenetre('<div style="padding:24px;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'); }
+}
+
+function afficherSuiviAnimal() {
+  const { animal: a, accueils, notes, propositions } = suiviCourant;
+  const df = (d) => d ? new Date(d.length === 10 ? d + 'T12:00:00' : d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const jours = (d1, d2) => { if (!d1) return null; const n = Math.round(((d2 ? new Date(d2) : new Date()) - new Date(d1)) / 86400000); return n >= 0 ? n : null; };
+  const titreSection = (t) => '<div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 8px;">' + t + '</div>';
+  const libAccueil = (m) => [m.famille?.prenom, m.famille?.nom].filter(Boolean).join(' ') + (m.date_debut_accueil ? ' · ' + df(m.date_debut_accueil) : '');
+
+  const cartesAccueils = accueils.length ? accueils.map(m => {
+    const f = m.famille || {};
+    const c = m.contrat;
+    let etat;
+    if (m.statut === 'termine') {
+      const n = jours(m.date_debut_accueil, m.date_fin_accueil);
+      etat = '<b style="color:var(--text)">' + (ISSUE_TXT[m.issue_fin] || '✓ Accueil terminé') + '</b> · du ' + df(m.date_debut_accueil) + ' au ' + df(m.date_fin_accueil) + (n != null ? ' (' + n + ' j)' : '');
+    } else if (m.statut === 'en_cours') {
+      const n = jours(m.date_debut_accueil);
+      etat = '<b style="color:var(--success)">🏠 En accueil</b> depuis le ' + df(m.date_debut_accueil) + (n != null ? ' (' + n + ' j)' : '');
+    } else {
+      etat = '<b style="color:var(--warning)">⏳ En préparation</b> · famille d\'accord le ' + df(m.date_reponse_fa);
+    }
+    const contrat = c ? (STATUT_CONTRAT[c.statut]?.txt || c.statut) + (c.refuge_signe_le ? ' · le ' + df(c.refuge_signe_le) : '') : 'Pas encore de contrat';
+    return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--text);">' + escHtml([f.prenom, f.nom].filter(Boolean).join(' ') || 'Famille') + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);line-height:1.7;">' + escHtml([[f.code_postal, f.ville].filter(Boolean).join(' '), f.telephone, f.email].filter(Boolean).join(' · ')) + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.6;">' + etat + '</div>'
+      + '<div style="font-size:12px;color:var(--text3);margin-top:4px;">📄 ' + escHtml(contrat) + '</div>'
+      + (c ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-s" style="font-size:11px;padding:5px 10px;" onclick="ouvrirContrat(\'ref\',\'' + m.id + '\')">Voir le contrat</button>'
+        + '<button class="btn btn-s" style="font-size:11px;padding:5px 10px;" onclick="telechargerContrat(\'ref\',\'' + m.id + '\',this)">⬇ PDF</button></div>' : '')
+      + '</div>';
+  }).join('') : '<div style="font-size:12px;color:var(--text3);">Aucun accueil pour l\'instant' + (propositions ? ' · ' + propositions + ' proposition(s) en cours dans les Matchs' : '') + '.</div>';
+
+  const optionsAccueil = accueils.map(m => '<option value="' + m.id + '">' + escHtml(libAccueil(m)) + '</option>').join('');
+  const journal = notes.length ? notes.map(n => {
+    const acc = accueils.find(m => m.id === n.match_id);
+    return '<div style="border-left:3px solid var(--border2);padding:6px 0 6px 12px;margin-bottom:8px;">'
+      + '<div style="font-size:11px;color:var(--text3);display:flex;gap:8px;align-items:center;">' + new Date(n.cree_le).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
+      + (acc ? ' · ' + escHtml([acc.famille?.prenom, acc.famille?.nom].filter(Boolean).join(' ')) : '')
+      + (n.de_moi ? '<button onclick="supprimerNoteSuivi(\'' + n.id + '\',this)" aria-label="Supprimer" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;">🗑</button>' : '') + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap;">' + escHtml(n.texte) + '</div></div>';
+  }).join('') : '<div style="font-size:12px;color:var(--text3);">Aucun commentaire pour l\'instant.</div>';
+
+  ouvrirFenetre('<div style="font-size:22px;font-weight:700;color:var(--text);">' + (ESPECE_ICON[a.espece] || '🐾') + ' ' + escHtml(a.nom) + '</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-top:2px;">' + escHtml([SOUS_ESPECE_TXT[a.sous_espece], a.race, ageTxt(a), STATUT_TXT[a.statut] || a.statut].filter(Boolean).join(' · ')) + ' · enregistré le ' + df(a.created_at) + '</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"><button class="btn btn-p" style="font-size:12px;padding:6px 12px;" onclick="fermerFenetre();ouvrirMatchs(\'' + a.id + '\')">Matchs et accueil en cours →</button></div>'
+    + titreSection('Historique des accueils (' + accueils.length + ')') + cartesAccueils
+    + titreSection('Journal de suivi')
+    + '<textarea id="suivi-texte" style="width:100%;height:80px;" placeholder="Visite, nouvelles de la famille, santé, comportement…"></textarea>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px;">'
+    + (accueils.length ? '<select id="suivi-accueil" style="flex:1;min-width:160px;"><option value="">Commentaire général</option>' + optionsAccueil + '</select>' : '')
+    + '<button class="btn btn-p co" id="suivi-btn" style="font-size:12px;" onclick="ajouterNoteSuivi()">Ajouter</button></div>'
+    + journal);
+}
+
+async function ajouterNoteSuivi() {
+  const texte = document.getElementById('suivi-texte').value.trim();
+  if (!texte) return showToast('⚠ Écrivez votre commentaire.');
+  const btn = document.getElementById('suivi-btn'); btn.disabled = true;
+  try {
+    const res = await fetch(API_URL + '/api/animal/' + suiviCourant.animal.id + '/notes', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (getRefSession()?.token || '') },
+      body: JSON.stringify({ texte, match_id: document.getElementById('suivi-accueil')?.value || undefined }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    suiviCourant.notes.unshift(d.note); afficherSuiviAnimal(); showToast('✅ Commentaire ajouté');
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+async function supprimerNoteSuivi(noteId, btn) {
+  if (!confirm('Supprimer ce commentaire ?')) return;
+  btn.disabled = true;
+  try {
+    const res = await fetch(API_URL + '/api/animal/' + suiviCourant.animal.id + '/notes/' + noteId, { method: 'DELETE', headers: { Authorization: 'Bearer ' + (getRefSession()?.token || '') } });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    suiviCourant.notes = suiviCourant.notes.filter(n => n.id !== noteId); afficherSuiviAnimal();
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
 }
 </script>
 </body>
