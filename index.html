@@ -7026,7 +7026,7 @@ function afficherMatchs(matchs, stats) {
     const auj = new Date().toISOString().slice(0, 10);
     let actions;
     if (m.statut === 'propose') actions = '<div style="display:flex;gap:9px;flex-wrap:wrap">'
-        + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'accepte\',this)">✓ Valider</button>'
+        + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="ouvrirModalites(\'' + m.id + '\')">✓ Valider</button>'
         + '<button class="btn btn-s" style="font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'refuse\',this)">Refuser</button></div>';
     else if (m.statut === 'accepte' && m.reponse_fa === 'oui') actions =
         '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:10px">✅ La famille a accepté. Une fois l\'animal arrivé chez elle, confirmez l\'arrivée.</div>'
@@ -7054,6 +7054,9 @@ function afficherMatchs(matchs, stats) {
       + (infos ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">' + escHtml(infos) + '</div>' : '')
       + (resumeIA ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">✦ ' + escHtml(resumeIA) + '</div>' : '')
       + (attention ? '<ul style="font-size:12px;color:var(--warning);margin:0 0 14px 18px;line-height:1.7">' + attention + '</ul>' : '')
+      + (m.modalites && ['accepte', 'en_cours'].includes(m.statut) ? '<div style="margin-bottom:12px;">' + texteModalites(m.modalites)
+          + (m.statut === 'accepte' ? '<button class="btn btn-s" style="font-size:11px;padding:5px 10px;margin-top:6px;" onclick=\'ouvrirModalites("' + m.id + '",' + escHtml(JSON.stringify(m.modalites)) + ')\'>Modifier les modalités</button>' : '') + '</div>'
+        : (m.statut === 'accepte' ? '<button class="btn btn-s" style="font-size:11px;padding:5px 10px;margin-bottom:12px;" onclick="ouvrirModalites(\'' + m.id + '\', {})">Préciser les modalités de remise</button>' : ''))
       + actions + '</div>';
   }).join('');
 }
@@ -7574,16 +7577,18 @@ function carteAnimalFA(p, actions) {
   const compat = [a.compatible_enfants === false && '🚫 Pas d\'enfants', a.compatible_chiens === false && '🚫 Pas de chiens', a.compatible_chats === false && '🚫 Pas de chats']
     .filter(Boolean).map(t => '<span style="font-size:10px;padding:3px 8px;border-radius:20px;background:var(--danger-bg);color:#FCA5A5;">' + t + '</span>').join(' ');
   const score = p.score != null ? '<div style="text-align:center;flex-shrink:0;"><div style="font-size:20px;font-weight:700;color:' + scoreCouleur(p.score) + '">' + p.score + '%</div><div style="font-size:10px;color:var(--text3)">compatibilité</div></div>' : '';
-  return '<div class="animal-compat-card" style="cursor:default">'
+  return '<div class="animal-compat-card" style="cursor:pointer" onclick="if(!event.target.closest(\'button\'))ficheAnimalFA(\'' + p.id + '\')">'
     + '<div class="acc-header"><div class="acc-emoji" style="background:' + u.bg + ';">' + (ESPECE_ICON[a.espece] || '🐾') + '</div>'
     + '<div style="flex:1;min-width:0;"><div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml(a.nom || 'Animal') + '</div>'
     + '<div style="font-size:12px;color:var(--text2);">' + escHtml(meta) + '</div>'
-    + (refuge ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;">🏢 ' + escHtml(refuge) + '</div>' : '')
+    + (refuge ? '<div style="font-size:12px;margin-top:3px;"><a href="#" onclick="event.stopPropagation();ficheAnimalFA(\'' + p.id + '\',\'fiche-refuge\');return false;" style="color:var(--corail);text-decoration:underline;">🏢 ' + escHtml(refuge) + '</a></div>' : '')
     + '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;"><span class="ubadge ' + u.cls + '">' + u.txt + '</span>' + compat + '</div></div>' + score + '</div>'
     + '<div style="padding:4px 18px 16px;">'
+    + (p.modalites && typeof texteModalites === 'function' ? '<div style="margin-top:10px;">' + texteModalites(p.modalites) + '</div>' : '')
     + (p.resume_ia ? '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin:10px 0 0;">✦ ' + escHtml(p.resume_ia) + '</div>' : '')
     + (a.description ? '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px;"><b style="color:var(--text)">Consignes du refuge :</b> ' + escHtml(a.description) + '</div>' : '')
     + (a.besoins_specifiques ? '<div style="font-size:12px;color:var(--warning);line-height:1.6;margin-top:6px;">⚠ ' + escHtml(a.besoins_specifiques) + '</div>' : '')
+    + '<div style="font-size:12px;color:var(--corail);margin-top:10px;font-weight:600;">Voir la fiche complète de ' + escHtml(a.nom || 'l\'animal') + ' →</div>'
     + (actions ? '<div style="margin-top:12px;">' + actions + '</div>' : '') + '</div></div>';
 }
 
@@ -8120,6 +8125,129 @@ document.addEventListener('DOMContentLoaded', () => setTimeout(() => {
     try { history.replaceState({ page: actif }, ''); } catch (_) {}
   }
 }, 0));
+</script>
+<script>
+// ═══ FENÊTRE GÉNÉRIQUE ═════════════════════════════════════════════════════
+function ouvrirFenetre(html) {
+  let o = document.getElementById('fenetre-petia');
+  if (!o) {
+    o = document.createElement('div');
+    o.id = 'fenetre-petia';
+    o.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:400;display:flex;align-items:flex-end;justify-content:center;';
+    o.addEventListener('click', e => { if (e.target === o) fermerFenetre(); });
+    document.body.appendChild(o);
+  }
+  o.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:22px 22px 0 0;width:100%;max-width:640px;max-height:88vh;overflow-y:auto;padding:22px 20px 34px;">'
+    + '<button onclick="fermerFenetre()" aria-label="Fermer" style="float:right;background:rgba(255,255,255,.08);border:none;color:var(--text2);width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>'
+    + html + '</div>';
+  o.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function fermerFenetre() {
+  const o = document.getElementById('fenetre-petia'); if (o) o.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// ═══ MODALITÉS DE REMISE DE L'ANIMAL (refuge) ══════════════════════════════
+const MODE_REMISE = {
+  famille_vient: { icone: '🚗', txt: 'La famille vient chercher l\'animal' },
+  refuge_amene: { icone: '🏠', txt: 'Le refuge amène l\'animal chez la famille' },
+  a_convenir: { icone: '📞', txt: 'À convenir ensemble par téléphone' },
+};
+function texteModalites(m) {
+  if (!m?.mode) return '';
+  const mode = MODE_REMISE[m.mode] || {};
+  const date = m.date ? new Date(m.date.length === 10 ? m.date + 'T12:00:00' : m.date).toLocaleString('fr-FR', m.date.length === 10 ? { dateStyle: 'full' } : { dateStyle: 'full', timeStyle: 'short' }) : '';
+  return '<div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--text2);line-height:1.7;">'
+    + '<b style="color:var(--text)">' + mode.icone + ' ' + escHtml(mode.txt) + '</b>'
+    + (date ? '<br>📅 ' + escHtml(date) : '') + (m.lieu ? '<br>📍 ' + escHtml(m.lieu) : '') + (m.note ? '<br>📝 ' + escHtml(m.note) : '') + '</div>';
+}
+
+function ouvrirModalites(matchId, existant) {
+  const m = existant || {};
+  const choix = Object.entries(MODE_REMISE).map(([k, v]) =>
+    '<label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:13px;color:var(--text);">'
+    + '<input type="radio" name="mod-mode" value="' + k + '"' + (m.mode === k ? ' checked' : '') + ' style="width:18px;height:18px;min-height:0;margin:0;appearance:auto;-webkit-appearance:radio;accent-color:var(--corail);"> ' + v.icone + ' ' + v.txt + '</label>').join('');
+  ouvrirFenetre('<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">Remise de l\'animal</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6;">La famille voit ces informations dès que vous validez, avant même de répondre.</div>'
+    + choix
+    + '<div class="field" style="margin-top:12px;"><label>Date et heure prévues (facultatif)</label><input type="datetime-local" id="mod-date" value="' + escHtml(m.date && m.date.length > 10 ? m.date : (m.date ? m.date + 'T10:00' : '')) + '"/></div>'
+    + '<div class="field"><label>Lieu (facultatif)</label><input type="text" id="mod-lieu" placeholder="Adresse du refuge, de la famille…" value="' + escHtml(m.lieu || '') + '"/></div>'
+    + '<div class="field"><label>Informations pour la famille (facultatif)</label><textarea id="mod-note" style="height:80px;" placeholder="Apporter une caisse de transport, prévoir 1 h sur place, documents…">' + escHtml(m.note || '') + '</textarea></div>'
+    + '<button class="btn btn-p co" id="mod-btn" style="width:100%;justify-content:center;" onclick="validerModalites(\'' + matchId + '\',' + (existant ? 'true' : 'false') + ')">'
+    + (existant ? 'Enregistrer les modalités' : '✓ Valider et proposer à la famille') + '</button>');
+}
+
+async function validerModalites(matchId, modification) {
+  const mode = document.querySelector('input[name="mod-mode"]:checked')?.value;
+  if (!mode) return showToast('⚠ Choisissez comment l\'animal sera remis à la famille.');
+  const modalites = { mode, date: document.getElementById('mod-date').value || null, lieu: document.getElementById('mod-lieu').value, note: document.getElementById('mod-note').value };
+  const ref = getRefSession(); if (!ref?.token) return;
+  const btn = document.getElementById('mod-btn'); btn.disabled = true;
+  try {
+    const res = await fetch(API_URL + '/api/matching/match/' + matchId + (modification ? '/modalites' : ''), {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + ref.token },
+      body: JSON.stringify(modification ? { modalites } : { statut: 'accepte', modalites }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur');
+    fermerFenetre();
+    showToast(modification ? '✅ Modalités mises à jour' : '✅ Match validé : la famille voit la proposition et les modalités');
+    chargerMatchs(animalMatchsId); chargerAnimaux();
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+// ═══ FICHES CLIQUABLES CÔTÉ FAMILLE ════════════════════════════════════════
+const LIB_ANIMAL = {
+  temps_seul_max: { '0_2': '0–2 h', '2_4': '2–4 h', '4_6': '4–6 h', '6_8': '6–8 h', '8_10': '8–10 h', '10_plus': '10 h et plus', flexible: 'flexible' },
+  presence_constante: { oui: 'présence constante nécessaire', partiel: 'présence partielle', non: 'peut rester seul' },
+  niveau_exercice: { faible: 'faible', moyen: 'moyen', eleve: 'élevé' },
+  escaliers: { ok: 'escaliers sans problème', difficile: 'escaliers difficiles', impossible: 'pas d\'escaliers' },
+  vehicule_requis: { obligatoire: 'véhicule obligatoire', souhaitable: 'véhicule souhaitable', non: 'véhicule non nécessaire' },
+  sortie_sans_laisse: { oui: 'oui', non: 'non, toujours en laisse', enclos_seulement: 'en enclos seulement' },
+  experience_fa_requise: { debutant: 'famille débutante possible', intermediaire: 'un peu d\'expérience', confirme: 'famille confirmée', expert: 'famille experte' },
+};
+const LIB_DETAILS = {
+  morsure: 'Antécédents de morsure', etat_sante: 'État de santé', problemes_sante: 'Problèmes de santé', duree_accueil: 'Durée d\'accueil prévue',
+  date_limite: 'À placer avant le', appartement_ok: 'Appartement possible', fa_debutante_ok: 'Famille débutante possible',
+  jardin_obligatoire: 'Jardin obligatoire', tolere_solitude_6h: 'Supporte 6 h seul', categorie_legale: 'Catégorie légale', traitement: 'Traitement',
+};
+const TYPE_STRUCTURE_TXT = { fourriere: 'Fourrière municipale', spa: 'SPA / Refuge', association: 'Association de protection animale', autre: 'Structure' };
+
+function ficheAnimalFA(matchId, section) {
+  const p = (faPropositions || []).find(x => x.id === matchId); if (!p) return;
+  const a = p.animal || {}, r = a.refuge || {};
+  const lg = (k, v) => v || v === 0 ? '<div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text2);">' + escHtml(k) + '</span><span style="color:var(--text);text-align:right;">' + escHtml(v) + '</span></div>' : '';
+  const bloc = (titre, contenu, id) => contenu ? '<div ' + (id ? 'id="' + id + '" ' : '') + 'style="margin-top:18px;"><div style="font-size:11px;font-weight:700;color:var(--corail);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">' + titre + '</div>' + contenu + '</div>' : '';
+  const texte = (t) => t ? '<div style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">' + escHtml(t) + '</div>' : '';
+  const ouiNon = (v) => v === true ? 'Oui' : v === false ? 'Non' : null;
+  const commun = a.details?.commun || {};
+  const details = Object.entries(commun).filter(([k, v]) => LIB_DETAILS[k] && v != null && v !== '' && !(Array.isArray(v) && !v.length))
+    .map(([k, v]) => lg(LIB_DETAILS[k], Array.isArray(v) ? v.join(', ') : (k === 'date_limite' ? new Date(v + 'T12:00:00').toLocaleDateString('fr-FR') : String(v)))).join('');
+  const L = LIB_ANIMAL;
+  const lib = (m, v) => v ? (m[v] || String(v).replace(/_/g, ' ')) : null;
+  const contact = [r.contact_prenom && [r.contact_prenom, r.contact_nom].filter(Boolean).join(' ') + (r.contact_fonction ? ' (' + r.contact_fonction + ')' : ''), r.telephone, r.email].filter(Boolean);
+  ouvrirFenetre(
+    '<div style="font-size:22px;font-weight:700;color:var(--text);">' + (ESPECE_ICON[a.espece] || '🐾') + ' ' + escHtml(a.nom || 'Animal') + '</div>'
+    + '<div style="font-size:13px;color:var(--text2);margin:4px 0 0;">' + escHtml([SOUS_ESPECE_TXT[a.sous_espece], a.race, ageTxt(a), FA_LIB.sexe[a.sexe], a.poids_kg ? a.poids_kg + ' kg' : ''].filter(Boolean).join(' · ')) + '</div>'
+    + bloc('Remise de l\'animal', p.modalites ? texteModalites(p.modalites) : '<div style="font-size:12px;color:var(--text3);">Le refuge n\'a pas encore précisé les modalités.</div>', 'fiche-remise')
+    + bloc('Consignes du refuge', texte(a.description))
+    + bloc('Besoins particuliers', texte(a.besoins_specifiques))
+    + bloc('Caractère', texte(a.comportement))
+    + bloc('Son histoire', texte(a.historique))
+    + bloc('Au quotidien', lg('Stérilisé(e)', ouiNon(a.sterilise)) + lg('Temps seul maximum', lib(L.temps_seul_max, a.temps_seul_max)) + lg('Présence', lib(L.presence_constante, a.presence_constante))
+        + lg('Balades par jour', a.balades_min_jour) + lg('Besoin d\'exercice', lib(L.niveau_exercice, a.niveau_exercice)) + lg('Escaliers', lib(L.escaliers, a.escaliers))
+        + lg('Clôture minimum', a.cloture_min && a.cloture_min !== 'aucune' ? a.cloture_min : null) + lg('Sans laisse', lib(L.sortie_sans_laisse, a.sortie_sans_laisse))
+        + lg('Véhicule', lib(L.vehicule_requis, a.vehicule_requis)) + lg('Expérience demandée', lib(L.experience_fa_requise, a.experience_fa_requise)))
+    + bloc('Ententes', lg('Enfants', ouiNon(a.compatible_enfants)) + lg('Chiens', ouiNon(a.compatible_chiens)) + lg('Chats', ouiNon(a.compatible_chats)))
+    + bloc('Santé et accueil', details)
+    + bloc('Le refuge', '<div style="font-size:14px;font-weight:700;color:var(--text);">' + escHtml(r.nom || '') + '</div>'
+        + '<div style="font-size:12px;color:var(--text2);line-height:1.7;">' + escHtml(TYPE_STRUCTURE_TXT[r.type_structure] || '') + '<br>📍 ' + escHtml([r.adresse, [r.code_postal, r.ville].filter(Boolean).join(' ')].filter(Boolean).join(', ')) + '</div>'
+        + (r.site_web ? '<div style="font-size:12px;margin-top:4px;"><a href="' + escHtml(/^https?:\/\//.test(r.site_web) ? r.site_web : 'https://' + r.site_web) + '" target="_blank" rel="noopener" style="color:var(--corail)">Site web ↗</a></div>' : '')
+        + (contact.length ? '<div style="font-size:12px;color:var(--text);margin-top:8px;line-height:1.7;">👤 ' + contact.map(escHtml).join('<br>') + '</div>'
+           : '<div style="font-size:11px;color:var(--text3);margin-top:8px;">Le téléphone, l\'e-mail et le nom du référent s\'affichent une fois la proposition acceptée.</div>'), 'fiche-refuge')
+    + (p.resume_ia ? bloc('Pourquoi cet animal vous est proposé', texte(p.resume_ia)) : ''));
+  if (section) setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
 </script>
 </body>
 </html>
