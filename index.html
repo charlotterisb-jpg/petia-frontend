@@ -3964,6 +3964,7 @@ Signature électronique validée par l'Association</div>
 
       <div id="fa-tab-profil" style="display:none;">
         <div id="fa-profil-contenu"></div>
+        <div id="fa-documents"></div>
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
           <div>
             <div style="font-size:13px;font-weight:700;color:var(--text);">Droits RGPD & réclamations</div>
@@ -6963,6 +6964,7 @@ function afficherMatchs(matchs, stats) {
       + ((f.telephone || f.email) ? '<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:10px;padding:8px 12px;margin-bottom:10px;line-height:1.7">👤 ' + escHtml([[f.prenom, f.nom].filter(Boolean).join(' '), f.telephone, f.email, f.adresse].filter(Boolean).join(' · ')) + '</div>' : '')
       + (resumeIA ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">✦ ' + escHtml(resumeIA) + '</div>' : '')
       + (attention ? '<ul style="font-size:12px;color:var(--warning);margin:0 0 14px 18px;line-height:1.7">' + attention + '</ul>' : '')
+      + (m.reponse_fa === 'oui' && ['accepte', 'en_cours'].includes(m.statut) && typeof blocDocumentsRefuge === 'function' ? blocDocumentsRefuge(m) : '')
       + (m.modalites && ['accepte', 'en_cours'].includes(m.statut) ? '<div style="margin-bottom:12px;">' + texteModalites(m.modalites)
           + (m.statut === 'accepte' ? '<button class="btn btn-s" style="font-size:11px;padding:5px 10px;margin-top:6px;" onclick=\'ouvrirModalites("' + m.id + '",' + escHtml(JSON.stringify(m.modalites)) + ')\'>Modifier les modalités</button>' : '') + '</div>'
         : (m.statut === 'accepte' ? '<button class="btn btn-s" style="font-size:11px;padding:5px 10px;margin-bottom:12px;" onclick="ouvrirModalites(\'' + m.id + '\', {})">Préciser les modalités de remise</button>' : ''))
@@ -7518,7 +7520,7 @@ function afficherPropositionsFA() {
     else if (p.reponse_fa === 'oui') {
       const r = p.animal?.refuge || {};
       const st = p.contrat?.statut || 'a_signer_fa';
-      actions = (st === 'a_signer_fa'
+      actions = (typeof blocDocumentsFA === 'function' ? blocDocumentsFA(p) : '') + (st === 'a_signer_fa'
           ? '<button class="btn btn-p co" style="width:100%;justify-content:center;font-size:13px;margin-bottom:8px;" onclick="ouvrirContrat(\'fa\',\'' + p.id + '\')">✍️ Lire et signer le contrat d\'accueil</button>'
           : '<div style="font-size:12px;font-weight:600;color:' + STATUT_CONTRAT[st].couleur + ';margin-bottom:6px;">' + (st === 'a_signer_refuge' ? '✍️ Vous avez signé · en attente de la signature du refuge' : STATUT_CONTRAT[st].txt) + '</div>'
             + '<button class="btn btn-s" style="font-size:12px;margin-bottom:8px;" onclick="ouvrirContrat(\'fa\',\'' + p.id + '\')">📄 Voir le contrat</button>')
@@ -7567,6 +7569,7 @@ function afficherProfilFA() {
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;"><select id="fa-dispo-select" style="flex:1;min-width:180px">'
       + Object.entries(FA_LIB.dispo).map(([v, t]) => '<option value="' + v + '"' + (f.disponible_le === v ? ' selected' : '') + '>' + t + '</option>').join('')
       + '</select><button class="btn btn-p" style="font-size:12px" onclick="enregistrerDispoFA(this)">Enregistrer</button></div>');
+  if (typeof chargerCoffreFA === 'function') chargerCoffreFA();
 }
 
 async function enregistrerDispoFA(btn) {
@@ -8218,7 +8221,13 @@ function afficherContrat(profil, matchId, c) {
     + '<div style="font-size:10px;color:var(--text3);margin-top:4px;word-break:break-all;">Empreinte SHA-256 : ' + escHtml(c.empreinte) + '</div>';
   const champ = (id, label, type, extra) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><input id="' + id + '" type="' + type + '" ' + (extra || '') + '/></div>';
   let formulaire = '';
-  if (aSigner && !mfa) {
+  const propFA = profil === 'fa' ? (faPropositions || []).find(x => x.id === matchId) : null;
+  const docsManquants = (propFA?.documents || []).filter(d => d.obligatoire && d.statut !== 'valide');
+  if (aSigner && docsManquants.length) {
+    formulaire = '<div style="margin-top:16px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.7;">'
+      + '<b style="color:var(--warning)">📁 Documents à fournir avant de signer</b><br>Le refuge doit d\'abord recevoir et valider : ' + docsManquants.map(d => escHtml(d.libelle) + ' (' + (STATUT_DOC[d.statut]?.txt || '') + ')').join(', ')
+      + '.<br>Fermez cette fenêtre et utilisez le bloc « Documents demandés par le refuge » sur la proposition.</div>';
+  } else if (aSigner && !mfa) {
     formulaire = '<div style="margin-top:16px;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(43,78,212,.12));border:1px solid rgba(124,58,237,.35);border-radius:14px;padding:14px 16px;">'
       + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">🔐 Double authentification requise pour signer</div>'
       + '<div style="font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:12px;">Pour que personne ne puisse signer à votre place, même avec votre mot de passe, la signature demande un code Google Authenticator. L\'activation prend une minute ; revenez ensuite sur ce contrat.</div>'
@@ -8401,6 +8410,17 @@ function afficherConfigRefuge(section) {
         + '<div id="cfg-veto-lien-zone" style="display:' + (c.veto_mode === 'liste_lien' ? '' : 'none') + '">' + champ('cfg-veto-lien', 'Lien vers votre liste de vétérinaires', c.veto_lien, 'https://www.monasso.fr/veterinaires', 'url') + '</div>'
         + champ('cfg-urgence', 'En cas d\'urgence la nuit / le week-end (facultatif)', c.urgence, 'Clinique vétérinaire 24h/24 la plus proche, numéro d\'astreinte…')
       : ligne('Vétérinaires', vetoTxt) + ligne('Urgences', c.urgence || '—')),
+    documents: () => {
+      const dd = r.details?.documents_defaut || [];
+      const parType = Object.fromEntries(dd.map(d => [d.type, d]));
+      return carte('documents', '📁', 'Documents demandés aux familles', 'Demandés automatiquement quand une famille accepte un de vos animaux', configSection === 'documents'
+        ? Object.entries(TYPES_DOC_TXT).map(([k, t]) => '<div style="padding:8px 0;border-bottom:1px solid var(--border);">'
+            + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;"><input type="checkbox" class="cfg-doc" value="' + k + '"' + (parType[k] ? ' checked' : '') + ' style="width:16px;height:16px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(t) + '</label>'
+            + (k === 'autre' ? '<input id="cfg-doc-lib-autre" placeholder="Précisez le document" value="' + v(parType.autre?.libelle && parType.autre.libelle !== t ? parType.autre.libelle : '') + '" style="margin-top:6px;"/>' : '')
+            + '<label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin:6px 0 0 24px;"><input type="checkbox" id="cfg-doc-obl-' + k + '"' + (parType[k] ? (parType[k].obligatoire !== false ? ' checked' : '') : ' checked') + ' style="width:14px;height:14px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;"> obligatoire avant la signature du contrat</label></div>').join('')
+          + '<div style="font-size:11px;color:var(--text3);margin-top:8px;">Vous pouvez aussi demander un document ponctuel pour un accueil, depuis les Matchs de l\'animal.</div>'
+        : (dd.length ? dd.map(d => ligne(d.libelle, d.obligatoire !== false ? 'Obligatoire' : 'Facultatif')).join('') : '<div style="font-size:13px;color:var(--text3);">Aucun document demandé par défaut.</div>'));
+    },
     regles: () => carte('regles', '📜', 'Règles propres à votre structure', 'Article 3 du contrat (facultatif)', configSection === 'regles'
       ? '<textarea id="cfg-regles" style="width:100%;height:110px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>'
       : '<div style="font-size:13px;color:' + (c.regles ? 'var(--text)' : 'var(--text3)') + ';white-space:pre-wrap;line-height:1.6;">' + (c.regles ? escHtml(c.regles) : 'Aucune règle particulière.') + '</div>'),
@@ -8409,7 +8429,7 @@ function afficherConfigRefuge(section) {
   if (configSection) {
     zone.innerHTML = sections[configSection]() + actions;
   } else {
-    zone.innerHTML = sections.structure() + sections.conditions() + sections.sante() + sections.regles()
+    zone.innerHTML = sections.structure() + sections.conditions() + sections.sante() + sections.documents() + sections.regles()
       + carte('contrat', '📄', 'Modèle de contrat d\'accueil', 'Généré automatiquement pour chaque accueil à partir des informations ci-dessus',
         '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">La famille signe en premier, puis vous contresignez. Le contrat reprend vos conditions, vos vétérinaires et vos règles, ainsi que la fiche de l\'animal et les modalités de remise.</div>'
         + '<button class="btn btn-p" style="font-size:12px;" onclick="apercuModeleContrat(this)">👁 Voir l\'aperçu du contrat</button>', '');
@@ -8440,7 +8460,12 @@ async function enregistrerConfigRefuge() {
   const val = (id, existant) => { const el = document.getElementById(id); return el ? el.value : (existant || ''); };
   const btn = document.getElementById('cfg-btn'); btn.disabled = true; btn.textContent = 'Enregistrement…';
   try {
+    const docsDefaut = document.querySelector('.cfg-doc')
+      ? [...document.querySelectorAll('.cfg-doc:checked')].map(x => ({ type: x.value, obligatoire: document.getElementById('cfg-doc-obl-' + x.value).checked,
+          libelle: x.value === 'autre' && document.getElementById('cfg-doc-lib-autre').value.trim() ? document.getElementById('cfg-doc-lib-autre').value.trim() : undefined }))
+      : undefined;
     const d = await refugeApi('PATCH', {
+      documents_defaut: docsDefaut,
       infos: { adresse: val('cfg-adresse', r.adresse), telephone: val('cfg-tel', r.telephone), site_web: val('cfg-site', r.site_web), contact_prenom: val('cfg-cprenom', r.contact_prenom), contact_nom: val('cfg-cnom', r.contact_nom), contact_fonction: val('cfg-cfonction', r.contact_fonction) },
       conditions: { nourriture: val('cfg-nourriture', c0.nourriture), veterinaire: val('cfg-veterinaire', c0.veterinaire), transport: val('cfg-transport', c0.transport),
         materiel: document.querySelector('.cfg-mat') ? [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value) : (c0.materiel || []), indemnite: val('cfg-indemnite', c0.indemnite),
@@ -8583,6 +8608,176 @@ async function supprimerNoteSuivi(noteId, btn) {
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrer); else demarrer();
 })();
+</script>
+<script>
+// ═══ DOCUMENTS : coffre-fort de la famille, demandes du refuge ═════════════
+const TYPES_DOC_TXT = { attestation_rc: 'Attestation d\'assurance responsabilité civile', justificatif_domicile: 'Justificatif de domicile', accord_bailleur: 'Accord du propriétaire / règlement de copropriété', autre: 'Autre document' };
+const STATUT_DOC = {
+  demande: { txt: '📤 À fournir', couleur: 'var(--warning)' },
+  fourni: { txt: '⏳ Transmis, en attente de vérification', couleur: 'var(--text2)' },
+  valide: { txt: '✅ Validé', couleur: 'var(--success)' },
+  refuse: { txt: '❌ Refusé', couleur: 'var(--danger)' },
+};
+const tailleTxt = (o) => o > 1048576 ? (o / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(o / 1024)) + ' Ko';
+let coffreFA = null;
+
+function lireFichier(input) {
+  return new Promise((ok, ko) => {
+    const f = input.files?.[0];
+    if (!f) return ko(new Error('Choisissez un fichier.'));
+    if (f.size > 5 * 1024 * 1024) return ko(new Error('Fichier trop lourd (5 Mo maximum).'));
+    if (!/\.(pdf|jpe?g|png)$/i.test(f.name)) return ko(new Error('Format accepté : PDF, JPG ou PNG.'));
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result));
+    r.onerror = () => ko(new Error('Lecture du fichier impossible.'));
+    r.readAsDataURL(f);
+  });
+}
+
+async function ouvrirLienDocument(url) {
+  const ref = url.includes('/api/fa/') ? MFA_PROFILS.fa.session() : getRefSession();
+  const fenetre = window.open('', '_blank');
+  try {
+    const res = await fetch(API_URL + url, { headers: { Authorization: 'Bearer ' + (ref?.token || '') } });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Document indisponible.');
+    if (fenetre) fenetre.location = d.url; else window.location = d.url;
+  } catch (e) { if (fenetre) fenetre.close(); showToast('⚠ ' + e.message); }
+}
+
+// ── Famille : coffre-fort (onglet Profil)
+async function chargerCoffreFA() {
+  const zone = document.getElementById('fa-documents');
+  try {
+    const premier = coffreFA === null;
+    coffreFA = (await faFetch('/documents')).documents || []; afficherCoffreFA();
+    if (premier && typeof afficherPropositionsFA === 'function') afficherPropositionsFA();
+  }
+  catch (e) { if (zone) zone.innerHTML = '<div style="font-size:12px;color:var(--danger)">' + escHtml(e.message) + '</div>'; }
+}
+
+function formulaireDepot(idSuffixe, demandeId, typeDefaut) {
+  return '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">'
+    + (demandeId ? '' : '<select id="dep-type-' + idSuffixe + '">' + Object.entries(TYPES_DOC_TXT).map(([k, t]) => '<option value="' + k + '"' + (k === typeDefaut ? ' selected' : '') + '>' + escHtml(t) + '</option>').join('') + '</select>')
+    + '<input type="file" id="dep-fichier-' + idSuffixe + '" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" style="font-size:12px;"/>'
+    + '<button class="btn btn-p" style="font-size:12px;" onclick="deposerDocumentFA(\'' + idSuffixe + '\',' + (demandeId ? '\'' + demandeId + '\',\'' + (typeDefaut || 'autre') + '\'' : 'null,null') + ',this)">⬆ Déposer</button>'
+    + '<div style="font-size:11px;color:var(--text3);">PDF, JPG ou PNG · 5 Mo maximum · conservé au plus 3 mois après l\'accueil</div></div>';
+}
+
+function afficherCoffreFA() {
+  const zone = document.getElementById('fa-documents'); if (!zone) return;
+  const liste = (coffreFA || []).map(d => '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">'
+    + '<span style="flex:1;color:var(--text);">📄 ' + escHtml(d.libelle) + '<br><span style="color:var(--text3);">' + new Date(d.depose_le).toLocaleDateString('fr-FR') + ' · ' + tailleTxt(d.taille) + '</span></span>'
+    + '<button class="btn btn-s" style="font-size:11px;padding:4px 9px;" onclick="ouvrirLienDocument(\'/api/fa/documents/' + d.id + '/lien\')">Voir</button>'
+    + '<button class="btn btn-s" style="font-size:11px;padding:4px 9px;color:#FCA5A5;" onclick="supprimerDocumentFA(\'' + d.id + '\',this)">🗑</button></div>').join('');
+  zone.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:14px 20px;margin-bottom:14px;">'
+    + '<div style="font-size:13px;font-weight:700;color:var(--text);">📁 Mes documents</div>'
+    + '<div style="font-size:11px;color:var(--text3);margin:2px 0 8px;">Déposés une fois, réutilisables pour chaque refuge. Un refuge ne voit un document que si vous le joignez à sa demande.</div>'
+    + (liste || '<div style="font-size:12px;color:var(--text3);padding:6px 0;">Aucun document.</div>')
+    + '<details style="margin-top:10px;"><summary style="font-size:12px;color:var(--corail);cursor:pointer;">+ Ajouter un document</summary>' + formulaireDepot('coffre') + '</details></div>';
+}
+
+async function deposerDocumentFA(suffixe, demandeId, type, btn) {
+  try {
+    const base64 = await lireFichier(document.getElementById('dep-fichier-' + suffixe));
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    const t = demandeId ? type : document.getElementById('dep-type-' + suffixe).value;
+    await faFetch('/documents', { method: 'POST', body: JSON.stringify({ type: t, base64, demande_id: demandeId || undefined }) });
+    showToast(demandeId ? '✅ Document transmis au refuge' : '✅ Document ajouté à votre coffre-fort');
+    await chargerEspaceFA(); chargerCoffreFA();
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; btn.textContent = '⬆ Déposer'; }
+}
+
+async function supprimerDocumentFA(id, btn) {
+  if (!confirm('Supprimer ce document ? Les refuges à qui vous l\'avez transmis ne pourront plus le consulter.')) return;
+  btn.disabled = true;
+  try { await faFetch('/documents/' + id, { method: 'DELETE' }); showToast('Document supprimé'); chargerCoffreFA(); chargerEspaceFA(); }
+  catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+async function joindreDocumentFA(demandeId, btn) {
+  const docId = document.getElementById('joindre-' + demandeId)?.value;
+  if (!docId) return showToast('⚠ Choisissez un document de votre coffre-fort.');
+  btn.disabled = true;
+  try { await faFetch('/demandes/' + demandeId, { method: 'PATCH', body: JSON.stringify({ document_id: docId }) }); showToast('✅ Document transmis au refuge'); chargerEspaceFA(); }
+  catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+
+// Bloc « documents demandés » sur la proposition acceptée (famille)
+function blocDocumentsFA(p) {
+  const dd = p.documents || [];
+  if (!dd.length) return '';
+  if (coffreFA === null) chargerCoffreFA();
+  const options = (coffreFA || []).map(d => '<option value="' + d.id + '">' + escHtml(d.libelle) + '</option>').join('');
+  return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:10px;">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">📁 Documents demandés par le refuge</div>'
+    + dd.map(d => {
+      const st = STATUT_DOC[d.statut] || STATUT_DOC.demande;
+      const aFaire = d.statut === 'demande' || d.statut === 'refuse';
+      return '<div style="padding:8px 0;border-top:1px solid var(--border);font-size:12px;">'
+        + '<div style="color:var(--text);">' + escHtml(d.libelle) + (d.obligatoire ? ' <span style="color:var(--warning);font-size:11px;">· obligatoire</span>' : '') + '</div>'
+        + '<div style="color:' + st.couleur + ';font-weight:600;">' + st.txt + (d.document ? ' · ' + escHtml(d.document.libelle) : '') + '</div>'
+        + (d.statut === 'refuse' && d.motif_refus ? '<div style="color:var(--danger);">Motif : ' + escHtml(d.motif_refus) + '</div>' : '')
+        + (aFaire ? (options ? '<div style="display:flex;gap:6px;margin-top:6px;"><select id="joindre-' + d.id + '" style="flex:1;font-size:12px;"><option value="">Choisir dans mon coffre-fort…</option>' + options + '</select>'
+            + '<button class="btn btn-s" style="font-size:11px;padding:4px 10px;" onclick="joindreDocumentFA(\'' + d.id + '\',this)">Joindre</button></div>' : '')
+          + '<details style="margin-top:4px;"><summary style="font-size:11px;color:var(--corail);cursor:pointer;">Déposer un nouveau fichier</summary>' + formulaireDepot('dem-' + d.id, d.id, d.type) + '</details>' : '')
+        + '</div>';
+    }).join('') + '</div>';
+}
+
+// ── Refuge : documents de l'accueil (dans les Matchs)
+function blocDocumentsRefuge(m) {
+  const dd = m.documents || [];
+  const lignes = dd.map(d => {
+    const st = STATUT_DOC[d.statut] || STATUT_DOC.demande;
+    return '<div style="padding:8px 0;border-top:1px solid var(--border);font-size:12px;">'
+      + '<div style="color:var(--text);">' + escHtml(d.libelle) + (d.obligatoire ? ' <span style="color:var(--warning);font-size:11px;">· obligatoire</span>' : '') + '</div>'
+      + '<div style="color:' + st.couleur + ';font-weight:600;">' + (d.statut === 'fourni' ? '📥 Reçu, à vérifier' : st.txt) + '</div>'
+      + (d.statut === 'refuse' && d.motif_refus ? '<div style="color:var(--text3);">Motif : ' + escHtml(d.motif_refus) + '</div>' : '')
+      + '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">'
+      + (d.document ? '<button class="btn btn-s" style="font-size:11px;padding:4px 9px;" onclick="ouvrirLienDocument(\'/api/matching/documents/' + d.id + '/lien\')">Voir</button>' : '')
+      + (d.statut === 'fourni' ? '<button class="btn btn-p" style="font-size:11px;padding:4px 9px;" onclick="deciderDocument(\'' + d.id + '\',\'valide\',this)">✓ Valider</button><button class="btn btn-s" style="font-size:11px;padding:4px 9px;color:#FCA5A5;" onclick="deciderDocument(\'' + d.id + '\',\'refuse\',this)">Refuser</button>' : '')
+      + (d.statut !== 'valide' ? '<button class="btn btn-s" style="font-size:11px;padding:4px 9px;" onclick="retirerDemandeDocument(\'' + d.id + '\',this)">Retirer</button>' : '')
+      + '</div></div>';
+  }).join('');
+  return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:12px;">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">📁 Documents de la famille</div>'
+    + (lignes || '<div style="font-size:12px;color:var(--text3);">Aucun document demandé.</div>')
+    + '<details style="margin-top:8px;"><summary style="font-size:12px;color:var(--corail);cursor:pointer;">+ Demander un document</summary>'
+    + '<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;"><select id="dem-type-' + m.id + '">' + Object.entries(TYPES_DOC_TXT).map(([k, t]) => '<option value="' + k + '">' + escHtml(t) + '</option>').join('') + '</select>'
+    + '<input id="dem-lib-' + m.id + '" placeholder="Précision (facultatif), ex. attestation 2026"/>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);"><input type="checkbox" id="dem-obl-' + m.id + '" checked style="width:15px;height:15px;min-height:0;padding:0;margin:0;appearance:auto;-webkit-appearance:checkbox;"> Obligatoire avant la signature du contrat</label>'
+    + '<button class="btn btn-p" style="font-size:12px;" onclick="demanderDocument(\'' + m.id + '\',this)">Envoyer la demande</button></div></details></div>';
+}
+
+async function refugeFetchJson(url, methode, corps) {
+  const res = await fetch(API_URL + url, { method: methode, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (getRefSession()?.token || '') }, body: corps ? JSON.stringify(corps) : undefined });
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+  return d;
+}
+async function demanderDocument(matchId, btn) {
+  btn.disabled = true;
+  try {
+    const type = document.getElementById('dem-type-' + matchId).value;
+    const lib = document.getElementById('dem-lib-' + matchId).value.trim();
+    await refugeFetchJson('/api/matching/match/' + matchId + '/documents', 'POST', { type, libelle: lib ? TYPES_DOC_TXT[type] + ' — ' + lib : undefined, obligatoire: document.getElementById('dem-obl-' + matchId).checked });
+    showToast('✅ Document demandé à la famille'); chargerMatchs(animalMatchsId);
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+async function deciderDocument(demandeId, decision, btn) {
+  let motif;
+  if (decision === 'refuse') { motif = prompt('Motif du refus (transmis à la famille) :'); if (!motif) return; }
+  btn.disabled = true;
+  try { const d = await refugeFetchJson('/api/matching/documents/' + demandeId, 'PATCH', { decision, motif }); showToast('✅ ' + d.message); chargerMatchs(animalMatchsId); }
+  catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
+async function retirerDemandeDocument(demandeId, btn) {
+  if (!confirm('Retirer cette demande de document ?')) return;
+  btn.disabled = true;
+  try { await refugeFetchJson('/api/matching/documents/' + demandeId, 'DELETE'); chargerMatchs(animalMatchsId); }
+  catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; }
+}
 </script>
 </body>
 </html>
