@@ -1204,6 +1204,14 @@ async function connexion() {
   try { await suite(); } catch (e) { showToast('⚠ Serveur injoignable, réessayez dans une minute.'); }
 }
 
+// Le QR code arrive en SVG brut : converti en base64, seul format affiché partout (Safari, Firefox)
+function qrEnImage(qr) {
+  if (!qr || qr.startsWith('data:image/svg+xml;base64,')) return qr;
+  let svg = qr.replace(/^data:image\/svg\+xml;(utf-?8|charset=utf-?8),/i, '');
+  if (/%3C/i.test(svg)) { try { svg = decodeURIComponent(svg); } catch (_) {} }
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
 let facteurEnCours = null;
 async function demarrerEnrolement() {
   // Supprime une configuration commencée mais jamais terminée
@@ -1213,7 +1221,7 @@ async function demarrerEnrolement() {
   const { data, error } = await sb.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'PetIA admin', issuer: 'PetIA' });
   if (error) { showToast('⚠ ' + error.message); return ecran('ecran-login'); }
   facteurEnCours = data.id;
-  document.getElementById('qr-img').src = data.totp.qr_code;
+  document.getElementById('qr-img').src = qrEnImage(data.totp.qr_code);
   document.getElementById('qr-secret').textContent = data.totp.secret;
   document.getElementById('qr-lien').href = data.totp.uri;
   ecran('ecran-enrolement');
