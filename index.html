@@ -8432,6 +8432,12 @@ function afficherConfigRefuge(section) {
         : ligne('E-mail pour les droits', c.rgpd_email) + ligne('DPO', c.rgpd_dpo || '—') + ligne('Destinataires', c.rgpd_destinataires || 'Texte par défaut (membres et bénévoles habilités)')
           + ligne('Transferts hors UE', c.rgpd_transfert || 'Aucun') + ligne('Conservation', c.rgpd_conservation || 'Texte par défaut'));
     },
+    resiliation: () => carte('resiliation', '⚖️', 'Résiliation et litiges', 'Articles 10 et 13 du contrat', configSection === 'resiliation'
+      ? champ('cfg-res-email', 'E-mail où la famille envoie sa résiliation (vide = e-mail données personnelles ou de la structure)', c.resiliation_email, 'contact@monasso.fr', 'email')
+        + champ('cfg-preavis', 'Délai de préavis de la famille (jours)', c.preavis_jours != null ? String(c.preavis_jours) : '', '15', 'number')
+        + champ('cfg-tribunal', 'Tribunaux compétents : ville (vide = ressort du siège de l\'Association)', c.tribunal, 'ex. Paris')
+      : ligne('E-mail de résiliation', c.resiliation_email || c.rgpd_email || r.email || '') + ligne('Préavis de la famille', (c.preavis_jours != null ? c.preavis_jours : 15) + ' jours')
+        + ligne('Tribunaux compétents', c.tribunal || 'Ressort du siège' + (r.ville ? ' (' + r.ville + ')' : ''))),
     regles: () => carte('regles', '📜', 'Règles propres à votre structure', 'Article 3 du contrat (facultatif)', configSection === 'regles'
       ? '<textarea id="cfg-regles" style="width:100%;height:110px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>'
       : '<div style="font-size:13px;color:' + (c.regles ? 'var(--text)' : 'var(--text3)') + ';white-space:pre-wrap;line-height:1.6;">' + (c.regles ? escHtml(c.regles) : 'Aucune règle particulière.') + '</div>'),
@@ -8440,7 +8446,7 @@ function afficherConfigRefuge(section) {
   if (configSection) {
     zone.innerHTML = sections[configSection]() + actions;
   } else {
-    zone.innerHTML = sections.structure() + sections.conditions() + sections.sante() + sections.documents() + sections.donnees() + sections.regles()
+    zone.innerHTML = sections.structure() + sections.conditions() + sections.sante() + sections.documents() + sections.donnees() + sections.resiliation() + sections.regles()
       + carte('contrat', '📄', 'Modèle de contrat d\'accueil', 'Généré automatiquement pour chaque accueil à partir des informations ci-dessus',
         '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">La famille signe en premier, puis vous contresignez. Le contrat reprend vos conditions, vos vétérinaires et vos règles, ainsi que la fiche de l\'animal et les modalités de remise.</div>'
         + '<button class="btn btn-p" style="font-size:12px;" onclick="apercuModeleContrat(this)">👁 Voir l\'aperçu du contrat</button>', '');
@@ -8480,6 +8486,7 @@ async function enregistrerConfigRefuge() {
       infos: { adresse: val('cfg-adresse', r.adresse), telephone: val('cfg-tel', r.telephone), site_web: val('cfg-site', r.site_web), contact_prenom: val('cfg-cprenom', r.contact_prenom), contact_nom: val('cfg-cnom', r.contact_nom), contact_fonction: val('cfg-cfonction', r.contact_fonction) },
       conditions: { nourriture: val('cfg-nourriture', c0.nourriture), veterinaire: val('cfg-veterinaire', c0.veterinaire), transport: val('cfg-transport', c0.transport),
         materiel: document.querySelector('.cfg-mat') ? [...document.querySelectorAll('.cfg-mat:checked')].map(x => x.value) : (c0.materiel || []), indemnite: val('cfg-indemnite', c0.indemnite),
+        resiliation_email: val('cfg-res-email', c0.resiliation_email), preavis_jours: val('cfg-preavis', c0.preavis_jours != null ? String(c0.preavis_jours) : ''), tribunal: val('cfg-tribunal', c0.tribunal),
         rgpd_email: val('cfg-rgpd-email', c0.rgpd_email), rgpd_dpo: val('cfg-rgpd-dpo', c0.rgpd_dpo), rgpd_destinataires: val('cfg-rgpd-dest', c0.rgpd_destinataires),
         rgpd_transfert: val('cfg-rgpd-transfert', c0.rgpd_transfert), rgpd_conservation: val('cfg-rgpd-conservation', c0.rgpd_conservation),
         veto_mode: val('cfg-veto-mode', c0.veto_mode), veto_lien: val('cfg-veto-lien', c0.veto_lien), veto_liste: val('cfg-veto-liste', c0.veto_liste), urgence: val('cfg-urgence', c0.urgence), regles: val('cfg-regles', c0.regles) },
