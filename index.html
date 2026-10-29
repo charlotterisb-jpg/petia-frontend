@@ -4368,6 +4368,56 @@ Signature électronique validée par l'Association</div>
 <script>
 // ── API & SESSION ──────────────────────────────────────────────────────────
 const API_URL = 'https://petia-backend.onrender.com';
+
+// ── Renouvellement automatique de la session ────────────────────────────────
+// Le jeton d'accès expire au bout d'une heure : sur une réponse 401, on le
+// renouvelle avec le jeton de rafraîchissement, puis on rejoue la requête une fois.
+(function () {
+  const fetchOrigine = window.fetch.bind(window);
+  const enCours = {};
+  const CLES = ['petia_fa', 'petia_ref'];
+  const lire = (cle) => { try { return JSON.parse(sessionStorage.getItem(cle) || 'null'); } catch (_) { return null; } };
+  async function renouveler(cle) {
+    if (enCours[cle]) return enCours[cle];
+    enCours[cle] = (async () => {
+      const s = lire(cle);
+      if (!s?.refresh) return null;
+      const r = await fetchOrigine(API_URL + '/api/auth/rafraichir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh: s.refresh }) });
+      if (!r.ok) return null;
+      const d = await r.json();
+      const maj = { ...s, token: d.token, refresh: d.refresh };
+      sessionStorage.setItem(cle, JSON.stringify(maj));
+      if (cle === 'petia_fa' && typeof sessionFA !== 'undefined' && sessionFA) Object.assign(sessionFA, maj);
+      if (cle === 'petia_ref' && typeof sessionRef !== 'undefined' && sessionRef) Object.assign(sessionRef, maj);
+      return d.token;
+    })().finally(() => setTimeout(() => { delete enCours[cle]; }, 2000));
+    return enCours[cle];
+  }
+  window.fetch = async function (url, opts = {}) {
+    const res = await fetchOrigine(url, opts);
+    if (res.status !== 401 || typeof url !== 'string' || !url.startsWith(API_URL) || url.includes('/api/auth/rafraichir')) return res;
+    const h = opts.headers || {};
+    const auth = h.Authorization || h.authorization;
+    if (!auth || !auth.startsWith('Bearer ')) return res;
+    const ancien = auth.slice(7);
+    const cle = CLES.find(c => lire(c)?.token === ancien);
+    if (!cle) return res;
+    const copie = res.clone();
+    const corps = await copie.json().catch(() => ({}));
+    if (corps.code === 'MFA_REQUIRED') return res;
+    const nouveau = await renouveler(cle).catch(() => null);
+    if (!nouveau) {
+      // Renouvellement impossible : retour propre à la connexion
+      try { sessionStorage.removeItem(cle); } catch (_) {}
+      if (cle === 'petia_fa') sessionFA = null; else sessionRef = null;
+      if (typeof showToast === 'function') showToast('Votre session a expiré : reconnectez-vous.');
+      if (typeof go === 'function') setTimeout(() => go(cle === 'petia_fa' ? 'login-fa' : 'login-fourriere'), 300);
+      return res;
+    }
+    return fetchOrigine(url, { ...opts, headers: { ...h, Authorization: 'Bearer ' + nouveau } });
+  };
+})();
+
 let sessionFA = null;      // { token, famille: { prenom, nom, ville, ... } }
 let sessionRef = null;     // { token, refuge: { nom, ... } }
 
@@ -4436,14 +4486,14 @@ async function loginRefuge(btn) {
 }
 
 function finaliserConnexionFA(data) {
-  sessionFA = { token: data.token, famille: data.famille };
+  sessionFA = { token: data.token, refresh: data.refresh, famille: data.famille };
   sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA));
   populateDashboardFA(data.famille);
   go('dashboard-fa');
 }
 
 function finaliserConnexionRefuge(data) {
-  sessionRef = { token: data.token, refuge: data.refuge };
+  sessionRef = { token: data.token, refresh: data.refresh, refuge: data.refuge };
   sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef));
   go('dashboard-fourriere');
 }
@@ -6946,9 +6996,9 @@ async function deciderMatch(matchId, statut, btn) {
 // DOUBLE AUTHENTIFICATION (facultative) — Google Authenticator
 // ═══════════════════════════════════════════════════════════════════
 const MFA_PROFILS = {
-  ref: { session: () => getRefSession(), cle: 'petia_ref', set: (t) => { sessionRef.token = t; sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef)); }, bloc: 'mfa-bloc-ref', ouvrir: "go('dashboard-fourriere');dashView('v-securite',document.getElementById('sb-securite'));afficherBlocMFA('ref')" },
+  ref: { session: () => getRefSession(), cle: 'petia_ref', set: (t, r) => { sessionRef.token = t; if (r) sessionRef.refresh = r; sessionStorage.setItem('petia_ref', JSON.stringify(sessionRef)); }, bloc: 'mfa-bloc-ref', ouvrir: "go('dashboard-fourriere');dashView('v-securite',document.getElementById('sb-securite'));afficherBlocMFA('ref')" },
   fa:  { session: () => { if (!sessionFA) { try { sessionFA = JSON.parse(sessionStorage.getItem('petia_fa') || 'null'); } catch (_) {} } return sessionFA; },
-         cle: 'petia_fa', set: (t) => { sessionFA.token = t; sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA)); }, bloc: 'mfa-bloc-fa', ouvrir: "faDashTab(document.getElementById('fa-tab-securite-btn'),'fa-tab-securite');afficherBlocMFA('fa')" }
+         cle: 'petia_fa', set: (t, r) => { sessionFA.token = t; if (r) sessionFA.refresh = r; sessionStorage.setItem('petia_fa', JSON.stringify(sessionFA)); }, bloc: 'mfa-bloc-fa', ouvrir: "faDashTab(document.getElementById('fa-tab-securite-btn'),'fa-tab-securite');afficherBlocMFA('fa')" }
 };
 const mfaEtat = { ref: null, fa: null };
 let mfaFacteur = { ref: null, fa: null };
@@ -7096,7 +7146,7 @@ async function confirmerMFA(profil, btn) {
   if (btn) btn.disabled = true;
   try {
     const data = await mfaFetch(profil, '/confirmer', { factor_id: mfaFacteur[profil].factor_id, code });
-    MFA_PROFILS[profil].set(data.token);
+    MFA_PROFILS[profil].set(data.token, data.refresh);
     mfaEtat[profil] = true; mfaFacteur[profil] = null;
     showToast('✅ Double authentification activée. Le code vous sera demandé à chaque connexion.');
     majIncitations(profil);
@@ -7114,7 +7164,7 @@ async function desactiverMFA(profil, btn) {
   if (btn) btn.disabled = true;
   try {
     const data = await mfaFetch(profil, '/desactiver', { code });
-    MFA_PROFILS[profil].set(data.token);
+    MFA_PROFILS[profil].set(data.token, data.refresh);
     mfaEtat[profil] = false;
     showToast('Double authentification désactivée.');
     majIncitations(profil);
