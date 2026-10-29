@@ -6,6 +6,9 @@
 <title>PetIA</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
+.ct-clause{border-radius:6px;padding:2px 4px;margin-left:-4px!important;margin-right:-4px!important;outline:1px dashed transparent;cursor:text;transition:outline-color .15s,background .15s}
+.ct-clause:hover{outline-color:#d1d5db}
+.ct-clause:focus{outline:2px solid #E8735A;background:#FFF7F5}
 :root {
   /* Dark base */
   --bg:#0B1426; --bg2:#111E38; --bg3:#172444; --bg4:#1E2D52;
@@ -8204,6 +8207,8 @@ async function ouvrirContrat(profil, matchId) {
   } catch (e) { ouvrirFenetre('<div style="padding:24px;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'); }
 }
 
+// « **texte** » : passages complétés ou modifiés par rapport au modèle PetIA
+const fmtGras = (p) => escHtml(p).replace(/\*\*([\s\S]+?)\*\*/g, '<strong style="font-weight:700;color:#111827;">$1</strong>');
 function afficherContrat(profil, matchId, c) {
   const t = c.contenu;
   const aSigner = (profil === 'fa' && c.statut === 'a_signer_fa') || (profil === 'ref' && c.statut === 'a_signer_refuge');
@@ -8213,7 +8218,7 @@ function afficherContrat(profil, matchId, c) {
     + '<div style="text-align:center;font-weight:700;font-size:16px;">' + escHtml(t.titre) + '</div>'
     + '<div style="text-align:center;font-size:12px;color:#4b5563;">' + escHtml(t.sous_titre) + '</div>'
     + (t.avertissement ? '<div style="text-align:center;font-size:11px;color:#B45309;margin:4px 0 10px;">' + escHtml(t.avertissement) + '</div>' : '')
-    + t.articles.map(a => '<div style="font-weight:700;margin:12px 0 4px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(p => '<p style="margin:0 0 6px;text-align:justify;">' + escHtml(p) + '</p>').join('')).join('')
+    + t.articles.map(a => '<div style="font-weight:700;margin:12px 0 4px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(p => '<p style="margin:0 0 6px;text-align:justify;">' + fmtGras(p) + '</p>').join('')).join('')
     + '</div>';
   const signatures = '<div style="font-size:12px;color:var(--text2);line-height:1.8;margin-top:12px;">'
     + 'Famille : ' + (c.fa_signe_le ? '✅ ' + escHtml(c.fa_nom_signe) + ', le ' + dateSig(c.fa_signe_le) : '⏳ en attente') + '<br>'
@@ -8374,6 +8379,8 @@ async function chargerConfigRefuge() {
 
 let configSection = null; // null = vue d'ensemble ; sinon la section en cours de modification
 function afficherConfigRefuge(section) {
+  if (section === 'contrat' && configSection !== 'contrat') { contratMode = configRefuge?.details?.contrat?.mode === 'propre' ? 'propre' : 'modele'; contratEdition = null; }
+  if (section !== 'contrat') contratEdition = null;
   configSection = section || null;
   const r = configRefuge || {}, c = r.details?.conditions || {};
   const v = (x) => escHtml(x || '');
@@ -8438,6 +8445,25 @@ function afficherConfigRefuge(section) {
         + champ('cfg-tribunal', 'Tribunaux compétents : ville (vide = ressort du siège de l\'Association)', c.tribunal, 'ex. Paris')
       : ligne('E-mail de résiliation', c.resiliation_email || c.rgpd_email || r.email || '') + ligne('Préavis de la famille', (c.preavis_jours != null ? c.preavis_jours : 15) + ' jours')
         + ligne('Tribunaux compétents', c.tribunal || 'Ressort du siège' + (r.ville ? ' (' + r.ville + ')' : ''))),
+    contrat: () => {
+      const ct = r.details?.contrat || {};
+      const propre = ct.mode === 'propre';
+      const nbModifs = Object.keys(ct.modifs || {}).length;
+      if (configSection === 'contrat') return carte('contrat', '📄', 'Contrat d\'accueil', 'Choisissez le contrat que signeront vos familles d\'accueil',
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">'
+        + [['modele', '📝 Modèle PetIA', 'Complété avec vos informations ; vous pouvez modifier chaque clause'], ['propre', '📎 Notre propre contrat', 'Vous collez le texte de votre contrat']].map(([k, t, sous]) =>
+          '<label style="display:block;cursor:pointer;background:var(--bg3);border:2px solid ' + (contratMode === k ? 'var(--corail)' : 'var(--border)') + ';border-radius:14px;padding:12px;">'
+          + '<input type="radio" name="cfg-ct-mode" value="' + k + '"' + (contratMode === k ? ' checked' : '') + ' onchange="changerModeContrat(this.value)" style="display:none;">'
+          + '<div style="font-size:13px;font-weight:700;color:var(--text);">' + t + '</div><div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.5;">' + sous + '</div></label>').join('')
+        + '</div><div id="cfg-ct-zone"><div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Chargement…</div></div>', '');
+      return carte('contrat', '📄', 'Contrat d\'accueil', propre ? 'Votre propre contrat' : 'Modèle PetIA' + (nbModifs || ct.clauses ? ' personnalisé' : ''),
+        '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">'
+        + (propre ? (ct.texte ? 'Vos familles signent votre contrat « ' + escHtml(ct.titre || 'Contrat de famille d\'accueil') + ' ». PetIA y ajoute l\'identification des parties, la fiche de l\'animal, la remise et la clause de signature électronique.' : '<span style="color:var(--warning)">Collez le texte de votre contrat.</span>')
+          : 'Le contrat reprend vos conditions, vos vétérinaires et vos règles, ainsi que la fiche de l\'animal et les modalités de remise.'
+            + (nbModifs ? ' <b style="color:var(--text)">' + nbModifs + ' clause(s) modifiée(s).</b>' : '') + (ct.clauses ? ' <b style="color:var(--text)">Clauses particulières ajoutées.</b>' : ''))
+        + ' La famille signe en premier, puis vous contresignez.</div>'
+        + '<button class="btn btn-p" style="font-size:12px;" onclick="apercuModeleContrat(this)">👁 Voir l\'aperçu du contrat</button>');
+    },
     regles: () => carte('regles', '📜', 'Règles propres à votre structure', 'Article 3 du contrat (facultatif)', configSection === 'regles'
       ? '<textarea id="cfg-regles" style="width:100%;height:110px;" placeholder="Ex. pas de sortie sans laisse, photo hebdomadaire…">' + v(c.regles) + '</textarea>'
       : '<div style="font-size:13px;color:' + (c.regles ? 'var(--text)' : 'var(--text3)') + ';white-space:pre-wrap;line-height:1.6;">' + (c.regles ? escHtml(c.regles) : 'Aucune règle particulière.') + '</div>'),
@@ -8447,11 +8473,73 @@ function afficherConfigRefuge(section) {
     zone.innerHTML = sections[configSection]() + actions;
   } else {
     zone.innerHTML = sections.structure() + sections.conditions() + sections.sante() + sections.documents() + sections.donnees() + sections.resiliation() + sections.regles()
-      + carte('contrat', '📄', 'Modèle de contrat d\'accueil', 'Généré automatiquement pour chaque accueil à partir des informations ci-dessus',
-        '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;">La famille signe en premier, puis vous contresignez. Le contrat reprend vos conditions, vos vétérinaires et vos règles, ainsi que la fiche de l\'animal et les modalités de remise.</div>'
-        + '<button class="btn btn-p" style="font-size:12px;" onclick="apercuModeleContrat(this)">👁 Voir l\'aperçu du contrat</button>', '');
+      + sections.contrat();
   }
+  if (configSection === 'contrat') afficherEditeurContrat();
   if (configSection) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── Contrat : modèle PetIA modifiable ou contrat propre ─────────────────────
+let contratMode = 'modele', contratEdition = null; // { contenu, origines, modifs: { id: texte } }
+function changerModeContrat(m) {
+  memoriserEditeurContrat();
+  contratMode = m;
+  document.querySelectorAll('input[name="cfg-ct-mode"]').forEach(x => { x.closest('label').style.borderColor = x.value === m ? 'var(--corail)' : 'var(--border)'; });
+  afficherEditeurContrat();
+}
+// Reprend dans contratEdition ce qui est saisi à l'écran
+function memoriserEditeurContrat() {
+  if (!contratEdition) return;
+  document.querySelectorAll('#cfg-ct-zone [data-ct-id]').forEach(el => { contratEdition.modifs[el.dataset.ctId] = el.innerText.replace(/\s+/g, ' ').trim(); });
+  const cl = document.getElementById('cfg-ct-clauses'); if (cl) contratEdition.clauses = cl.value;
+  const ti = document.getElementById('cfg-ct-titre'); if (ti) contratEdition.titre = ti.value;
+  const tx = document.getElementById('cfg-ct-texte'); if (tx) contratEdition.texte = tx.value;
+}
+async function afficherEditeurContrat(recharger) {
+  const zone = document.getElementById('cfg-ct-zone'); if (!zone) return;
+  const ct = configRefuge?.details?.contrat || {};
+  if (!contratEdition || recharger) {
+    try {
+      const res = await fetch(API_URL + '/api/refuge/modele-contrat?edition=1', { headers: { Authorization: 'Bearer ' + (getRefSession()?.token || '') } });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+      contratEdition = { contenu: d.contenu, origines: d.origines || {}, modifs: Object.fromEntries(Object.entries(ct.modifs || {}).map(([k, v]) => [k, v.t])),
+        clauses: ct.clauses || '', titre: ct.titre || '', texte: ct.texte || '' };
+    } catch (e) { zone.innerHTML = '<div style="color:var(--danger);font-size:13px;">' + escHtml(e.message) + '</div>'; return; }
+  }
+  const E = contratEdition, v = (x) => escHtml(x || '');
+  if (contratMode === 'propre') {
+    zone.innerHTML = '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px;">Collez ci-dessous le texte de votre contrat. Les lignes commençant par « Article », « Chapitre » ou « Titre » deviennent des titres. '
+      + 'PetIA ajoute automatiquement <b>au début</b> l\'identification des parties, la fiche de l\'animal et les modalités de remise, et <b>à la fin</b> la clause de signature électronique. Vous restez responsable du contenu de votre contrat.</div>'
+      + '<div class="field" style="margin-bottom:10px;"><label>Titre du contrat</label><input id="cfg-ct-titre" value="' + v(E.titre) + '" placeholder="Contrat de famille d\'accueil"/></div>'
+      + '<div class="field" style="margin-bottom:10px;"><label>Texte de votre contrat</label><textarea id="cfg-ct-texte" style="width:100%;height:380px;font-size:12px;line-height:1.6;" placeholder="Article 1 – Objet&#10;…">' + v(E.texte) + '</textarea></div>';
+    return;
+  }
+  const t = E.contenu;
+  const para = (p) => {
+    if (typeof p === 'string') return '<p title="Complété automatiquement : modifiable dans les autres rubriques de la configuration" style="margin:0 0 8px;text-align:justify;color:#4b5563;">' + fmtGras(p) + '</p>';
+    const saisi = E.modifs[p.id];
+    const modifie = saisi !== undefined && saisi !== p.o.replace(/\s+/g, ' ').trim();
+    if (modifie && saisi === '') return '<div style="margin:0 0 8px;padding:6px 10px;border:1px dashed #d1d5db;border-radius:8px;font-size:12px;color:#9ca3af;">Paragraphe supprimé · <a href="#" onclick="retablirClause(\'' + p.id + '\');return false;" style="color:#E8735A;">↺ Rétablir le texte du modèle</a></div>';
+    // Gras : calculé par le serveur pour le texte enregistré ; texte saisi non encore enregistré affiché tel quel
+    const html = modifie && p.mod && saisi === (configRefuge?.details?.contrat?.modifs?.[p.id]?.t) ? fmtGras(p.t) : escHtml(modifie ? saisi : p.o);
+    return '<p contenteditable="true" spellcheck="true" data-ct-id="' + p.id + '" class="ct-clause" style="margin:0 0 2px;text-align:justify;">' + html + '</p>'
+      + '<div style="font-size:10px;margin:0 0 8px;min-height:4px;">' + (modifie ? '<span style="color:#E8735A;font-weight:600;">Modifié</span> · <a href="#" onclick="retablirClause(\'' + p.id + '\');return false;" style="color:#6b7280;">↺ Revenir au texte du modèle</a>'
+        + (p.perime ? ' · <span style="color:#B45309;">le modèle PetIA a évolué depuis votre modification</span>' : '') : '') + '</div>';
+  };
+  zone.innerHTML = '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px;">Cliquez sur une clause pour la modifier ; videz-la pour la supprimer. Après enregistrement, <b>ce que vous avez modifié apparaît en gras</b>, comme les informations complétées. '
+    + 'Les passages en gris sont complétés automatiquement à partir des autres rubriques. Vous restez responsable des clauses que vous modifiez.</div>'
+    + '<div style="background:#fff;color:#1f2937;border-radius:12px;padding:18px 16px;font-size:13px;line-height:1.65;max-height:70vh;overflow-y:auto;">'
+    + '<div style="text-align:center;font-weight:700;font-size:16px;margin-bottom:6px;">' + escHtml(t.titre) + '</div>'
+    + t.articles.map(a => '<div style="font-weight:700;margin:14px 0 6px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(para).join('')).join('')
+    + '<div style="font-weight:700;margin:14px 0 6px;">Article 15 — Clauses particulières de l\'Association <span style="font-weight:400;font-size:11px;color:#6b7280;">(facultatif, une clause par ligne)</span></div>'
+    + '<textarea id="cfg-ct-clauses" style="width:100%;height:90px;background:#f9fafb;color:#1f2937;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;" placeholder="Ex. L\'animal ne doit pas être laissé seul plus de 6 heures.">' + v(E.clauses) + '</textarea>'
+    + '</div>';
+}
+function retablirClause(id) {
+  memoriserEditeurContrat();
+  if (contratEdition) contratEdition.modifs[id] = (contratEdition.origines[id] || '').replace(/\s+/g, ' ').trim();
+  afficherEditeurContrat();
 }
 
 async function apercuModeleContrat(btn) {
@@ -8465,7 +8553,7 @@ async function apercuModeleContrat(btn) {
       + '<div style="background:#fff;color:#1f2937;border-radius:12px;padding:18px 16px;font-size:13px;line-height:1.65;">'
       + '<div style="text-align:center;font-weight:700;font-size:16px;">' + escHtml(t.titre) + '</div>'
       + '<div style="text-align:center;font-size:11px;color:#B45309;margin:4px 0 10px;">' + escHtml(t.avertissement || '') + '</div>'
-      + t.articles.map(a => '<div style="font-weight:700;margin:12px 0 4px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(p => '<p style="margin:0 0 6px;text-align:justify;">' + escHtml(p) + '</p>').join('')).join('')
+      + t.articles.map(a => '<div style="font-weight:700;margin:12px 0 4px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(p => '<p style="margin:0 0 6px;text-align:justify;">' + fmtGras(p) + '</p>').join('')).join('')
       + '</div>');
   } catch (e) { showToast('⚠ ' + e.message); }
   if (btn) btn.disabled = false;
@@ -8481,7 +8569,16 @@ async function enregistrerConfigRefuge() {
       ? [...document.querySelectorAll('.cfg-doc:checked')].map(x => ({ type: x.value, obligatoire: document.getElementById('cfg-doc-obl-' + x.value).checked,
           libelle: x.value === 'autre' && document.getElementById('cfg-doc-lib-autre').value.trim() ? document.getElementById('cfg-doc-lib-autre').value.trim() : undefined }))
       : undefined;
+    let contrat;
+    if (configSection === 'contrat' && contratEdition) {
+      memoriserEditeurContrat();
+      const modifs = {};
+      for (const [id, t] of Object.entries(contratEdition.modifs)) if (contratEdition.origines[id] !== undefined && t !== contratEdition.origines[id].replace(/\s+/g, ' ').trim()) modifs[id] = t;
+      contrat = { mode: contratMode, modifs, clauses: contratEdition.clauses, titre: contratEdition.titre, texte: contratEdition.texte };
+      if (contratMode === 'propre' && !contrat.texte.trim()) throw new Error('Collez le texte de votre contrat.');
+    }
     const d = await refugeApi('PATCH', {
+      contrat,
       documents_defaut: docsDefaut,
       infos: { adresse: val('cfg-adresse', r.adresse), telephone: val('cfg-tel', r.telephone), site_web: val('cfg-site', r.site_web), contact_prenom: val('cfg-cprenom', r.contact_prenom), contact_nom: val('cfg-cnom', r.contact_nom), contact_fonction: val('cfg-cfonction', r.contact_fonction) },
       conditions: { nourriture: val('cfg-nourriture', c0.nourriture), veterinaire: val('cfg-veterinaire', c0.veterinaire), transport: val('cfg-transport', c0.transport),
@@ -8493,6 +8590,7 @@ async function enregistrerConfigRefuge() {
     });
     configRefuge = d.refuge; majEtatConfig(d.a_completer || []);
     showToast(d.a_completer?.length ? '✅ Enregistré · encore ' + d.a_completer.length + ' élément(s) à compléter' : '✅ Configuration complète');
+    if (contrat) { contratEdition = null; if (contratMode === 'modele') { afficherConfigRefuge('contrat'); return; } }
     afficherConfigRefuge();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
