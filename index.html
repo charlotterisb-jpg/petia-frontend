@@ -5826,9 +5826,9 @@ function validateEmail(inputEl) {
 }
 
 function validateTel(inputEl) {
-  const val = inputEl.value.trim().replace(/\s/g, '');
+  const val = inputEl.value.trim().replace(/[\s.\-()\u00A0]/g, '').replace(/^0033/, '+33');
   if (!val) { showFieldError(inputEl, 'Le téléphone est obligatoire'); return false; }
-  if (!/^(\+33|0)[1-9][0-9]{8}$/.test(val)) {
+  if (!/^(\+33|0)[1-9][0-9]{8}$/.test(val) && !/^\+[1-9][0-9]{7,14}$/.test(val)) {
     showFieldError(inputEl, 'Format invalide (ex: 06 12 34 56 78)');
     return false;
   }
@@ -5847,7 +5847,7 @@ function validatePassword(prefix) {
   if (!/[A-Z]/.test(val)) errors.push('1 majuscule requise');
   if (!/[a-z]/.test(val)) errors.push('1 minuscule requise');
   if (!/[0-9]/.test(val)) errors.push('1 chiffre requis');
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val)) errors.push('1 caractère spécial requis');
+  if (!/[^A-Za-z0-9]/.test(val)) errors.push('1 caractère spécial requis (ex. ! ? € # *)');
 
   if (errors.length > 0) {
     showFieldError(pwd, errors[0]);
@@ -5864,6 +5864,15 @@ function validatePassword(prefix) {
   return true;
 }
 
+// Champs obligatoires (libellé avec *) non vérifiés ailleurs : encadré rouge + ligne dans le bandeau
+function verifierObligatoires(champs, errors) {
+  champs.forEach(([el, label]) => {
+    if (!el) return;
+    if (!String(el.value || '').trim()) { showFieldError(el, label + ' est obligatoire'); errors.push(label + ' manquant(e)'); }
+    else showFieldSuccess(el);
+  });
+}
+
 function showErrorBanner(bannerId, listId, errors) {
   const banner = document.getElementById(bannerId);
   const list = document.getElementById(listId);
@@ -5871,7 +5880,8 @@ function showErrorBanner(bannerId, listId, errors) {
   if (errors.length === 0) { banner.classList.remove('show'); return; }
   list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
   banner.classList.add('show');
-  banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const premier = banner.closest('.page')?.querySelector('.field.error input, .field.error select, .field.error textarea');
+  (premier || banner).scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // Validation fourrière
@@ -5892,7 +5902,10 @@ async function validerFourriere() {
   if (adresse && !validateRequired(adresse, 'L\'adresse')) { errors.push('Adresse manquante'); ok = false; }
   if (cp && !validateRequired(cp, 'Le code postal')) { errors.push('Code postal manquant'); ok = false; }
   if (ville && !validateRequired(ville, 'La ville')) { errors.push('Ville manquante'); ok = false; }
-  if (!validatePassword('fourriere')) { errors.push('Mot de passe invalide'); ok = false; }
+  const nbAvant = errors.length;
+  verifierObligatoires([[document.querySelector('#fourriere-inscription input[placeholder="Sophie Lemaire"]'), 'Le prénom et nom du contact']], errors);
+  if (errors.length > nbAvant) ok = false;
+  if (!validatePassword('fourriere')) { errors.push('Mot de passe : ' + (document.querySelector('#pwd-fourriere')?.closest('.field')?.querySelector('.field-msg')?.textContent.replace('✗', '').trim() || 'invalide')); ok = false; }
   const siretBrut = (document.querySelector('#fourriere-inscription input[placeholder="XXX XXX XXX XXXXX"]')?.value || '').replace(/\s/g, '');
   if (siretBrut && !siretValideFront(siretBrut)) { errors.push('SIRET invalide (14 chiffres, vérifiez la saisie)'); ok = false; }
 
@@ -5949,7 +5962,10 @@ async function validerFamille() {
   if (tel && !validateTel(tel)) { errors.push('Téléphone invalide ou manquant'); ok = false; }
   if (cp && !validateRequired(cp, 'Le code postal')) { errors.push('Code postal manquant'); ok = false; }
   if (ville && !validateRequired(ville, 'La ville')) { errors.push('Ville manquante'); ok = false; }
-  if (!validatePassword('famille')) { errors.push('Mot de passe invalide'); ok = false; }
+  const nbAvantFa = errors.length;
+  verifierObligatoires([[document.getElementById('fc-logement'), 'Le type de logement'], [document.getElementById('travail'), 'La situation professionnelle']], errors);
+  if (errors.length > nbAvantFa) ok = false;
+  if (!validatePassword('famille')) { errors.push('Mot de passe : ' + (document.querySelector('#pwd-famille')?.closest('.field')?.querySelector('.field-msg')?.textContent.replace('✗', '').trim() || 'invalide')); ok = false; }
 
   showErrorBanner('err-famille', 'err-famille-list', errors);
 
@@ -5999,6 +6015,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (input.closest('.field')?.classList.contains('error')) {
         clearFieldState(input);
       }
+    });
+  });
+  document.querySelectorAll('select, textarea, input[type=password]').forEach(el => {
+    el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => {
+      if (el.closest('.field')?.classList.contains('error') && el.value) clearFieldState(el);
     });
   });
 });

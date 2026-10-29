@@ -1020,7 +1020,7 @@ select{background-image:none;}
     <h2>🔐 Connexion administrateur</h2>
     <p>Étape 1 sur 2 : e-mail et mot de passe.</p>
     <div class="field"><label>Email</label><input id="admin-email" type="email" autocomplete="username"/></div>
-    <div class="field"><label>Mot de passe</label><input id="admin-pwd" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')connexion()"/></div>
+    <div class="field"><label>Mot de passe</label><div style="position:relative;"><input id="admin-pwd" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')connexion()" style="padding-right:46px;"/><button type="button" aria-label="Afficher le mot de passe" onclick="const i=document.getElementById('admin-pwd');const v=i.type==='password';i.type=v?'text':'password';this.textContent=v?'🙈':'👁';" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:6px;min-height:0;width:auto;">👁</button></div></div>
     <button class="btn btn-p co" id="btn-login" style="width:100%;justify-content:center;margin-top:6px;" onclick="connexion()">Continuer</button>
   </div></div>
 
@@ -1198,6 +1198,7 @@ async function connexion() {
   occupe('btn-login', true, 'Connexion…');
   const { error } = await sb.auth.signInWithPassword({ email, password });
   document.getElementById('admin-pwd').value = '';
+  document.getElementById('admin-pwd').type = 'password';
   occupe('btn-login', false);
   if (error) return showToast('⚠ Email ou mot de passe incorrect.');
   try { await suite(); } catch (e) { showToast('⚠ Serveur injoignable, réessayez dans une minute.'); }
