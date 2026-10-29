@@ -1213,7 +1213,8 @@ select{background-image:none;}
 <!-- ========== APP SHELL ========== -->
 <div id="app-shell" class="app-shell">
   <header class="app-header">
-    <div class="header-logo" onclick="go('landing')">
+    <button id="nav-retour" onclick="goRetour()" aria-label="Retour" style="display:none;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:10px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;margin-right:10px;">← Retour</button>
+    <div class="header-logo" onclick="go(accueilConnecte())" style="margin-right:auto;">
       <img src="https://teeprkpfrmpyuymaxxqe.supabase.co/storage/v1/object/public/assets/petia_logo.png" alt="PetIA" style="height:40px;width:40px;border-radius:10px;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
       <div class="logo-mark" style="display:none;">🐾</div>
       <span class="logo-text">Pet<span>IA</span></span>
@@ -1277,7 +1278,7 @@ select{background-image:none;}
 
   <!-- Bottom navigation bar (mobile) -->
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
-    <button class="mbn-item" onclick="go('landing')">
+    <button class="mbn-item" onclick="go(accueilConnecte())">
       <span class="mbn-icon">🏠</span>
       <span class="mbn-label">Accueil</span>
     </button>
@@ -1925,288 +1926,24 @@ select{background-image:none;}
 
   <!-- ===== ANNUAIRE FAMILLES — style Airbnb ===== -->
   <div id="annuaire-familles" class="page">
-    <div class="annuaire-header">
-      <h2>Annuaire des familles d'accueil</h2>
-      <p>124 familles vérifiées dans votre réseau · Filtrez par disponibilité, distance et profil</p>
-    </div>
-    <div style="padding:0 24px">
-      <div class="search-bar">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Rechercher par ville, code postal ou prénom..."/>
+    <div class="form-wrap" style="max-width:900px;">
+      <button class="page-back" onclick="goRetour('dashboard-fourriere')">← Retour</button>
+      <h1 class="page-title">Annuaire des familles d'accueil</h1>
+      <p class="page-sub">Toutes les familles dont le dossier a été validé par PetIA, même sans match. Les coordonnées ne sont transmises qu'une fois un accueil accepté.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <input id="ann-recherche" type="text" placeholder="Ville, code postal ou prénom…" oninput="afficherAnnuaire()" style="flex:1;min-width:200px;"/>
+        <select id="ann-espece" onchange="afficherAnnuaire()" style="min-width:150px;"><option value="">Toutes espèces</option><option value="chien">Chiens</option><option value="chat">Chats</option><option value="nac">NAC</option></select>
       </div>
-    </div>
-    <!-- Barre de filtres multi-sélection -->
-    <div style="padding:14px 24px;border-bottom:1px solid var(--border);">
-
-      <!-- Filtres rapides multi-sélectionnables -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        <span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;">Filtres</span>
-        <button class="fchip" id="f-dispo-now" onclick="toggleFiltre(this,'dispo-now')">Disponibles maintenant</button>
-        <button class="fchip" id="f-jardin" onclick="toggleFiltre(this,'jardin')">Jardin clôturé</button>
-        <button class="fchip" id="f-experience" onclick="toggleFiltre(this,'experience')">FA expérimentées</button>
-        <button class="fchip" id="f-enfants" onclick="toggleFiltre(this,'enfants')">Ok enfants</button>
-        <button class="fchip" id="f-grands-chiens" onclick="toggleFiltre(this,'grands-chiens')">Ok grands chiens</button>
-        <button class="fchip" id="f-energie" onclick="toggleFiltre(this,'energie')">Ok chiens énergiques</button>
-        <button class="fchip" id="f-previsite" onclick="toggleFiltre(this,'previsite')">Prévisitées</button>
-        <button class="fchip" id="f-proche" onclick="toggleFiltre(this,'proche')">- de 10 km</button>
-        <button class="btn btn-s" style="font-size:11px;padding:6px 12px;flex-shrink:0;margin-left:auto;" onclick="toggleFiltresAvances()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-          Filtres avancés
-        </button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="fchip" data-f="dispo" onclick="this.classList.toggle('on');afficherAnnuaire()">Disponibles maintenant</button>
+        <button class="fchip" data-f="jardin" onclick="this.classList.toggle('on');afficherAnnuaire()">Avec jardin</button>
+        <button class="fchip" data-f="experience" onclick="this.classList.toggle('on');afficherAnnuaire()">Déjà des accueils</button>
+        <button class="fchip" data-f="sansenfant" onclick="this.classList.toggle('on');afficherAnnuaire()">Sans enfants</button>
+        <button class="fchip" data-f="sanschien" onclick="this.classList.toggle('on');afficherAnnuaire()">Sans chien au foyer</button>
+        <button class="fchip" data-f="sanschat" onclick="this.classList.toggle('on');afficherAnnuaire()">Sans chat au foyer</button>
       </div>
-
-      <!-- Filtres actifs (résumé) -->
-      <div id="filtres-actifs" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-        <span style="font-size:11px;color:var(--text3);">Filtres actifs :</span>
-      </div>
-
-      <!-- Panneau filtres avancés -->
-      <div id="panel-filtres-avances" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:10px;">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-
-          <!-- Disponibilité -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Disponibilité</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="dispo-now" onchange="syncFiltre(this)"/> Immédiatement</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="dispo-semaine" onchange="syncFiltre(this)"/> Cette semaine</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="dispo-mois" onchange="syncFiltre(this)"/> Ce mois</label>
-            </div>
-          </div>
-
-          <!-- Logement -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Logement</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="jardin" onchange="syncFiltre(this)"/> Jardin clôturé</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="maison" onchange="syncFiltre(this)"/> Maison</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="appart" onchange="syncFiltre(this)"/> Appartement ok</label>
-            </div>
-          </div>
-
-          <!-- Compatibilité -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Compatibilité</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="enfants" onchange="syncFiltre(this)"/> Ok enfants</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="grands-chiens" onchange="syncFiltre(this)"/> Ok grands chiens</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="energie" onchange="syncFiltre(this)"/> Ok chiens énergiques</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="chat" onchange="syncFiltre(this)"/> Ok chats</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="autres-animaux" onchange="syncFiltre(this)"/> Ok autres animaux</label>
-            </div>
-          </div>
-
-          <!-- Profil FA -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Profil FA</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="experience" onchange="syncFiltre(this)"/> FA expérimentées (2+)</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="previsite" onchange="syncFiltre(this)"/> Prévisitées</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="checkbox" class="filtre-adv" data-filtre="note-4" onchange="syncFiltre(this)"/> Note 4+ étoiles</label>
-            </div>
-          </div>
-
-          <!-- Distance -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Distance</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="distance" value="5" onchange="setDistanceFiltre(5)"/> Moins de 5 km</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="distance" value="10" onchange="setDistanceFiltre(10)"/> Moins de 10 km</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="distance" value="30" onchange="setDistanceFiltre(30)"/> Moins de 30 km</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="distance" value="0" checked onchange="setDistanceFiltre(0)"/> Toutes distances</label>
-            </div>
-          </div>
-
-          <!-- Absence max -->
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Absence max/jour</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="absence" value="4" onchange="setAbsenceFiltre(4)"/> Max 4h</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="absence" value="6" onchange="setAbsenceFiltre(6)"/> Max 6h</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="absence" value="8" onchange="setAbsenceFiltre(8)"/> Max 8h</label>
-              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;"><input type="radio" name="absence" value="0" checked onchange="setAbsenceFiltre(0)"/> Pas de limite</label>
-            </div>
-          </div>
-
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-          <button class="btn btn-s" style="font-size:12px;" onclick="reinitialiserFiltres()">Réinitialiser tout</button>
-          <button class="btn btn-p" style="font-size:12px;" onclick="appliquerFiltres()">Appliquer les filtres →</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="sort-row">
-      <span class="sort-lbl" id="nb-resultats">124 familles trouvées</span>
-      <select class="sort-select">
-        <option>Trier par : Score IA ↓</option>
-        <option>Distance</option>
-        <option>Disponibilité</option>
-        <option>Nb accueils réussis</option>
-        <option>Récemment inscrits</option>
-      </select>
-    </div>
-    <div class="fa-grid">
-
-      <!-- Card 1 — Top match -->
-      <div class="fa-card type-urgence" onclick="ouvrirDetail('Marie Martin','Paris 15e · 2.1 km','94','maison-jardin','Immédiatement','3','Labrador, Golden','Pas de chat · Ok enfants 6+')">
-        <div class="fa-card-img">
-          <span class="fa-emoji">🏡</span>
-          <div class="fa-badge-top">
-            <span style="background:rgba(255,122,89,.8);color:white;">⭐ Top match Rox</span>
-          </div>
-          <div class="score-badge"><span class="score-dot" style="background:#10B981"></span>94%</div>
-          <div class="dispo-badge">🟢 Disponible dès demain</div>
-        </div>
-        <div class="fa-card-body">
-          <div class="fa-card-name">Marie Martin</div>
-          <div class="fa-card-loc"><span>📍</span>Paris 15e · 2.1 km · Maison jardin clôturé</div>
-          <div class="fa-card-chips">
-            <span class="fa-chip ok">🏠 Maison + jardin</span>
-            <span class="fa-chip ok">⭐ 3 accueils réussis</span>
-            <span class="fa-chip ok">🐕 Ok grands chiens</span>
-            <span class="fa-chip ok">👶 Ok enfants 6+</span>
-            <span class="fa-chip warn">⏰ Abs. max 4h</span>
-            <span class="pv-badge">✅ Prévisitée · SPA Paris Nord</span>
-          </div>
-          <div class="fa-card-footer">
-            <div class="fa-accs"><strong>3 accueils</strong> · dont 1 Labrador anxieux</div>
-            <button class="fa-contact-btn" onclick="event.stopPropagation();showToast('📱 SMS envoyé à Marie Martin')">Contacter</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="fa-card type-normal" onclick="ouvrirDetail('Thomas & Julie Renard','Vincennes · 4.8 km','84','maison-jardin','Sous 24h','2','Berger australien','Ok chats · Ok enfants')">
-        <div class="fa-card-img">
-          <span class="fa-emoji">🌿</span>
-          <div class="fa-badge-top">
-            <span style="background:rgba(43,78,212,.7);color:white;">⭐ Bon match Duke</span>
-          </div>
-          <div class="score-badge"><span class="score-dot" style="background:#10B981"></span>84%</div>
-          <div class="dispo-badge">🟢 Sous 24h</div>
-        </div>
-        <div class="fa-card-body">
-          <div class="fa-card-name">Thomas & Julie Renard</div>
-          <div class="fa-card-loc"><span>📍</span>Vincennes · 4.8 km · Maison jardin</div>
-          <div class="fa-card-chips">
-            <span class="fa-chip ok">🏠 Jardin</span>
-            <span class="fa-chip ok">⭐ 2 accueils réussis</span>
-            <span class="fa-chip ok">👶 Ok enfants</span>
-            <span class="fa-chip warn">⚠ Abs. 5h certains jours</span>
-          </div>
-          <div class="fa-card-footer">
-            <div class="fa-accs"><strong>2 accueils</strong> · dont 1 chien réactif</div>
-            <button class="fa-contact-btn" onclick="event.stopPropagation();showToast('📱 SMS envoyé à Thomas & Julie Renard')">Contacter</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3 -->
-      <div class="fa-card type-senior" onclick="ouvrirDetail('Sophie Moreau','Montreuil · 6.2 km','80','maison-jardin','Cette semaine','1','Chiens calmes, seniors','Pas d\'enfants · Ok chats')">
-        <div class="fa-card-img">
-          <span class="fa-emoji">🐾</span>
-          <div class="fa-badge-top">
-            <span style="background:rgba(124,58,237,.7);color:white;">🎓 Éducatrice</span>
-          </div>
-          <div class="score-badge"><span class="score-dot" style="background:#10B981"></span>80%</div>
-          <div class="dispo-badge">🟡 Cette semaine</div>
-        </div>
-        <div class="fa-card-body">
-          <div class="fa-card-name">Sophie Moreau</div>
-          <div class="fa-card-loc"><span>📍</span>Montreuil · 6.2 km · Maison jardin clôturé</div>
-          <div class="fa-card-chips">
-            <span class="fa-chip ok">🏠 Jardin clôturé</span>
-            <span class="fa-chip ok">🎓 Éducatrice canine</span>
-            <span class="fa-chip ok">⚡ Ok chiens réactifs</span>
-            <span class="fa-chip warn">⚠ 1er grand chien</span>
-          </div>
-          <div class="fa-card-footer">
-            <div class="fa-accs"><strong>1 accueil</strong> · chien peureux réussi</div>
-            <button class="fa-contact-btn" onclick="event.stopPropagation();showToast('📱 SMS envoyé à Sophie Moreau')">Contacter</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="fa-card type-chiot" onclick="ouvrirDetail('Claire Fontaine','Paris 11e · 3.4 km','76','appartement','Weekends','0','Petits chiens, chiots','Ok chats · Pas d\'enfants')">
-        <div class="fa-card-img">
-          <span class="fa-emoji">🏙️</span>
-          <div class="fa-badge-top">
-            <span style="background:rgba(245,158,11,.7);color:white;">🐩 Petits chiens</span>
-          </div>
-          <div class="score-badge"><span class="score-dot" style="background:#F59E0B"></span>76%</div>
-          <div class="dispo-badge">🟡 Weekends seulement</div>
-        </div>
-        <div class="fa-card-body">
-          <div class="fa-card-name">Claire Fontaine</div>
-          <div class="fa-card-loc"><span>📍</span>Paris 11e · 3.4 km · Appartement + balcon</div>
-          <div class="fa-card-chips">
-            <span class="fa-chip">🏙️ Appartement</span>
-            <span class="fa-chip ok">✅ Télétravail</span>
-            <span class="fa-chip ok">🐩 Petits chiens ok</span>
-            <span class="fa-chip ko">✗ Pas de grand chien</span>
-          </div>
-          <div class="fa-card-footer">
-            <div class="fa-accs"><strong>Nouvelle FA</strong> · 0 accueil</div>
-            <button class="fa-contact-btn" onclick="event.stopPropagation();showToast('📱 SMS envoyé à Claire Fontaine')">Contacter</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 5 -->
-      <div class="fa-card type-senior" onclick="ouvrirDetail('Robert & Anne Leroy','Saint-Mandé · 7.1 km','72','maison-jardin','Flexible','5','Tous profils','Ok enfants adultes')">
-        <div class="fa-card-img">
-          <span class="fa-emoji">🌳</span>
-          <div class="fa-badge-top">
-            <span style="background:rgba(16,185,129,.7);color:white;">🏆 5 accueils</span>
-          </div>
-          <div class="score-badge"><span class="score-dot" style="background:#F59E0B"></span>72%</div>
-          <div class="dispo-badge">🟢 Flexible</div>
-        </div>
-        <div class="fa-card-body">
-          <div class="fa-card-name">Robert & Anne Leroy</div>
-          <div class="fa-card-loc"><span>📍</span>Saint-Mandé · 7.1 km · Maison grand jardin</div>
-          <div class="fa-card-chips">
-            <span class="fa-chip ok">🏠 Grand jardin clôturé</span>
-            <span class="fa-chip ok">🏆 5 accueils réussis</span>
-            <span class="fa-chip ok">🐕 Tous gabarits</span>
-            <span class="fa-chip warn">⚠ Seniors · rythme calme</span>
-          </div>
-          <div class="fa-card-footer">
-            <div class="fa-accs"><strong>5 accueils</strong> · dont 2 chiens difficiles</div>
-            <button class="fa-contact-btn" onclick="event.stopPropagation();showToast('📱 SMS envoyé à Robert & Anne Leroy')">Contacter</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 6 -->
-      <div class="fa-card type-chiot" onclick="ouvrirDetail('Yasmine Haddad','Bagnolet · 8.3 km','68','appartement','Cette semaine','1','Chiots, petits','Pas de grands chiens')">
-        <div class="fa-card-img">
-          <span class="fa-emoji">🐕‍🦺</span>
-          <div class="fa-badge-top">
-            <span style="background:rgba(124,58,237,.7);color:white;">🐾 Spé. chiots</span>
-          </div>
-          <div class="score-badge"><span class="score-dot" style="background:#F59E0B"></span>68%</div>
-          <div class="dispo-badge">🟡 Cette semaine</div>
-        </div>
-        <div class="fa-card-body">
-          <div class="fa-card-name">Yasmine Haddad</div>
-          <div class="fa-card-loc"><span>📍</span>Bagnolet · 8.3 km · Appartement</div>
-          <div class="fa-card-chips">
-            <span class="fa-chip ok">🐶 Spécialisée chiots</span>
-            <span class="fa-chip ok">✅ Télétravail full</span>
-            <span class="fa-chip ok">🐈 Ok chats</span>
-            <span class="fa-chip ko">✗ Pas de grands chiens</span>
-          </div>
-          <div class="fa-card-footer">
-            <div class="fa-accs"><strong>1 accueil</strong> · chiot 3 mois réussi</div>
-            <button class="fa-contact-btn" onclick="event.stopPropagation();showToast('📱 SMS envoyé à Yasmine Haddad')">Contacter</button>
-          </div>
-        </div>
-      </div>
-
+      <div id="ann-resume" style="font-size:12px;color:var(--text3);margin-bottom:10px;"></div>
+      <div id="ann-liste"></div>
     </div>
   </div>
 
@@ -4880,7 +4617,39 @@ const PAGES=['landing','login-fourriere','login-fa','mot-de-passe','fourriere-in
 const IN_SHELL=['login-fourriere','login-fa','mot-de-passe','fourriere-inscription','dashboard-fourriere','ajouter-animal','annuaire-familles','conditions-accueil','contrat-fa','famille-compte','questionnaire-fa','proposition-accueil','lecture-contrat','confirmation-signature','previsite','notation','dashboard-fa','contact','modifier-donnees'];
 const BADGES={'login-fourriere':'Connexion refuge','mot-de-passe':'Mot de passe','login-fa':'Connexion famille d\'accueil','fourriere-inscription':'Inscription refuge','dashboard-fourriere':'Espace refuge','ajouter-animal':'Saisie animal','annuaire-familles':'Annuaire FA','conditions-accueil':"Conditions d'accueil",'contrat-fa':'Contrat FA','famille-compte':"Inscription FA",'questionnaire-fa':'Questionnaire FA','proposition-accueil':"Proposition d'accueil",'lecture-contrat':'Lecture du contrat','confirmation-signature':'Signature validée','previsite':'Prévisites','notation':'Évaluation','dashboard-fa':'Mon espace FA','contact':'Contact & réclamations','modifier-donnees':'Modifier mes informations'};
 
-function go(id){
+// Navigation : chaque page est ajoutée à l'historique du navigateur, pour que le
+// bouton « Retour » (et le geste retour de l'iPhone) ramène à la page précédente.
+let navPile = [];
+function estConnecte(type) {
+  const cle = type === 'fa' ? 'petia_fa' : 'petia_ref';
+  try { return !!JSON.parse(sessionStorage.getItem(cle) || 'null')?.token; } catch (_) { return false; }
+}
+function accueilConnecte() {
+  if (estConnecte('ref')) return 'dashboard-fourriere';
+  if (estConnecte('fa')) return 'dashboard-fa';
+  return 'landing';
+}
+function goRetour(defaut) {
+  if (navPile.length > 1) history.back(); else go(defaut || accueilConnecte());
+}
+window.addEventListener('popstate', (e) => {
+  const page = e.state?.page;
+  if (page && PAGES.includes(page)) { navPile.pop(); go(page, { historique: false }); }
+});
+function majBoutonRetour(id) {
+  const b = document.getElementById('nav-retour');
+  if (b) b.style.display = navPile.length > 1 && !['dashboard-fourriere', 'dashboard-fa', 'landing'].includes(id) ? 'flex' : 'none';
+}
+
+function go(id, opts = {}){
+  // Déjà connecté : la page de connexion mène directement à son espace
+  if (id === 'login-fa' && estConnecte('fa')) id = 'dashboard-fa';
+  if (id === 'login-fourriere' && estConnecte('ref')) id = 'dashboard-fourriere';
+  if (opts.historique !== false && navPile[navPile.length - 1] !== id) {
+    navPile.push(id);
+    try { history.pushState({ page: id }, ''); } catch (_) {}
+  }
+  if (typeof majBoutonRetour === 'function') setTimeout(() => majBoutonRetour(id), 0);
   PAGES.forEach(p=>{const e=document.getElementById(p);if(e)e.classList.remove('active');});
   const shell=document.getElementById('app-shell');
   if(IN_SHELL.includes(id)){shell.classList.add('active');document.getElementById('hbadge').textContent=BADGES[id]||'';}
@@ -4897,6 +4666,8 @@ function go(id){
   if(id==='dashboard-fa' && typeof chargerEspaceFA==='function') chargerEspaceFA();
   if(id==='questionnaire-fa' && typeof appliquerEspecesFA==='function') appliquerEspecesFA();
   if(id==='ajouter-animal' && typeof appliquerEspeceAnimal==='function') appliquerEspeceAnimal();
+  if(id==='annuaire-familles' && typeof chargerAnnuaire==='function') chargerAnnuaire();
+  if(id!=='famille-compte' && typeof modeFoyer==='function') modeFoyer(false);
 }
 
 function dashView(vid,btn){
@@ -7227,12 +6998,18 @@ function afficherMatchs(matchs, stats) {
     if (stats && stats.familles_validees != null)
       t += ' · ' + stats.familles_validees + ' famille(s) au dossier validé, ' + stats.exclues_par_regles + ' écartée(s) par les règles' + (stats.ia_utilisee ? '' : ' · IA indisponible, score par règles');
     resume.textContent = t;
+    const raisons = Object.entries(stats?.raisons_exclusion || {}).sort((a, b) => b[1] - a[1]);
+    if (raisons.length) resume.innerHTML = escHtml(t) + '<div style="margin-top:8px;font-size:12px;color:var(--text2);line-height:1.7;"><b style="color:var(--text)">Pourquoi des familles sont écartées :</b><br>'
+      + raisons.map(([r, n]) => '• ' + escHtml(r) + ' (' + n + ' famille' + (n > 1 ? 's' : '') + ')').join('<br>')
+      + '<br><span style="color:var(--text3)">Vous pouvez aussi consulter toutes les familles dans l\'<a href="#" onclick="go(\'annuaire-familles\');return false;" style="color:var(--corail)">annuaire</a>.</span></div>';
   }
   const list = document.getElementById('matchs-list');
   if (!matchs.length) {
     list.innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px;line-height:1.7">'
       + (stats ? 'Aucune famille compatible parmi les familles au dossier validé.' : 'Aucun match enregistré pour cet animal.')
-      + '<br>Seules les familles dont le dossier est <b>validé</b> sont proposées.</div>';
+      + '<br>Seules les familles dont le dossier est <b>validé</b> sont proposées.'
+      + (stats ? '' : '<br><button class="btn btn-p" style="font-size:12px;margin-top:10px;" onclick="relancerMatching()">Relancer le matching et voir pourquoi</button>')
+      + '</div>';
     return;
   }
   list.innerHTML = matchs.map(m => {
@@ -7861,7 +7638,9 @@ function afficherProfilFA() {
   zone.innerHTML =
     carte('Informations personnelles', ligne('Nom', [f.prenom, f.nom].filter(Boolean).join(' ')) + ligne('Email', f.email) + ligne('Téléphone', f.telephone) + ligne('Ville', [f.code_postal, f.ville].filter(Boolean).join(' ')))
   + carte('Mon foyer', ligne('Logement', FA_LIB.logement[f.type_logement] && (FA_LIB.logement[f.type_logement] + (f.jardin ? ' avec jardin' : ''))) + ligne('Enfants', enfants) + ligne('Animaux au foyer', animaux)
-      + ligne('Temps seul par jour', FA_LIB.seul[f.heures_seul]) + ligne('Présence en journée', FA_LIB.presence[f.presence_journee]) || '<div style="font-size:12px;color:var(--text3)">Non renseigné.</div>')
+      + ligne('Temps seul par jour', FA_LIB.seul[f.heures_seul]) + ligne('Présence en journée', FA_LIB.presence[f.presence_journee])
+      + (f.type_logement ? '' : '<div style="font-size:12px;color:var(--warning);line-height:1.6;">⚠ Logement non renseigné : sans ces informations, beaucoup d\'animaux ne peuvent pas vous être proposés.</div>'),
+      '<button class="btn btn-s" style="font-size:11px;padding:5px 12px;" onclick="ouvrirFoyerFA()">' + (f.type_logement ? 'Modifier' : 'Compléter') + '</button>')
   + carte('Mon questionnaire', ligne('Animaux accueillis', especes || 'Non renseigné') + ligne('Questionnaire', qTxt),
       '<button class="btn btn-s" style="font-size:11px;padding:5px 12px;" onclick="ouvrirQuestionnaireFA()">' + (f.questionnaire_soumis_le ? 'Modifier' : 'Compléter') + '</button>')
   + carte('Disponibilité', '<div style="font-size:12px;color:var(--text3);">Si vous êtes indisponible, aucune proposition ne vous est faite.</div>'
@@ -8225,6 +8004,121 @@ document.addEventListener('DOMContentLoaded', () => setTimeout(() => {
   if (!m) return;
   history.replaceState(null, '', location.pathname + location.search);
   if (m[1] === 'mdp') ouvrirNouveauMdp(m[2]); else ouvrirBlocage(m[2]);
+}, 0));
+</script>
+<script>
+// ═══ ANNUAIRE DES FAMILLES (refuges validés) ═══════════════════════════════
+let annuaire = [];
+async function chargerAnnuaire() {
+  const zone = document.getElementById('ann-liste');
+  const ref = getRefSession();
+  if (!ref?.token) { zone.innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px">Connectez-vous avec votre compte refuge pour voir l\'annuaire.</div>'; return; }
+  zone.innerHTML = '<div style="padding:28px;text-align:center;color:var(--text3);font-size:13px">Chargement…</div>';
+  try {
+    const res = await fetch(API_URL + '/api/matching/annuaire', { headers: { Authorization: 'Bearer ' + ref.token } });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Erreur serveur.');
+    annuaire = d.familles || [];
+    afficherAnnuaire();
+  } catch (e) { zone.innerHTML = '<div class="form-section" style="text-align:center;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'; }
+}
+
+function afficherAnnuaire() {
+  const zone = document.getElementById('ann-liste'); if (!zone) return;
+  const q = (document.getElementById('ann-recherche')?.value || '').trim().toLowerCase();
+  const esp = document.getElementById('ann-espece')?.value || '';
+  const filtres = [...document.querySelectorAll('#annuaire-familles .fchip.on')].map(b => b.dataset.f);
+  const especesDe = (f) => (f.peut_accueillir && f.peut_accueillir.length) ? f.peut_accueillir : ['chien'];
+  const a = (f, t) => Array.isArray(f.animaux_actuels) && f.animaux_actuels.includes(t);
+  const liste = annuaire.filter(f =>
+    (!q || [f.prenom, f.ville, f.code_postal].some(v => String(v || '').toLowerCase().includes(q)))
+    && (!esp || especesDe(f).includes(esp))
+    && (!filtres.includes('dispo') || f.disponible_le === 'maintenant')
+    && (!filtres.includes('jardin') || f.jardin)
+    && (!filtres.includes('experience') || f.nb_accueils > 0)
+    && (!filtres.includes('sansenfant') || f.enfants === false)
+    && (!filtres.includes('sanschien') || !a(f, 'chien'))
+    && (!filtres.includes('sanschat') || !a(f, 'chat')));
+  document.getElementById('ann-resume').textContent = liste.length + ' famille(s) sur ' + annuaire.length + ' au dossier validé';
+  if (!liste.length) { zone.innerHTML = '<div class="form-section" style="text-align:center;color:var(--text3);font-size:13px">' + (annuaire.length ? 'Aucune famille ne correspond à ces filtres.' : 'Aucune famille validée pour l\'instant.') + '</div>'; return; }
+  const chip = (t, ok) => '<span style="font-size:11px;padding:3px 9px;border-radius:20px;background:' + (ok === false ? 'rgba(239,68,68,.12)' : 'var(--bg3)') + ';color:' + (ok === false ? '#FCA5A5' : 'var(--text2)') + ';border:1px solid var(--border);">' + escHtml(t) + '</span>';
+  zone.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">' + liste.map(f => {
+    const logement = FA_LIB.logement[f.type_logement] ? FA_LIB.logement[f.type_logement] + (f.jardin ? ' avec jardin' : '') : 'Logement non renseigné';
+    const chips = [
+      chip(especesDe(f).map(e => FA_LIB.especes[e] || e).join(', ')),
+      f.heures_seul ? chip('Seul ' + (FA_LIB.seul[f.heures_seul] || f.heures_seul)) : '',
+      f.enfants === true ? chip('Enfants au foyer') : f.enfants === false ? chip('Sans enfants') : '',
+      a(f, 'chien') ? chip('Chien au foyer') : '', a(f, 'chat') ? chip('Chat au foyer') : '',
+      f.previsitee ? chip('🏠 Prévisitée') : '',
+    ].join('');
+    const dispo = FA_LIB.dispo[f.disponible_le] || 'Disponibilité non renseignée';
+    return '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:16px;">'
+      + '<div style="font-size:15px;font-weight:700;color:var(--text);">' + escHtml(f.prenom || 'Famille') + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin:2px 0 10px;">📍 ' + escHtml([f.code_postal, f.ville].filter(Boolean).join(' ')) + ' · ' + escHtml(logement) + '</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">' + chips + '</div>'
+      + '<div style="font-size:12px;color:' + (f.disponible_le === 'non_dispo' ? 'var(--warning)' : f.disponible_le ? 'var(--success)' : 'var(--text3)') + ';">' + escHtml(dispo) + '</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:4px;">' + (f.nb_accueils ? f.nb_accueils + ' accueil(s) réalisé(s)' : 'Premier accueil') + (f.note_moyenne ? ' · note ' + f.note_moyenne + '/5' : '') + '</div>'
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+// ═══ « MON FOYER » : la famille met à jour son logement et son quotidien ═══
+// Réutilise les sections 2 à 5 du formulaire d'inscription, sans la partie compte.
+let enModeFoyer = false;
+function modeFoyer(actif) {
+  if (enModeFoyer === actif) return;
+  enModeFoyer = actif;
+  const page = document.getElementById('famille-compte'); if (!page) return;
+  const sections = page.querySelectorAll('.form-section');
+  if (sections[0]) sections[0].style.display = actif ? 'none' : '';
+  const prog = page.querySelector('.progress'); if (prog) prog.style.display = actif ? 'none' : '';
+  const titre = page.querySelector('.page-title'), sous = page.querySelector('.page-sub');
+  if (!titre.dataset.orig) { titre.dataset.orig = titre.textContent; sous.dataset.orig = sous.textContent; }
+  titre.textContent = actif ? 'Mon foyer' : titre.dataset.orig;
+  sous.textContent = actif ? 'Mettez à jour votre logement et votre quotidien : ces informations servent au matching.' : sous.dataset.orig;
+  const actions = page.querySelector('.form-actions');
+  if (actions) actions.innerHTML = actif
+    ? '<button class="btn btn-s" onclick="goRetour(\'dashboard-fa\')">Annuler</button><button class="btn btn-p co" onclick="enregistrerFoyer(this)">Enregistrer</button>'
+    : '<button class="btn btn-s" onclick="go(\'landing\')">Annuler</button><button class="btn btn-p co" onclick="validerFamille()">Continuer →</button>';
+  const retour = page.querySelector('.page-back');
+  if (retour) retour.setAttribute('onclick', actif ? "goRetour('dashboard-fa')" : "go('landing')");
+}
+
+function ouvrirFoyerFA() {
+  go('famille-compte');
+  modeFoyer(true);
+  const f = faMoi || {};
+  const sel = (id, v) => { const el = document.getElementById(id); if (el && v != null && [...el.options].some(o => o.value === v)) el.value = v; };
+  const logement = f.type_logement === 'appartement' ? 'Appartement' : f.type_logement === 'maison' ? (f.hauteur_cloture === 'aucune' ? 'Maison avec grand terrain' : 'Maison avec jardin clôturé') : '';
+  const fl = document.getElementById('fc-logement'); if (fl && logement) fl.value = logement;
+  sel('fc-cloture', f.hauteur_cloture); sel('fc-escaliers', f.escaliers); sel('fc-etage', f.etage); sel('fc-vehicule', f.vehicule);
+  sel('fc-heures-seul', f.heures_seul); sel('fc-presence', f.presence_journee); sel('fc-balades', f.balades_par_jour); sel('fc-duree-balade', f.duree_balade);
+  sel('fc-lieux', (f.lieux_promenade || [])[0]);
+  const page = document.getElementById('famille-compte');
+  const tag = (groupe, texte) => { const t = [...page.querySelectorAll('[onclick*="\'' + groupe + '\'"]')].find(x => x.textContent.trim() === texte); if (t && !t.classList.contains('s')) E(t, 's', groupe); };
+  if (Array.isArray(f.enfants)) tag('enf', f.enfants.length ? decodeTxt(f.enfants[0]) : 'Non');
+  tag('st', { maintenant: 'Immédiatement', cette_semaine: 'Cette semaine', ce_mois: 'Ce mois-ci' }[f.disponible_le]);
+}
+
+async function enregistrerFoyer(btn) {
+  const profil = collecterProfilFA();
+  if (!Object.keys(profil).length) return showToast('⚠ Renseignez au moins votre type de logement.');
+  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  try {
+    await faFetch('/profil', { method: 'PATCH', body: JSON.stringify({ profil }) });
+    showToast('✅ Votre foyer est à jour. Les animaux disponibles sont recalculés pour vous.');
+    modeFoyer(false);
+    go('dashboard-fa');
+  } catch (e) { showToast('⚠ ' + e.message); btn.disabled = false; btn.textContent = 'Enregistrer'; }
+}
+
+// Point de départ de l'historique de navigation
+document.addEventListener('DOMContentLoaded', () => setTimeout(() => {
+  if (!navPile.length) {
+    const actif = PAGES.find(p => document.getElementById(p)?.classList.contains('active')) || 'landing';
+    navPile = [actif];
+    try { history.replaceState({ page: actif }, ''); } catch (_) {}
+  }
 }, 0));
 </script>
 </body>
