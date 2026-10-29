@@ -1432,6 +1432,7 @@ select{background-image:none;}
       <!-- ── VUE ANIMAUX ── -->
       <div id="v-animaux">
         <div class="mfa-incitation mfa-rappel" data-profil="ref" style="display:none;"></div>
+        <div id="refuge-a-faire"></div>
         <div class="dash-topbar">
           <div><h2>Mes animaux</h2><p id="dash-animaux-resume">Chargement…</p></div>
           <button class="btn btn-p co" onclick="go('ajouter-animal')"><span style="font-size:17px;line-height:1">+</span>Ajouter</button>
@@ -4662,6 +4663,7 @@ function go(id, opts = {}){
   if(id==='dashboard-fourriere' && typeof chargerAnimaux==='function') chargerAnimaux();
   if(id==='dashboard-fourriere' && typeof majBandeauValidationRefuge==='function') majBandeauValidationRefuge();
   if(id==='dashboard-fourriere' && typeof majStatutMFA==='function') majStatutMFA('ref');
+  if(id==='dashboard-fourriere' && typeof majAFaireRefuge==='function') majAFaireRefuge();
   if(id==='dashboard-fa' && typeof majStatutMFA==='function') majStatutMFA('fa');
   if(id==='dashboard-fa' && typeof chargerEspaceFA==='function') chargerEspaceFA();
   if(id==='questionnaire-fa' && typeof appliquerEspecesFA==='function') appliquerEspecesFA();
@@ -7028,8 +7030,15 @@ function afficherMatchs(matchs, stats) {
     if (m.statut === 'propose') actions = '<div style="display:flex;gap:9px;flex-wrap:wrap">'
         + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="ouvrirModalites(\'' + m.id + '\')">✓ Valider</button>'
         + '<button class="btn btn-s" style="font-size:13px" onclick="deciderMatch(\'' + m.id + '\',\'refuse\',this)">Refuser</button></div>';
+    else if (m.statut === 'accepte' && m.reponse_fa === 'oui' && m.contrat?.statut !== 'signe') actions =
+        '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:8px">✅ La famille a accepté.</div>'
+        + (m.contrat?.statut === 'a_signer_refuge'
+          ? '<button class="btn btn-p" style="width:100%;justify-content:center;font-size:13px" onclick="ouvrirContrat(\'ref\',\'' + m.id + '\')">✍️ La famille a signé : contresigner le contrat</button>'
+          : '<div style="font-size:12px;color:var(--text3);margin-bottom:8px">⏳ En attente de la signature du contrat par la famille.</div>'
+            + '<button class="btn btn-s" style="font-size:12px" onclick="ouvrirContrat(\'ref\',\'' + m.id + '\')">📄 Voir le contrat</button>');
     else if (m.statut === 'accepte' && m.reponse_fa === 'oui') actions =
-        '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:10px">✅ La famille a accepté. Une fois l\'animal arrivé chez elle, confirmez l\'arrivée.</div>'
+        '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:6px">✅ Contrat signé par les deux parties. Une fois l\'animal arrivé chez la famille, confirmez l\'arrivée.</div>'
+        + '<button class="btn btn-s" style="font-size:11px;padding:5px 10px;margin-bottom:10px" onclick="ouvrirContrat(\'ref\',\'' + m.id + '\')">📄 Voir / télécharger le contrat</button>'
         + '<div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">'
         + '<label style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px">Arrivée le <input type="date" id="arrivee-date-' + m.id + '" value="' + auj + '" style="width:auto"></label>'
         + '<button class="btn btn-p" style="flex:1;justify-content:center;font-size:13px" onclick="confirmerArrivee(\'' + m.id + '\',this)">🏠 Confirmer l\'arrivée chez la famille</button></div>';
@@ -7052,6 +7061,7 @@ function afficherMatchs(matchs, stats) {
       + '<div class="kpi" style="padding:12px 14px"><div class="kpi-l">Dispo</div><div class="kpi-v" style="font-size:14px">' + (DISPO_TXT[f.disponible_le] || '—') + '</div></div>'
       + '</div>'
       + (infos ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">' + escHtml(infos) + '</div>' : '')
+      + ((f.telephone || f.email) ? '<div style="font-size:12px;color:var(--text);background:var(--bg3);border-radius:10px;padding:8px 12px;margin-bottom:10px;line-height:1.7">👤 ' + escHtml([[f.prenom, f.nom].filter(Boolean).join(' '), f.telephone, f.email, f.adresse].filter(Boolean).join(' · ')) + '</div>' : '')
       + (resumeIA ? '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.65">✦ ' + escHtml(resumeIA) + '</div>' : '')
       + (attention ? '<ul style="font-size:12px;color:var(--warning);margin:0 0 14px 18px;line-height:1.7">' + attention + '</ul>' : '')
       + (m.modalites && ['accepte', 'en_cours'].includes(m.statut) ? '<div style="margin-bottom:12px;">' + texteModalites(m.modalites)
@@ -7608,7 +7618,12 @@ function afficherPropositionsFA() {
       + '<button class="btn btn-s" style="font-size:13px" onclick="repondrePropositionFA(\'' + p.id + '\',\'non\',this)">Décliner</button></div>';
     else if (p.reponse_fa === 'oui') {
       const r = p.animal?.refuge || {};
-      actions = '<div style="font-size:12px;color:var(--success);font-weight:600;">✅ Vous avez accepté. Le refuge va vous contacter pour organiser l\'arrivée.</div>'
+      const st = p.contrat?.statut || 'a_signer_fa';
+      actions = (st === 'a_signer_fa'
+          ? '<button class="btn btn-p co" style="width:100%;justify-content:center;font-size:13px;margin-bottom:8px;" onclick="ouvrirContrat(\'fa\',\'' + p.id + '\')">✍️ Lire et signer le contrat d\'accueil</button>'
+          : '<div style="font-size:12px;font-weight:600;color:' + STATUT_CONTRAT[st].couleur + ';margin-bottom:6px;">' + (st === 'a_signer_refuge' ? '✍️ Vous avez signé · en attente de la signature du refuge' : STATUT_CONTRAT[st].txt) + '</div>'
+            + '<button class="btn btn-s" style="font-size:12px;margin-bottom:8px;" onclick="ouvrirContrat(\'fa\',\'' + p.id + '\')">📄 Voir le contrat</button>')
+        + '<div style="font-size:12px;color:var(--success);font-weight:600;">✅ Vous avez accepté. Le refuge va vous contacter pour organiser l\'arrivée.</div>'
         + ((r.telephone || r.email) ? '<div style="font-size:12px;color:var(--text2);margin-top:4px;">Contact du refuge : ' + escHtml([r.telephone, r.email].filter(Boolean).join(' · ')) + '</div>' : '');
     } else actions = '<div style="font-size:12px;color:var(--text3);">Vous avez décliné cette proposition.</div>';
     return carteAnimalFA(p, actions);
@@ -7624,7 +7639,8 @@ function afficherAccueilsFA() {
         const df = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR') : '';
         const r = p.animal?.refuge || {};
         return carteAnimalFA(p, '<span class="ubadge ' + (p.statut === 'en_cours' ? 'no' : 'pl') + '">' + (p.statut === 'en_cours' ? '🏠 Accueil en cours depuis le ' + df(p.date_debut_accueil) : '✓ Accueil terminé (' + df(p.date_debut_accueil) + ' → ' + df(p.date_fin_accueil) + ')') + '</span>'
-          + ((r.telephone || r.email) ? '<div style="font-size:12px;color:var(--text2);margin-top:8px;">Contact du refuge : ' + escHtml([r.telephone, r.email].filter(Boolean).join(' · ')) + '</div>' : ''));
+          + ((r.telephone || r.email) ? '<div style="font-size:12px;color:var(--text2);margin-top:8px;">Contact du refuge : ' + escHtml([r.telephone, r.email].filter(Boolean).join(' · ')) + '</div>' : '')
+          + (p.contrat ? '<button class="btn btn-s" style="font-size:12px;margin-top:8px;" onclick="ouvrirContrat(\'fa\',\'' + p.id + '\')">📄 Voir le contrat</button>' : ''));
       }).join('')
     : '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;color:var(--text3);font-size:13px">Aucun accueil pour l\'instant.</div>';
 }
@@ -7669,8 +7685,9 @@ async function repondrePropositionFA(id, reponse, btn) {
   if (btn) btn.disabled = true;
   try {
     await faFetch('/propositions/' + id, { method: 'PATCH', body: JSON.stringify({ reponse }) });
-    showToast(reponse === 'oui' ? '✅ Merci ! Le refuge est prévenu et va vous contacter.' : 'Proposition déclinée.');
-    chargerEspaceFA();
+    showToast(reponse === 'oui' ? '✅ Merci ! Dernière étape : lisez et signez le contrat d\'accueil.' : 'Proposition déclinée.');
+    await chargerEspaceFA();
+    if (reponse === 'oui') ouvrirContrat('fa', id);
   } catch (e) { showToast('⚠ ' + e.message); if (btn) btn.disabled = false; }
 }
 
@@ -8247,6 +8264,131 @@ function ficheAnimalFA(matchId, section) {
            : '<div style="font-size:11px;color:var(--text3);margin-top:8px;">Le téléphone, l\'e-mail et le nom du référent s\'affichent une fois la proposition acceptée.</div>'), 'fiche-refuge')
     + (p.resume_ia ? bloc('Pourquoi cet animal vous est proposé', texte(p.resume_ia)) : ''));
   if (section) setTimeout(() => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+</script>
+<script>
+// ═══ CONTRAT D'ACCUEIL : lecture, signature, téléchargement ═══════════════
+const STATUT_CONTRAT = {
+  a_signer_fa: { txt: '📝 Contrat à signer par la famille', couleur: 'var(--warning)' },
+  a_signer_refuge: { txt: '✍️ Signé par la famille · à contresigner par le refuge', couleur: 'var(--warning)' },
+  signe: { txt: '✅ Contrat signé par les deux parties', couleur: 'var(--success)' },
+};
+
+// profil : 'fa' ou 'ref'
+function urlContrat(profil, matchId, suffixe = '') {
+  return API_URL + (profil === 'fa' ? '/api/fa/contrats/' + matchId : '/api/matching/match/' + matchId + '/contrat') + suffixe;
+}
+function jetonProfil(profil) { return (profil === 'fa' ? MFA_PROFILS.fa.session() : getRefSession())?.token || ''; }
+
+async function ouvrirContrat(profil, matchId) {
+  ouvrirFenetre('<div style="padding:30px;text-align:center;color:var(--text3);font-size:13px">Préparation du contrat…</div>');
+  try {
+    const res = await fetch(urlContrat(profil, matchId), { headers: { Authorization: 'Bearer ' + jetonProfil(profil) } });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Contrat indisponible.');
+    afficherContrat(profil, matchId, d.contrat);
+  } catch (e) { ouvrirFenetre('<div style="padding:24px;color:var(--danger);font-size:13px">' + escHtml(e.message) + '</div>'); }
+}
+
+function afficherContrat(profil, matchId, c) {
+  const t = c.contenu;
+  const aSigner = (profil === 'fa' && c.statut === 'a_signer_fa') || (profil === 'ref' && c.statut === 'a_signer_refuge');
+  const mfa = typeof mfaEtat !== 'undefined' && mfaEtat[profil];
+  const dateSig = (d) => new Date(d).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+  const texte = '<div id="contrat-texte" style="background:#fff;color:#1f2937;border-radius:12px;padding:18px 16px;max-height:46vh;overflow-y:auto;font-size:13px;line-height:1.65;">'
+    + '<div style="text-align:center;font-weight:700;font-size:16px;">' + escHtml(t.titre) + '</div>'
+    + '<div style="text-align:center;font-size:12px;color:#4b5563;">' + escHtml(t.sous_titre) + '</div>'
+    + (t.avertissement ? '<div style="text-align:center;font-size:11px;color:#B45309;margin:4px 0 10px;">' + escHtml(t.avertissement) + '</div>' : '')
+    + t.articles.map(a => '<div style="font-weight:700;margin:12px 0 4px;">' + escHtml(a.titre) + '</div>' + a.paragraphes.map(p => '<p style="margin:0 0 6px;text-align:justify;">' + escHtml(p) + '</p>').join('')).join('')
+    + '</div>';
+  const signatures = '<div style="font-size:12px;color:var(--text2);line-height:1.8;margin-top:12px;">'
+    + 'Famille : ' + (c.fa_signe_le ? '✅ ' + escHtml(c.fa_nom_signe) + ', le ' + dateSig(c.fa_signe_le) : '⏳ en attente') + '<br>'
+    + 'Refuge : ' + (c.refuge_signe_le ? '✅ ' + escHtml(c.refuge_nom_signe) + ', le ' + dateSig(c.refuge_signe_le) : '⏳ en attente') + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-top:4px;word-break:break-all;">Empreinte SHA-256 : ' + escHtml(c.empreinte) + '</div>';
+  const champ = (id, label, type, extra) => '<div class="field" style="margin-bottom:10px;"><label>' + label + '</label><input id="' + id + '" type="' + type + '" ' + (extra || '') + '/></div>';
+  let formulaire = '';
+  if (aSigner) {
+    const cases = profil === 'fa' ? (t.confirmations_fa || []).map((x, i) =>
+      '<label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer;"><input type="checkbox" class="ct-conf" style="width:16px;height:16px;min-height:0;padding:0;margin:2px 0 0;flex-shrink:0;appearance:auto;-webkit-appearance:checkbox;accent-color:var(--corail);"> ' + escHtml(x) + '</label>').join('') : '';
+    formulaire = '<div id="ct-form" style="margin-top:16px;opacity:.45;pointer-events:none;transition:opacity .2s;">'
+      + '<div id="ct-lecture" style="font-size:12px;color:var(--warning);margin-bottom:10px;">📖 Faites défiler le contrat jusqu\'en bas pour pouvoir signer.</div>'
+      + cases
+      + champ('ct-nom', profil === 'fa' ? 'Vos prénom et nom' : 'Nom et fonction du signataire', 'text', 'autocomplete="name"')
+      + champ('ct-mdp', 'Votre mot de passe PetIA (pour authentifier la signature)', 'password', 'autocomplete="current-password"')
+      + (mfa ? champ('ct-code', 'Code Google Authenticator', 'text', 'inputmode="numeric" maxlength="6" autocomplete="one-time-code"') : '')
+      + '<button class="btn btn-p co" id="ct-btn" style="width:100%;justify-content:center;" onclick="signerContrat(\'' + profil + '\',\'' + matchId + '\')">✍️ ' + (profil === 'fa' ? 'Signer le contrat' : 'Contresigner le contrat') + '</button></div>';
+  } else if (profil === 'ref' && c.statut === 'a_signer_fa') {
+    formulaire = '<div style="font-size:12px;color:var(--text3);margin-top:12px;">La famille doit signer en premier. Vous serez prévenu pour contresigner.</div>';
+  }
+  ouvrirFenetre('<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;">Contrat d\'accueil</div>'
+    + '<div style="font-size:12px;font-weight:600;color:' + (STATUT_CONTRAT[c.statut]?.couleur || 'var(--text2)') + ';margin-bottom:12px;">' + (STATUT_CONTRAT[c.statut]?.txt || '') + '</div>'
+    + texte + signatures + formulaire
+    + '<button class="btn btn-s" style="width:100%;justify-content:center;margin-top:12px;font-size:12px;" onclick="telechargerContrat(\'' + profil + '\',\'' + matchId + '\',this)">⬇ Télécharger le contrat (PDF)</button>');
+  if (aSigner) {
+    const zone = document.getElementById('contrat-texte');
+    const debloquer = () => {
+      if (zone.scrollTop + zone.clientHeight < zone.scrollHeight - 30) return;
+      const f = document.getElementById('ct-form'); if (!f || f.dataset.ok) return;
+      f.dataset.ok = '1'; f.style.opacity = '1'; f.style.pointerEvents = 'auto';
+      document.getElementById('ct-lecture').textContent = '✅ Contrat lu jusqu\'au bout.';
+      document.getElementById('ct-lecture').style.color = 'var(--success)';
+    };
+    zone.addEventListener('scroll', debloquer); setTimeout(debloquer, 100);
+  }
+}
+
+async function signerContrat(profil, matchId) {
+  const conf = [...document.querySelectorAll('.ct-conf')].map(x => x.checked);
+  if (conf.some(x => !x)) return showToast('⚠ Cochez toutes les déclarations.');
+  const nom = document.getElementById('ct-nom').value.trim(), mdp = document.getElementById('ct-mdp').value;
+  const code = (document.getElementById('ct-code')?.value || '').replace(/\D/g, '');
+  if (!nom) return showToast('⚠ Saisissez le nom du signataire.');
+  if (!mdp) return showToast('⚠ Saisissez votre mot de passe.');
+  const btn = document.getElementById('ct-btn'); btn.disabled = true; btn.textContent = 'Signature…';
+  try {
+    const res = await fetch(urlContrat(profil, matchId, '/signer'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + jetonProfil(profil) },
+      body: JSON.stringify({ nom, mot_de_passe: mdp, code: code || undefined, confirmations: profil === 'fa' ? conf : undefined }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.message || 'Signature impossible.');
+    fermerFenetre();
+    showToast('✅ ' + d.message);
+    if (profil === 'fa') chargerEspaceFA(); else { chargerMatchs(animalMatchsId); chargerAnimaux(); majAFaireRefuge(); }
+  } catch (e) {
+    showToast('⚠ ' + e.message);
+    document.getElementById('ct-mdp').value = '';
+    btn.disabled = false; btn.textContent = '✍️ ' + (profil === 'fa' ? 'Signer le contrat' : 'Contresigner le contrat');
+  }
+}
+
+async function telechargerContrat(profil, matchId, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const res = await fetch(urlContrat(profil, matchId, '/pdf'), { headers: { Authorization: 'Bearer ' + jetonProfil(profil) } });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || 'Téléchargement impossible.'); }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'contrat-accueil.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  } catch (e) { showToast('⚠ ' + e.message); }
+  if (btn) btn.disabled = false;
+}
+
+// ── Notifications du refuge : bandeau « À faire » sur le tableau de bord
+async function majAFaireRefuge() {
+  const ref = getRefSession(); const zone = document.getElementById('refuge-a-faire');
+  if (!ref?.token || !zone) return;
+  try {
+    const res = await fetch(API_URL + '/api/matching/a-faire', { headers: { Authorization: 'Bearer ' + ref.token } });
+    const d = await res.json().catch(() => ({}));
+    const el = d.elements || [];
+    if (!res.ok || !el.length) { zone.innerHTML = ''; return; }
+    const ICONE = { contrat: '✍️', arrivee: '🏠', attente: '⏳', propose: '🐾' };
+    zone.innerHTML = '<div style="background:rgba(79,114,245,.10);border:1px solid rgba(79,114,245,.35);border-radius:14px;padding:12px 16px;margin-bottom:16px;">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">🔔 À faire (' + el.length + ')</div>'
+      + el.map(x => '<div style="font-size:12px;padding:5px 0;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;"><span style="flex:1;color:var(--text2);">' + (ICONE[x.type] || '•') + ' ' + escHtml(x.texte) + '</span>'
+        + '<button class="btn btn-s" style="font-size:11px;padding:4px 10px;" onclick="ouvrirMatchs(\'' + x.animal_id + '\')">Ouvrir</button></div>').join('') + '</div>';
+  } catch (_) {}
 }
 </script>
 </body>
